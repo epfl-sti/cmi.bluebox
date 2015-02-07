@@ -28,3 +28,4 @@ RUN curl -L get.rexify.org | perl - --sudo -n Rex
 EXPOSE 80
 # For tinc:
 EXPOSE 655
+EXPOSE 655/udp
