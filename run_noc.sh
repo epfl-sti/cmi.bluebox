@@ -22,18 +22,20 @@ start() {
 }
 
 stop() {
-    docker ps -q $BLUEBOXNOC_DOCKER_NAME | xargs --no-run-if-empty docker kill
+    docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | \
+      xargs --no-run-if-empty docker kill
+}
 }
 
 case "$1" in
     status)
-        docker ps $BLUEBOXNOC_DOCKER_NAME ;;
+        docker ps "$BLUEBOXNOC_DOCKER_NAME" ;;
     start)
         start ;;
     stop)
         stop ;;
     shell)
-        docker exec -it $(docker ps -q $BLUEBOXNOC_DOCKER_NAME) bash ;;
+        docker exec -it $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME") bash ;;
     restart)
         stop
         start ;;
