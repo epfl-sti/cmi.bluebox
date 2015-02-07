@@ -25,6 +25,17 @@ RUN apt-get install -y nodejs
 RUN apt-get -y install build-essential libexpat1-dev libxml2-dev libssh2-1-dev libssl-dev
 RUN curl -L get.rexify.org | perl - --sudo -n Rex
 
+# Remove all setuid privileges to lock down non-root users in the container
+RUN find / -xdev -perm /u=s,g=s -print -exec chmod u-s,g-s '{}' \;
+# Something really fishy is going on with
+# /usr/bin/mail-{lock,touchlock,unlock}; these are all hard links to the same
+# file, but chmod'ing any of these breaks the hard link ?! Probably a side
+# effect of the filesystem fakes that Docker uses. Take no risk and just nuke
+# the whole Debian package from orbit.
+RUN dpkg --purge lockfile-progs
+# Double check there are no setuid / setgid files left over.
+RUN find / -xdev -perm /u=s,g=s | sed '/./q1'
+
 EXPOSE 80
 # For tinc:
 EXPOSE 655
