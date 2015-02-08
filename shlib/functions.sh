@@ -12,10 +12,15 @@ linux_distribution_name() {
     echo "Unknown"
 }
 
+fatal() {
+    for msg in "$@" ; do echo "$msg" >&2; done
+    exit 2
+}
+
 ensure_running_as_root() {
     case "$(id -u)" in
         0) : ;;
-        *) echo >&2 "This script must be run as root."; exit 2;;
+        *) fatal "This script must be run as root.";;
     esac
 }
 
@@ -56,11 +61,8 @@ ensure_docker() {
             yum -y install docker-io
             ;;
     esac
-    check_docker "$minversion"  || {
-        echo >&2 "Unable to install Docker."
-        echo >&2 "Please install Docker $minversion or higher, and run the script again."
-        exit 2
-    }
+    check_docker "$minversion"  || fatal "Unable to install Docker." \
+        "Please install Docker $minversion or higher, and run the script again."
 }
 
 confirm_yesno() {
