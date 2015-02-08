@@ -12,11 +12,15 @@ linux_distribution_name() {
     echo "Unknown"
 }
 
-fatal() {
+bannermsg() {
     set +x
     echo >&2
     for msg in "$@" ; do echo "$msg" >&2; done
     echo >&2
+}
+
+fatal() {
+    bannermsg "$@"
     exit 2
 }
 
