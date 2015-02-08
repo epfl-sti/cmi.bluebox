@@ -25,6 +25,9 @@ RUN apt-get install -y nodejs
 RUN apt-get -y install build-essential libexpat1-dev libxml2-dev libssh2-1-dev libssl-dev
 RUN curl -L get.rexify.org | perl - --sudo -n Rex
 
+# Apache
+RUN apt-get install -y apache2
+
 # Remove all setuid privileges to lock down non-root users in the container
 RUN find / -xdev -perm /u=s,g=s -print -exec chmod u-s,g-s '{}' \;
 # Something really fishy is going on with
