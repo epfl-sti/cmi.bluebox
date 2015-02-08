@@ -1,13 +1,13 @@
-running_on_mac() {
-    test "$(uname -s)" = "Darwin"
-}
-
-linux_distribution_name() {
-    if [ -f "/etc/redhat-release" ]; then
+os_name() {
+    if test "$(uname -s)" = "Darwin"; then
+        echo Darwin
+        return
+    elif [ -f "/etc/redhat-release" ]; then
         case "$(cat /etc/redhat-release)" in
-            CentOS*) echo "CentOS"; return ;;
-            *Enterprise*) echo "RedHat"; return ;;
+            CentOS*) echo "CentOS" ;;
+            *Enterprise*) echo "RedHat" ;;
         esac
+        return
     elif grep -q DISTRIB_ID "/etc/lsb-release"; then
         . "/etc/lsb-release"
         echo "$DISTRIB_ID"
@@ -28,11 +28,12 @@ fatal() {
     exit 2
 }
 
+running_as_root() {
+    test "$(id -u)" = 0
+}
+
 ensure_running_as_root() {
-    case "$(id -u)" in
-        0) : ;;
-        *) fatal "This script must be run as root.";;
-    esac
+    running_as_root || fatal "Please re-run $0 as root."
 }
 
 check_docker() {
@@ -52,16 +53,33 @@ check_docker() {
 
 ensure_docker() {
     local minversion=$1
-    check_docker "$minversion"  && return
+    check_docker "$minversion" && return
     
-    case "$(linux_distribution_name)" in
+    case "$(os_name)" in
+        Darwin)
+            which boot2docker || {
+                which brew || fatal "Please install Homebrew from http://brew.sh/" \
+                                    "and run the script again."
+                brew install boot2docker
+            }
+            which boot2docker || fatal "Unable to install boot2docker automatically." \
+                                       "Please install manually and run the script again."
+
+            # What follows is a transcription of the instructions at the end of
+            # brew install boot2docker
+            test -f ~/Library/LaunchAgents/*.boot2docker.plist || {
+                ln -sfv /usr/local/opt/boot2docker/*.plist ~/Library/LaunchAgents
+            }
+            launchctl load ~/Library/LaunchAgents/*.boot2docker.plist 2>/dev/null
+            ;;
         Ubuntu)
+            ensure_running_as_root
             # https://docs.docker.com/installation/ubuntulinux/
             [ -e /usr/lib/apt/methods/https ] || {
                 apt-get update
                 apt-get install apt-transport-https
             }
-            apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 \
+            apt-key add --keyserver hkp://keyserver.ubuntu.com:80 \
                     --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
             echo "deb https://get.docker.com/ubuntu docker main" \
                  > /etc/apt/sources.list.d/docker.list
@@ -69,6 +87,7 @@ ensure_docker() {
             apt-get install lxc-docker
             ;;
         RedHat|CentOS)
+            ensure_running_as_root
             yum -y install docker-io
             ;;
     esac
