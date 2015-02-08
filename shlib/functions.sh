@@ -13,13 +13,13 @@ linux_distribution_name() {
 }
 
 bannermsg() {
-    set +x
     echo >&2
     for msg in "$@" ; do echo "$msg" >&2; done
     echo >&2
 }
 
 fatal() {
+    set +x
     bannermsg "$@"
     exit 2
 }
