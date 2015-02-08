@@ -38,12 +38,9 @@ mkdir -p "${BLUEBOXNOC_VAR_DIR}"
 : ${BLUEBOXNOC_DOCKER_NAME:=epflsti/blueboxnoc}
 docker build -t "$BLUEBOXNOC_DOCKER_NAME":latest .
 
-if [ -n "$BLUEBOXNOC_DEV_ONLY_INSTALL" ]; then
+if [ -z "$BLUEBOXNOC_DEV_ONLY_INSTALL" ]; then
     substitute_shell BLUEBOXNOC_ < run_noc.sh > /etc/init.d/blueboxnoc
     chmod a+x /etc/init.d/blueboxnoc
 fi
 
-set +x
-echo
-echo "All done, now see run_noc.sh"
-echo
+(set +x; bannermsg "All done, now see run_noc.sh")
