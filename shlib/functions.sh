@@ -1,3 +1,7 @@
+running_on_mac() {
+    test "$(uname -s)" = "Darwin"
+}
+
 linux_distribution_name() {
     if [ -f "/etc/redhat-release" ]; then
         case "$(cat /etc/redhat-release)" in
