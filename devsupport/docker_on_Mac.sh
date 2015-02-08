@@ -5,9 +5,8 @@
 
 set -e -x
 
-cd "$(dirname "$0")/.."
-: ${BLUEBOXNOC_CODE_DIR:="$PWD"}
-. shlib/functions.sh
+: ${BLUEBOXNOC_CODE_DIR:="$(cd "$(dirname "$0")"/..; pwd)"}
+. "${BLUEBOXNOC_CODE_DIR}"/shlib/functions.sh
 
 [ -n "$RUNNING_DOCKER_ON_MAC" ] && fatal \
     "Already within a $(basename "$0") shell. Type 'exit' and try again."
@@ -72,12 +71,20 @@ docker_reachable || {
 
 ${BLUEBOXNOC_CODE_DIR}/install_noc.sh   # Darwin implies dev-only install
 
-(set +x; bannermsg "Spawning a shell with Docker access." \
-                   "Try:      boot2docker ssh" \
-                   "          docker ps" \
-                   "          docker images" \
-                   "          ${BLUEBOXNOC_CODE_DIR}/run_noc.sh start shell")
+case "$PWD" in
+    "$BLUEBOXNOC_CODE_DIR") runnocsh="./run_noc.sh" ;;
+    "$BLUEBOXNOC_CODE_DIR/devsupport") runnocsh="../run_noc.sh" ;;
+    *) runnocsh="{$BLUEBOXNOC_CODE_DIR}"/run_noc.sh ;;
+esac
 
-(set +x; bannermsg "Note: the main Web interface will be accessible at http://$DOCKER_IP/")
+set +x
+
+bannermsg "Spawning a shell with Docker access." \
+          "Try:      boot2docker ssh" \
+          "          docker ps" \
+          "          docker images" \
+          "          $runnocsh start shell"
+
+bannermsg "Note: the main Web interface will be accessible at http://$DOCKER_IP/"
 
 RUNNING_DOCKER_ON_MAC=1 bash || true
