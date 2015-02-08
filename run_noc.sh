@@ -22,8 +22,8 @@ start() {
 }
 
 stop() {
-    docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | \
-      xargs --no-run-if-empty docker kill
+    is_running || return
+    docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | xargs docker kill
 }
 
 is_running() {
