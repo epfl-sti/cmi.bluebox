@@ -3,14 +3,13 @@
 # To test out your changes:
 #   1. Install Docker as per the instructions at
 #      https://docs.docker.com/installation/, or just run the
-#      install_noc.sh script as root
-#   2. Using the vigr command, put yourself as a member of the "docker" group;
-#      log out then back in
-#   3. cd to the directory of this file
-#   4. docker build -t epflsti/blueboxnoc:dev .
-#      docker run -t -i epflsti/blueboxnoc:dev /bin/bash
+#      develop_noc.sh script and follow the instructions
+#   2. cd to the directory of this file
+#   3. docker build -t epflsti/blueboxnoc:dev .
+#      docker run -ti epflsti/blueboxnoc:dev /bin/bash
 #
-# To enact the changes, simply run install_noc.sh again and restart.
+# To enact the changes, run build.sh again and restart the container
+# with start_stop.sh restart.
 
 FROM ubuntu
 MAINTAINER Dominique Quatravaux <dominique.quatravaux@epfl.ch>
