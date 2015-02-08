@@ -77,19 +77,20 @@ if [ "$(os_name)" = "Darwin" ]; then
               "          build.sh" \
               "          start_stop.sh start shell"
 else
-    if groups | grep docker; then
+    is_in_docker_group() { groups | grep docker >/dev/null }
+    if is_in_docker_group; then
         sudo_needed=""
     else
         sudo_needed="sudo "
     fi
 
     bannermsg "Spawning a developer shell." \
-              "Try:      $(sudo_needed)docker ps" \
-              "          $(sudo_needed)docker images" \
-              "          $(sudo_needed)build.sh" \
+              "Try:      ${sudo_needed}docker ps" \
+              "          ${sudo_needed}docker images" \
+              "          ${sudo_needed}build.sh" \
               "          start_stop.sh start shell"
 
-    groups | grep docker || bannermsg \
+    is_in_docker_group || bannermsg \
        "Consider adding yourself to group docker, so that sudo is not needed."
 fi
 
