@@ -78,4 +78,6 @@ ${BLUEBOXNOC_CODE_DIR}/install_noc.sh   # Darwin implies dev-only install
                    "          docker images" \
                    "          ${BLUEBOXNOC_CODE_DIR}/run_noc.sh start shell")
 
+(set +x; bannermsg "Note: the main Web interface will be accessible at http://$DOCKER_IP/")
+
 RUNNING_DOCKER_ON_MAC=1 bash || true
