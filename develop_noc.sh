@@ -77,7 +77,9 @@ if [ "$(os_name)" = "Darwin" ]; then
               "          build.sh" \
               "          start_stop.sh start shell"
 else
-    is_in_docker_group() { groups | grep docker >/dev/null }
+    is_in_docker_group() {
+        groups | grep docker >/dev/null
+    }
     if is_in_docker_group; then
         sudo_needed=""
     else
