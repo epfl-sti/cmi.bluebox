@@ -13,6 +13,7 @@ linux_distribution_name() {
 }
 
 fatal() {
+    set +x
     for msg in "$@" ; do echo "$msg" >&2; done
     exit 2
 }
