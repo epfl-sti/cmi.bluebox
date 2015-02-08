@@ -8,6 +8,7 @@
 # the environment, e.g.
 #
 #   export BLUEBOXNOC_VAR_DIR=/var/snazzy/blueboxnoc
+#   export BLUEBOXNOC_DEV_ONLY_INSTALL=1
 #   sudo install_noc.sh
 
 set -e -x
@@ -24,17 +25,20 @@ if running_on_mac && [ -z "$BLUEBOXNOC_DEV_ONLY_INSTALL" ]; then
 fi
 
 if [ -n "$BLUEBOXNOC_DEV_ONLY_INSTALL" ]; then
-    # Dev install
-    : ${BLUEBOXNOC_VAR_DIR:="$HOME/srv/blueboxnoc"}
+    : ${BLUEBOXNOC_VAR_DIR:="$BLUEBOXNOC_CODE_DIR/var"}
+    (set +x
+     bannermsg "Performing dev install with app data in ${BLUEBOXNOC_VAR_DIR}")
 else
-    # Prod install
-    : ${BLUEBOXNOC_VAR_DIR:="/srv/blueboxnoc"}
     ensure_running_as_root
     ensure_docker 1.4.0
+    : ${BLUEBOXNOC_VAR_DIR:="/srv/blueboxnoc"}
+    (set +x
+     bannermsg "Performing prod install with app data in ${BLUEBOXNOC_VAR_DIR}")
 fi
 
-# Build the Docker image
+# Create the data directory
 mkdir -p "${BLUEBOXNOC_VAR_DIR}"
+# Build the Docker image
 : ${BLUEBOXNOC_DOCKER_NAME:=epflsti/blueboxnoc}
 docker build -t "$BLUEBOXNOC_DOCKER_NAME":latest .
 

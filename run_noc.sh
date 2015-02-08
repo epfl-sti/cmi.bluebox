@@ -7,8 +7,8 @@
 # (need to either be in the docker group, or use sudo).
 
 : ${BLUEBOXNOC_DOCKER_NAME:="epflsti/blueboxnoc"}
-: ${BLUEBOXNOC_VAR_DIR:="/srv/blueboxnoc"}
 : ${BLUEBOXNOC_CODE_DIR:="$(cd $(dirname "$0"); pwd)"}
+: ${BLUEBOXNOC_VAR_DIR:="${BLUEBOXNOC_CODE_DIR}/var"}
 
 
 start() {
