@@ -1,7 +1,31 @@
 extends layout
 
+block jsheader
+    script.
+        var BlueboxNocApp = angular.module("BlueboxNocApp", ["ng-admin"]);
+        BlueboxNocApp.controller("HelloCtrl", function($scope) {
+            $scope.name = "Calvin Hobbes";
+        });
+        BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany) {
+            // set the main API endpoint for this admin
+            var app = new Application('BlueBoxAPI')
+                    .baseApiUrl('http://localhost:3000/api/');
+            var vpn = new Entity('vpn')
+                .identifier(new Field('id'));
+            app.addEntity(vpn);
+            if (false) {
+                // set the list of fields to map in each post view
+            vpn.dashboardView().addField(/* see example below */);
+            vpn.listView().addField(/* see example below */);
+            vpn.creationView().addField(/* see example below */);
+            vpn.editionView().addField(/* see example below */);
+            }
+            NgAdminConfigurationProvider.configure(app);
+        });
+
 block content
   h1= title
   p Welcome to #{title}
   div(ng-controller="HelloCtrl")
     <h2>Hello {{name}} !</h2>
+  div(ui-view)
