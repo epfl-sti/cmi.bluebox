@@ -19,11 +19,18 @@ block jsheader
                     .actions(["list", "show", "delete"])
                     .fields([new Field("title").editable(false).isDetailLink(true), new Field("detail")]);
             vpn.listView().fields(vpn.editionView().fields());
-            vpn.showView().fields(vpn.editionView().fields());
             var titleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
             vpn.creationView().fields([
                 titleAtCreationTime,
                 new Field("detail")]);
+            vpn.showView().fields([
+                new Field("title").editable(false).isDetailLink(true),
+                new Field("detail"),
+                new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+            ]);
+        });
+        BlueboxNocApp.controller("HelloWorld", function ($scope) {
+            $scope.user = "Calvin Hobbes";
         });
 
 block content
