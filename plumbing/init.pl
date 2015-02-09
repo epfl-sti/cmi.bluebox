@@ -17,8 +17,18 @@ TONOTDO: turn into systemd-in-Perl.
 
 =cut
 
-system("/etc/init.d/tinc", "start");
+use lib "/opt/blueboxnoc/plumbing/perllib";
+use EPFLSTI::Docker::Log -main => "init.pl";
 
+msg "Starting firsttime.pl";
+system("/opt/blueboxnoc/plumbing/firsttime.pl");
+($? == 0) || exit $?;
+
+msg "Starting tinc";
+system("/etc/init.d/tinc", "start");
+# Note: until /etc/tinc/nets.boot exists, tinc will not start up.
+
+msg "Starting node";
 system("node", "/opt/blueboxnoc/blueboxnoc-ui/helloworld.js");
 
 wait;
