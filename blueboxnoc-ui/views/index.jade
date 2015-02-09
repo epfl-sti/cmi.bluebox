@@ -13,14 +13,14 @@ block jsheader
                     .label("VPNs")
                     .identifier(new Field('title'));
             app.addEntity(vpn);
-            vpn.dashboardView().title("VPNs").fields([new Field("detail").isDetailLink(true)]);
+            vpn.dashboardView().title("VPNs").fields([new Field("title").isDetailLink(true)]);
             NgAdminConfigurationProvider.configure(app);
             vpn.editionView().title("VPN {{entry.values.title}}")
                     .actions(["list", "show", "delete"])
-                    .fields(vpn.dashboardView().fields());
-            vpn.creationView().fields(vpn.dashboardView().fields());
-            vpn.listView().fields(vpn.dashboardView().fields());
-            vpn.showView().fields(vpn.dashboardView().fields());
+                    .fields([new Field("title").editable(false).isDetailLink(true), new Field("detail")]);
+            vpn.listView().fields(vpn.editionView().fields());
+            vpn.showView().fields(vpn.editionView().fields());
+            vpn.creationView().fields(new Field("title"), new Field("detail"));
         });
 
 block content
