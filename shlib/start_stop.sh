@@ -17,9 +17,7 @@ start() {
     docker run --net=host --device=/dev/net/tun -d \
            -v "$BLUEBOXNOC_VAR_DIR":/srv \
            -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
-           "$BLUEBOXNOC_DOCKER_NAME" \
-           node /opt/blueboxnoc/blueboxnoc-ui/helloworld.js # XXX Must start tinc too
-    # Profit!!
+           "$BLUEBOXNOC_DOCKER_NAME"
 }
 
 stop() {

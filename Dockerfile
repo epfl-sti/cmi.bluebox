@@ -38,6 +38,11 @@ RUN dpkg --purge lockfile-progs
 # Double check there are no setuid / setgid files left over.
 RUN find / -xdev -perm /u=s,g=s | sed '/./q1'
 
+# Expected mount points (see shlib/start_stop.sh):
+# Code directory (top of the git checkout) -> /opt/blueboxnoc
+# Data directory (w/ all persistent state) -> /srv
+CMD ["/opt/blueboxnoc/plumbing/init.pl"]
+
 EXPOSE 80
 # For tinc:
 EXPOSE 655
