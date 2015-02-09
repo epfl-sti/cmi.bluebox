@@ -7,19 +7,19 @@ var router = express.Router();
 
 /* TODO: de-bogosify */
 router.get('/vpn', function(req, res, next) {
-    res.json([{id: 1, title: "Foo"}, {id: 2, title: "Bar"}, {id: 3, title: "Baz"}]);
+    res.json([{title: "Foo", detail: "Foofoo"}, {title: "Bar", detail: "Foobar"}, {title: "Baz", detail: "Foobaz"}]);
 });
 
-router.get('/vpn/1', function(req, res, next) {
-    res.json({id: 1, title: "Foo"});
+router.get('/vpn/Foo', function(req, res, next) {
+    res.json({title: "Foo", detail: "Foofoo"});
 });
 
-router.get('/vpn/2', function(req, res, next) {
-    res.json({id: 2, title: "Bar"});
+router.get('/vpn/Bar', function(req, res, next) {
+    res.json({title: "Bar", detail: "Foobar"});
 });
 
-router.get('/vpn/3', function(req, res, next) {
-    res.json({id: 3, title: "Baz"});
+router.get('/vpn/Baz', function(req, res, next) {
+    res.json({title: "Baz", detail: "Foobaz"});
 });
 
 module.exports = router;

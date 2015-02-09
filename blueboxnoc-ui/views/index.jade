@@ -11,9 +11,9 @@ block jsheader
             var app = new Application('BlueBoxAPI').baseApiUrl(rootUrl + "/api/");
             var vpn = new Entity('vpn')
                     .label("VPNs")
-                    .identifier(new Field('id'));
+                    .identifier(new Field('title'));
             app.addEntity(vpn);
-            vpn.dashboardView().title("VPNs").fields([new Field("title").isDetailLink(true)]);
+            vpn.dashboardView().title("VPNs").fields([new Field("detail").isDetailLink(true)]);
             NgAdminConfigurationProvider.configure(app);
             vpn.editionView().title("VPN {{entry.values.title}}")
                     .actions(["list", "show", "delete"])
