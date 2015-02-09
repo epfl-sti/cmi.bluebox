@@ -29,6 +29,8 @@ block jsheader
                 new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
             ]);
         });
+        // How to slap additional UI on any of the ng-admin pages,
+        // e.g. here to access the VNC features
         BlueboxNocApp.controller("HelloWorld", function ($scope) {
             $scope.user = "Calvin Hobbes";
         });
