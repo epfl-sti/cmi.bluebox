@@ -7,7 +7,7 @@
 # (need to either be in the docker group, or use sudo).
 
 : ${BLUEBOXNOC_DOCKER_NAME:="epflsti/blueboxnoc"}
-: ${BLUEBOXNOC_CODE_DIR:="$(cd $(dirname "$0"); pwd)"}
+: ${BLUEBOXNOC_CODE_DIR:="$(cd $(dirname "$0")/..; pwd)"}
 : ${BLUEBOXNOC_VAR_DIR:="${BLUEBOXNOC_CODE_DIR}/var"}
 
 
@@ -41,13 +41,16 @@ while [ -n "$1" ]; do
             stop ;;
         shell)
             is_running || {
-            echo >&2 "$BLUEBOXNOC_DOCKER_NAME" is not running
-            exit 2
-        }
+                echo >&2 "$BLUEBOXNOC_DOCKER_NAME" is not running
+                exit 2
+            }
             docker exec -it $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME") bash ;;
         restart)
             stop
             start ;;
+        *)
+            echo >&2 "Unknown subcommand: $1\n"
+            exit 2 ;;
     esac
     shift
 done
