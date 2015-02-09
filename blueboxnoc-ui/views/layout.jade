@@ -2,6 +2,14 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
+    link(rel="stylesheet", href="/stylesheets/style.css")
+    link(rel="stylesheet", href="/bower_components/ng-admin/build/ng-admin.min.css")
+    script(type="text/javascript", src="/bower_components/angular/angular.min.js")
+    script(type="text/javascript", src="/bower_components/ng-admin/build/ng-admin.min.js")
+    script.
+        var BlueboxNocApp = angular.module("BlueboxNocApp", []);
+        BlueboxNocApp.controller("HelloCtrl", function($scope) {
+            $scope.name = "Calvin Hobbes";
+        });
+  body(ng-app="BlueboxNocApp")
     block content
