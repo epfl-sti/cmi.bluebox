@@ -17,7 +17,10 @@ block jsheader
             NgAdminConfigurationProvider.configure(app);
             vpn.editionView().title("VPN {{entry.values.title}}")
                     .actions(["list", "show", "delete"])
-                    .fields(new Field("title"));
+                    .fields(vpn.dashboardView().fields());
+            vpn.creationView().fields(vpn.dashboardView().fields());
+            vpn.listView().fields(vpn.dashboardView().fields());
+            vpn.showView().fields(vpn.dashboardView().fields());
         });
 
 block content
