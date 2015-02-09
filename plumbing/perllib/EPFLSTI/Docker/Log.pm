@@ -36,14 +36,16 @@ sub import {
     local $Log::Message::Simple::MSG_FH = \*STDERR;
     local $Log::Message::Simple::ERROR_FH = \*STDERR;
     local $Log::Message::Simple::DEBUG_FH = \*STDERR;
+    ## Just for fun, this works:
+    # import(); msg("Logging to $logfile");
   }
   my $caller = (caller())[0];
-  sub msg {
+  my $msg = sub {
     Log::Message::Simple::msg(sprintf("[%s %s] %s",
                                       $caller, scalar(localtime), $_[0]),
                               1);
-  }
-  { no strict "refs"; *{"${caller}::msg"} = \&msg; }
+  };
+  { no strict "refs"; *{"${caller}::msg"} = $msg; }
 }
 
 1;
