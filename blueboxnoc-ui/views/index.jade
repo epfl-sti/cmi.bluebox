@@ -20,7 +20,10 @@ block jsheader
                     .fields([new Field("title").editable(false).isDetailLink(true), new Field("detail")]);
             vpn.listView().fields(vpn.editionView().fields());
             vpn.showView().fields(vpn.editionView().fields());
-            vpn.creationView().fields(new Field("title"), new Field("detail"));
+            var titleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
+            vpn.creationView().fields([
+                titleAtCreationTime,
+                new Field("detail")]);
         });
 
 block content

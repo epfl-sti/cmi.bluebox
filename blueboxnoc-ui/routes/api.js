@@ -15,10 +15,7 @@ router.get('/vpn', function(req, res, next) {
 router.get('/vpn/*', function(req, res, next) {
     var urlparts = req.url.split("/");
     var stem = urlparts.pop();
-    if (! VPNModel.validName(stem)) {
-        res.status(404).send("Not found");
-        return;
-    }
+    VPNModel.validName(stem);
     res.json({title: stem, detail: "Foo" + stem});
 });
 
