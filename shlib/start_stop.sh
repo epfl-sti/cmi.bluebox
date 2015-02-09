@@ -7,7 +7,7 @@
 # (need to either be in the docker group, or use sudo).
 
 : ${BLUEBOXNOC_DOCKER_NAME:="epflsti/blueboxnoc"}
-: ${BLUEBOXNOC_CODE_DIR:="$(cd $(dirname "$0"); pwd)"}
+: ${BLUEBOXNOC_CODE_DIR:="$(cd $(dirname "$0")/..; pwd)"}
 : ${BLUEBOXNOC_VAR_DIR:="${BLUEBOXNOC_CODE_DIR}/var"}
 
 
@@ -18,11 +18,7 @@ start() {
         --security-opt apparmor:unconfined \
         -v "$BLUEBOXNOC_VAR_DIR":/srv \
         -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
-        "$BLUEBOXNOC_DOCKER_NAME" \
-        node /opt/blueboxnoc/blueboxnoc-ui/helloworld.js 
-        #sleep 3600
-    # XXX Must start tinc too
-    # Profit!!
+        "$BLUEBOXNOC_DOCKER_NAME"
 }
 
 stop() {
@@ -51,6 +47,9 @@ while [ -n "$1" ]; do
         restart)
             stop
             start ;;
+        *)
+            echo >&2 "Unknown subcommand: $1\n"
+            exit 2 ;;
     esac
     shift
 done

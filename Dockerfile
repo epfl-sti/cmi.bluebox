@@ -27,6 +27,9 @@ RUN curl -L get.rexify.org | perl - --sudo -n Rex
 # Apache
 RUN apt-get install -y apache2
 
+# Dependencies of the plumbing code
+RUN apt-get -y install liblog-message-perl  
+
 # Remove all setuid privileges to lock down non-root users in the container
 RUN find / -xdev -perm /u=s,g=s -print -exec chmod u-s,g-s '{}' \;
 # Something really fishy is going on with
@@ -37,6 +40,16 @@ RUN find / -xdev -perm /u=s,g=s -print -exec chmod u-s,g-s '{}' \;
 RUN dpkg --purge lockfile-progs
 # Double check there are no setuid / setgid files left over.
 RUN find / -xdev -perm /u=s,g=s | sed '/./q1'
+
+# Expected mount points (see shlib/start_stop.sh):
+# Code directory (top of the git checkout) -> /opt/blueboxnoc
+# Data directory (w/ all persistent state) -> /srv
+RUN rm -rf /etc/tinc
+RUN ln -sf /srv/etc/tinc /etc/tinc
+RUN rm -rf /etc/apache2
+RUN ln -sf /opt/blueboxnoc/plumbing/apache2 /etc/apache2
+
+CMD ["/opt/blueboxnoc/plumbing/init.pl"]
 
 EXPOSE 80
 # For tinc:
