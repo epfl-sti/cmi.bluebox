@@ -6,13 +6,18 @@ block jsheader
         // https://github.com/marmelab/ng-admin
         BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany) {
             // set the main API endpoint for this admin
-            var app = new Application('BlueBoxAPI');
-            var vpn = new Entity('./api/vpn')
+            var rootUrl = (location.protocol + '//' + location.hostname +
+                (location.port ? ':' + location.port : ''));
+            var app = new Application('BlueBoxAPI').baseApiUrl(rootUrl + "/api/");
+            var vpn = new Entity('vpn')
                     .label("VPNs")
                     .identifier(new Field('id'));
             app.addEntity(vpn);
             vpn.dashboardView().title("VPNs").fields([new Field("title").isDetailLink(true)]);
             NgAdminConfigurationProvider.configure(app);
+            vpn.editionView().title("VPN {{entry.values.title}}")
+                    .actions(["list", "show", "delete"])
+                    .fields(new Field("title"));
         });
 
 block content
