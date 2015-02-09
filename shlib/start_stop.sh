@@ -15,10 +15,13 @@ start() {
     test 0 '!=' $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | wc -l) && return
     mkdir -p "${BLUEBOXNOC_VAR_DIR}"
     docker run --net=host --device=/dev/net/tun -d \
-           -v "$BLUEBOXNOC_VAR_DIR":/srv \
-           -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
-           "$BLUEBOXNOC_DOCKER_NAME" \
-           node /opt/blueboxnoc/blueboxnoc-ui/helloworld.js # XXX Must start tinc too
+        --security-opt apparmor:unconfined \
+        -v "$BLUEBOXNOC_VAR_DIR":/srv \
+        -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
+        "$BLUEBOXNOC_DOCKER_NAME" \
+        node /opt/blueboxnoc/blueboxnoc-ui/helloworld.js 
+        #sleep 3600
+    # XXX Must start tinc too
     # Profit!!
 }
 
