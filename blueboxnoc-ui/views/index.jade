@@ -1,0 +1,39 @@
+extends layout
+
+block jsheader
+    script.
+        var BlueboxNocApp = angular.module("BlueboxNocApp", ["ng-admin"]);
+        // https://github.com/marmelab/ng-admin
+        BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany) {
+            // set the main API endpoint for this admin
+            var rootUrl = (location.protocol + '//' + location.hostname +
+                (location.port ? ':' + location.port : ''));
+            var app = new Application('BlueBoxAPI').baseApiUrl(rootUrl + "/api/");
+            var vpn = new Entity('vpn')
+                    .label("VPNs")
+                    .identifier(new Field('title'));
+            app.addEntity(vpn);
+            vpn.dashboardView().title("VPNs").fields([new Field("title").isDetailLink(true)]);
+            NgAdminConfigurationProvider.configure(app);
+            vpn.editionView().title("VPN {{entry.values.title}}")
+                    .actions(["list", "show", "delete"])
+                    .fields([new Field("title").editable(false).isDetailLink(true), new Field("detail")]);
+            vpn.listView().fields(vpn.editionView().fields());
+            var titleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
+            vpn.creationView().fields([
+                titleAtCreationTime,
+                new Field("detail")]);
+            vpn.showView().fields([
+                new Field("title").editable(false).isDetailLink(true),
+                new Field("detail"),
+                new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+            ]);
+        });
+        BlueboxNocApp.controller("HelloWorld", function ($scope) {
+            $scope.user = "Calvin Hobbes";
+        });
+
+block content
+  h1= title
+  p Welcome to #{title}
+  div(ui-view)

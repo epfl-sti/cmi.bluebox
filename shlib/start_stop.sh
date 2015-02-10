@@ -15,11 +15,10 @@ start() {
     test 0 '!=' $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | wc -l) && return
     mkdir -p "${BLUEBOXNOC_VAR_DIR}"
     docker run --net=host --device=/dev/net/tun -d \
-           -v "$BLUEBOXNOC_VAR_DIR":/srv \
-           -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
-           "$BLUEBOXNOC_DOCKER_NAME" \
-           node /opt/blueboxnoc/blueboxnoc-ui/helloworld.js # XXX Must start tinc too
-    # Profit!!
+        --security-opt apparmor:unconfined \
+        -v "$BLUEBOXNOC_VAR_DIR":/srv \
+        -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
+        "$BLUEBOXNOC_DOCKER_NAME"
 }
 
 stop() {
@@ -48,6 +47,9 @@ while [ -n "$1" ]; do
         restart)
             stop
             start ;;
+        *)
+            echo >&2 "Unknown subcommand: $1\n"
+            exit 2 ;;
     esac
     shift
 done

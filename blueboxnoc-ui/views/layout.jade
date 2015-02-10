@@ -1,0 +1,11 @@
+doctype html
+html
+  head
+    title= title
+    link(rel="stylesheet", href="/stylesheets/style.css")
+    link(rel="stylesheet", href="/bower_components/ng-admin/build/ng-admin.min.css")
+    script(type="text/javascript", src="/bower_components/angular/angular.min.js")
+    script(type="text/javascript", src="/bower_components/ng-admin/build/ng-admin.min.js")
+    block jsheader
+  body(ng-app="BlueboxNocApp")
+    block content
