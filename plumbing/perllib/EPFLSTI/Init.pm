@@ -296,7 +296,6 @@ test "EPFLSTI::Init::DaemonProcess: keeps dying after successful start"
     ->start($loop, "sh", "-c", "sleep 0.1; echo Ready");
   my $survived = 0;
   my $future = $daemon->when_ready(qr/Ready/)->then(sub {
-        warn "Ready";
         return $loop->delay_future(after => 2);
   })->then(sub {
         $survived = 1;
