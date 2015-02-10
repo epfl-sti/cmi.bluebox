@@ -49,6 +49,7 @@ RUN ln -sf /srv/etc/tinc /etc/tinc
 RUN rm -rf /etc/apache2
 RUN ln -sf /opt/blueboxnoc/plumbing/apache2 /etc/apache2
 
+# The command to run (unless coutermanded on the "docker run" command line).
 CMD ["/opt/blueboxnoc/plumbing/init.pl"]
 
 EXPOSE 80

@@ -24,7 +24,7 @@ start() {
 
 stop() {
     is_running || return
-    docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | xargs docker kill
+    docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | xargs docker kill >/dev/null
 }
 
 is_running() {
@@ -41,9 +41,9 @@ while [ -n "$1" ]; do
             stop ;;
         shell)
             is_running || {
-            echo >&2 "$BLUEBOXNOC_DOCKER_NAME" is not running
-            exit 2
-        }
+                echo >&2 "$BLUEBOXNOC_DOCKER_NAME" is not running
+                exit 2
+            }
             docker exec -it $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME") bash ;;
         restart)
             stop

@@ -1,9 +1,12 @@
-# cmi.bluebox
+cmi.bluebox
+===========
 DevOps'ed Blue Boxes (OpenWRT routers for various computer security uses)
 
-## Installing
+Installation
+------------
 
-You need a Linux machine with root access.
+You need a Linux machine with root access to install the NOC (Network
+Operations Center) on.
 
 ```bash
 sudo bash
@@ -16,7 +19,8 @@ cd cmi.bluebox
 **Do not remove the git directory after installation** – All script
 files in there will be used directly from the Docker container.
 
-## Development
+Development
+-----------
 
 Development is supported on Linux and Mac OS X.
 
