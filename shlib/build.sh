@@ -10,4 +10,5 @@ cd "$(dirname "$0")/.."
 bash shlib/prereqs.sh
 
 : ${BLUEBOXNOC_DOCKER_NAME:=epflsti/blueboxnoc}
-docker build -t "$BLUEBOXNOC_DOCKER_NAME":latest .
+docker build -t "$BLUEBOXNOC_DOCKER_NAME":latest docker-main
+
