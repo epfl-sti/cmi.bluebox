@@ -218,3 +218,7 @@ test "DaemonProcess: dies too often" => sub {
   like $result, qr|/bin/true|;
   like $result, qr/failed too many times/;
 };
+
+# In case of process leak, will block here.
+while (wait() != -1) {};
+1;
