@@ -160,21 +160,28 @@ use IO::Async::Timer::Periodic;
     my $timedout = Carp::shortmess("await_ok timed out");
 
     my $done = undef;
-    my $timer = IO::Async::Timer::Periodic->new(
+    my $timer;
+    $timer = IO::Async::Timer::Periodic->new(
       interval => $interval,
       on_tick => sub {
         $timeout -= $interval;
         if ($timeout <= 0) {
           Test::More::fail($timedout);
+          $done = 0;
           $loop->stop();
+          $timer->stop();
         } elsif ($sub->()) {
-          Test::More::ok($msg);
+          Test::More::pass($msg);
+          $done = 1;
           $loop->stop();
+          $timer->stop();
         }
       });
     $timer->start();
     $loop->add($timer);
-    $loop->run();
+    my $runstatus = $loop->run();
+    warn $runstatus if $runstatus;
+    Test::More::ok(defined $done);
   }
 }
 
