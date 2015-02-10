@@ -15,14 +15,15 @@ start() {
     test 0 '!=' $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | wc -l) && return
     mkdir -p "${BLUEBOXNOC_VAR_DIR}"
     docker run --net=host --device=/dev/net/tun -d \
-           -v "$BLUEBOXNOC_VAR_DIR":/srv \
-           -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
-           "$BLUEBOXNOC_DOCKER_NAME"
+        --security-opt apparmor:unconfined \
+        -v "$BLUEBOXNOC_VAR_DIR":/srv \
+        -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
+        "$BLUEBOXNOC_DOCKER_NAME"
 }
 
 stop() {
     is_running || return
-    docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | xargs docker kill
+    docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | xargs docker kill >/dev/null
 }
 
 is_running() {

@@ -135,6 +135,6 @@ substitute_shell() {
                  }
               }
               foreach my $subst (keys %substs) {
-                s|^: \$\{$subst:=.*?\}|sprintf(q/: ${%s:="%s"}/, $subst, $substs{$subst})|e;
+                s|^: \$\{$subst:=.*\}|sprintf(q/: ${%s:="%s"}/, $subst, $substs{$subst})|e;
               }'
 }
