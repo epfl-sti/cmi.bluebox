@@ -29,6 +29,26 @@ use Future;
 use IO::Async::Process;
 use EPFLSTI::Docker::Log;
 
+=head2 start ($loop, @command)
+
+Start @command on the event loop $loop.
+
+  my $daemon = EPFLSTI::Init::DaemonProcess->start(
+    $loop, "tincd", "--no-detach");
+
+The command will start as soon as C<$loop> has a chance to run (i.e.
+C<< $loop->run() >> or returning from an event handler).
+
+The command is allotted a failure budget of $daemon->{max_restarts}
+times (defaults to 4). If it blows through it, failure will be
+propagated either by failing the L</when_ready> future (if it isn't
+resolved yet), or by calling C<< $loop->stop($msg) >> with $msg
+containing the text "failed too many times". That is, it is
+purposefully not possible to ignore a flapping daemon, unless it is
+voluntarily L</stop>ped.
+
+=cut
+
 sub start {
   my ($class, $loop, @command) = @_;
   my $self = bless {
@@ -82,12 +102,20 @@ sub _make_quiet {
   };
 }
 
+=head2 stop()
+
+Stop the daemon and all pending conditions (start timeout, watching
+ready messages, restart logic etc.)
+
+=cut
+
 sub stop {
   my ($self) = @_;
   $self->_make_quiet();
   if ($self->{process}) {
     $self->{process}->kill("TERM");
   }
+  delete $self->{loop};  # Prevent cyclic garbage, unwanted restarts
 }
 
 sub _start_process_on_loop {
@@ -278,6 +306,6 @@ test "EPFLSTI::Init::DaemonProcess: keeps dying after successful start"
   is $survived, 0;
 };
 
-# In case of process leak, will block here.
+# If your test waits 30 seconds here, you are leaking processes.
 while (wait() != -1) {};
 1;
