@@ -1,4 +1,4 @@
 .emacs*
+.dir-locals.el
 */.idea
 var
-
