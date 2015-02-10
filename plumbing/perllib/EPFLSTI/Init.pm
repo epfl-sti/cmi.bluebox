@@ -27,6 +27,7 @@ package EPFLSTI::Init::DaemonProcess;
 
 use Future;
 use IO::Async::Process;
+use EPFLSTI::Docker::Log;
 
 sub start {
   my ($class, $loop, @command) = @_;
@@ -65,6 +66,7 @@ sub when_ready {
     ->then(sub {
       # $when is still live, otherwise _make_quiet would have cancelled us.
       $when->fail("Timeout waiting for $self->{name} to start");
+      delete $self->{loop};  # Prevent cyclic garbage
     });
 
   return $when->then(sub {$self->_make_quiet; $when},
@@ -73,7 +75,6 @@ sub when_ready {
 
 sub _make_quiet {
   my ($self) = @_;
-  delete $self->{loop};  # Prevent cyclic garbage
   delete $self->{_on_read};
   delete $self->{on_too_many_restarts};
   if ($self->{ready_timeout}) {
@@ -103,7 +104,8 @@ sub _start_process_on_loop {
         $self->_start_process_on_loop();
       } else {
         my $msg = $self->{name} . " failed too many times";
-        warn $msg;
+        msg $msg;
+        delete $self->{loop};  # Prevent cyclic garbage
         if ($self->{on_too_many_restarts}) {
           $self->{on_too_many_restarts}->($msg);
         } else {
@@ -133,7 +135,7 @@ require My::Tests::Below unless caller();
 
 # To run the test suite:
 #
-# perl -Idevsupport/perllib plumbing/perllib/EPFLSTI/Init.pm
+# perl -Iplumbing/perllib -Idevsupport/perllib plumbing/perllib/EPFLSTI/Init.pm
 
 __END__
 
@@ -187,6 +189,8 @@ use IO::Async::Timer::Periodic;
 
 BEGIN { *await_ok = \&TestUtils::await_ok; }
 
+sub xtest {}
+
 test "await_ok: positive" => sub {
   my $loop = new IO::Async::Loop;
   my $are_we_there_yet = 0;
@@ -211,7 +215,7 @@ test "EPFLSTI::Init::DaemonProcess: expect message" => sub {
   my $done = 0;
   my $daemon = EPFLSTI::Init::DaemonProcess
     ->start($loop, "sh", "-c", "sleep 1 && echo Ready && sleep 30");
-  my $future = $daemon->when_ready(qr/Ready/)->then(sub {
+  my $unused_future = $daemon->when_ready(qr/Ready/)->then(sub {
         $done = 1;
   });
   await_ok $loop, sub { $done };
@@ -224,7 +228,6 @@ test "EPFLSTI::Init::DaemonProcess: dies, but not too often" => sub {
   FileHandle->new($failbudget_file, "w")->print(3);
   my $daemon = EPFLSTI::Init::DaemonProcess
     ->start($loop, $^X, "-we", <<'SCRIPT', $failbudget_file);
-BEGIN {open(STDERR, ">>", "/tmp/log");}
 use strict;
 use FileHandle;
 warn "[$$] Starting";
@@ -232,14 +235,18 @@ open(FAIL_BUDGET, "<", $ARGV[0]) or die "Cannot open $ARGV[0]";
 my $failbudget = <FAIL_BUDGET>;
 warn "[$$] Remaining fail budget: $failbudget";
 if ($failbudget <= 0) {
+   warn "[$$] Ready";
    sleep(30);
 } else {
    open(FAIL_BUDGET, ">", $ARGV[0]);
    print FAIL_BUDGET ($failbudget - 1);
 }
 SCRIPT
-  my $result = $loop->run();
-  is $result, undef, "Should not forcibly exit the loop";
+  my $done = 0;
+  my $unused_future = $daemon->when_ready(qr/Ready/)->then(sub {
+        $done = 1;
+  });
+  await_ok $loop, sub {$done}, "Progresses to ready state";
   is(FileHandle->new($failbudget_file, "r")->getline(), 0);
   $daemon->stop();
 };
@@ -252,6 +259,23 @@ test "EPFLSTI::Init::DaemonProcess: dies too often" => sub {
   my $result = $loop->run();
   like $result, qr|/bin/true|;
   like $result, qr/failed too many times/;
+};
+
+test "EPFLSTI::Init::DaemonProcess: keeps dying after successful start"
+=> sub {
+  my $loop = new IO::Async::Loop;
+  my $daemon = EPFLSTI::Init::DaemonProcess
+    ->start($loop, "sh", "-c", "sleep 0.1; echo Ready");
+  my $survived = 0;
+  my $future = $daemon->when_ready(qr/Ready/)->then(sub {
+        warn "Ready";
+        return $loop->delay_future(after => 2);
+  })->then(sub {
+        $survived = 1;
+  });
+  my $result = $loop->run();
+  like $result, qr/failed too many times/;
+  is $survived, 0;
 };
 
 # In case of process leak, will block here.
