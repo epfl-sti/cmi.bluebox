@@ -19,4 +19,20 @@ router.get('/vpn/*', function(req, res, next) {
     res.json({title: stem, detail: "Foo" + stem});
 });
 
+router.get('/bbx', function(req, res, next) {
+    res.json([
+        {title: "bboo", vpn: "Foo", detail: "Booboo"},
+        {title: "bbar", vpn: "Foo", detail: "Boobar"},
+        {title: "bbar2", vpn: "Bar", detail: "Boobar2"},
+        {title: "bbaz", vpn: "Bazz", detail: "Boobaz"}
+    ]);
+});
+
+router.get('/bbx/*', function(req, res, next) {
+    var urlparts = req.url.split("/");
+    var stem = urlparts.pop();
+    VPNModel.validName(stem);
+    res.json({title: stem, detail: "Foo" + stem});
+});
+
 module.exports = router;

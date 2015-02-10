@@ -9,12 +9,15 @@ block jsheader
             var rootUrl = (location.protocol + '//' + location.hostname +
                 (location.port ? ':' + location.port : ''));
             var app = new Application('BlueBoxAPI').baseApiUrl(rootUrl + "/api/");
+            NgAdminConfigurationProvider.configure(app);
+
+            // VPNs
             var vpn = new Entity('vpn')
                     .label("VPNs")
                     .identifier(new Field('title'));
             app.addEntity(vpn);
-            vpn.dashboardView().title("VPNs").fields([new Field("title").isDetailLink(true)]);
-            NgAdminConfigurationProvider.configure(app);
+
+            vpn.dashboardView().title("VPNs").fields([new Field("title").isDetailLink(true), new Field("detail")]);
             vpn.editionView().title("VPN {{entry.values.title}}")
                     .actions(["list", "show", "delete"])
                     .fields([new Field("title").editable(false).isDetailLink(true), new Field("detail")]);
@@ -28,12 +31,38 @@ block jsheader
                 new Field("detail"),
                 new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
             ]);
+
+            // BlueBoxes
+            var bbx = new Entity('bbx')
+                    .label("BBXs")
+                    .identifier(new Field('title'));
+            app.addEntity(bbx);
+
+            bbx.dashboardView().title("BlueBoxes").fields([new Field("title").isDetailLink(true), new Field("detail"), new Field("vpn")]);
+            bbx.editionView().title("BBX {{entry.values.title}}")
+                    .actions(["list", "show", "delete"])
+                    .fields([new Field("title").editable(false).isDetailLink(true), new Field("vpn"), new Field("detail")]);
+
+            bbx.listView().fields(bbx.editionView().fields());
+            var titleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
+            bbx.creationView().fields([
+                titleAtCreationTime,
+                new Field("detail")]);
+            bbx.showView().fields([
+                new Field("title").editable(false).isDetailLink(true),
+                new Field("detail"),
+                new Field("vpn"),
+                new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+            ]);
+
         });
         BlueboxNocApp.controller("HelloWorld", function ($scope) {
             $scope.user = "Calvin Hobbes";
         });
 
 block content
-  h1= title
-  p Welcome to #{title}
-  div(ui-view)
+    img(src='../images/blueboxnoc100.png', class="logo")
+    h1
+        a(href='/') #{title}
+    div(ui-view)
+

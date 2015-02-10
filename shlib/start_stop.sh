@@ -19,6 +19,7 @@ start() {
         -v "$BLUEBOXNOC_VAR_DIR":/srv \
         -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
         "$BLUEBOXNOC_DOCKER_NAME"
+        sleep 3600
 }
 
 stop() {
