@@ -33,7 +33,7 @@ sub start {
   my $self = bless {
     name => join(" ", @command),
     command => [@command],
-    max_fails => 4,
+    max_restarts => 4,
     loop => $loop,
   }, $class;
   $self->_start_process_on_loop();
@@ -85,7 +85,7 @@ sub stop {
   my ($self) = @_;
   $self->_make_quiet();
   if ($self->{process}) {
-    $self->{process}->kill("KILL");
+    $self->{process}->kill("TERM");
   }
 }
 
@@ -141,6 +141,7 @@ use Test::More qw(no_plan);
 use Test::Group;
 
 use Carp;
+use FileHandle;
 
 use IO::Async::Loop;
 use IO::Async::Timer::Periodic;
@@ -188,7 +189,7 @@ test "await_ok: positive" => sub {
   await_ok $loop, sub {$are_we_there_yet}, "awaits ok";
 };
 
-test "DaemonProcess: fire and forget" => sub {
+test "EPFLSTI::Init::DaemonProcess: fire and forget" => sub {
   my $loop = new IO::Async::Loop;
   my $touched = My::Tests::Below->tempdir() . "/touched.1";
   my $daemon = EPFLSTI::Init::DaemonProcess->start(
@@ -198,7 +199,7 @@ test "DaemonProcess: fire and forget" => sub {
   $daemon->stop();
 };
 
-test "DaemonProcess: expect message" => sub {
+test "EPFLSTI::Init::DaemonProcess: expect message" => sub {
   my $loop = new IO::Async::Loop;
   my $done = 0;
   my $daemon = EPFLSTI::Init::DaemonProcess
@@ -210,7 +211,34 @@ test "DaemonProcess: expect message" => sub {
   $daemon->stop();
 };
 
-test "DaemonProcess: dies too often" => sub {
+test "EPFLSTI::Init::DaemonProcess: dies, but not too often" => sub {
+  my $loop = new IO::Async::Loop;
+  my $failbudget_file = My::Tests::Below->tempdir() . "/failbudget";
+  FileHandle->new($failbudget_file, "w")->print(3);
+  my $daemon = EPFLSTI::Init::DaemonProcess
+    ->start($loop, $^X, "-we", <<'SCRIPT', $failbudget_file);
+BEGIN {open(STDERR, ">>", "/tmp/log");}
+use strict;
+use FileHandle;
+warn "[$$] Starting";
+open(FAIL_BUDGET, "<", $ARGV[0]) or die "Cannot open $ARGV[0]";
+my $failbudget = <FAIL_BUDGET>;
+warn "[$$] Remaining fail budget: $failbudget";
+if ($failbudget <= 0) {
+   sleep(30);
+} else {
+   open(FAIL_BUDGET, ">", $ARGV[0]);
+   print FAIL_BUDGET ($failbudget - 1);
+}
+SCRIPT
+  my $result = $loop->run();
+  is $result, undef, "Should not forcibly exit the loop";
+  is(FileHandle->new($failbudget_file, "r")->getline(), 0);
+  $daemon->stop();
+};
+
+
+test "EPFLSTI::Init::DaemonProcess: dies too often" => sub {
   my $loop = new IO::Async::Loop;
   my $daemon = EPFLSTI::Init::DaemonProcess
     ->start($loop, "/bin/true");
