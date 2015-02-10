@@ -46,6 +46,8 @@ RUN find / -xdev -perm /u=s,g=s | sed '/./q1'
 # Data directory (w/ all persistent state) -> /srv
 RUN rm -rf /etc/tinc
 RUN ln -sf /srv/etc/tinc /etc/tinc
+RUN rm -rf /usr/local/lib/site_perl
+RUN ln -sf /opt/blueboxnoc/plumbing/perllib /usr/local/lib/site_perl
 RUN rm -rf /etc/apache2
 RUN ln -sf /opt/blueboxnoc/plumbing/apache2 /etc/apache2
 

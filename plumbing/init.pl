@@ -17,7 +17,6 @@ TONOTDO: turn into systemd-in-Perl.
 
 =cut
 
-use lib "/opt/blueboxnoc/plumbing/perllib";
 use EPFLSTI::Docker::Log -main => "init.pl";
 
 msg "Starting firsttime.pl";
