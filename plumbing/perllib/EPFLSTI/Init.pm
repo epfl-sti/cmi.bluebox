@@ -102,7 +102,7 @@ sub _start_process_on_loop {
       if ($self->{max_restarts}--) {
         $self->_start_process_on_loop();
       } else {
-        my $msg = join($self->{name} . " failed too many times");
+        my $msg = $self->{name} . " failed too many times";
         warn $msg;
         if ($self->{on_too_many_restarts}) {
           $self->{on_too_many_restarts}->($msg);
@@ -208,4 +208,13 @@ test "DaemonProcess: expect message" => sub {
   });
   await_ok $loop, sub { $done };
   $daemon->stop();
+};
+
+test "DaemonProcess: dies too often" => sub {
+  my $loop = new IO::Async::Loop;
+  my $daemon = EPFLSTI::Init::DaemonProcess
+    ->start($loop, "/bin/true");
+  my $result = $loop->run();
+  like $result, qr|/bin/true|;
+  like $result, qr/failed too many times/;
 };
