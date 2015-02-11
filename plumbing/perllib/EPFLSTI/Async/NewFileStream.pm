@@ -319,6 +319,7 @@ test "EPFLSTI::Async::NewFileStream" => sub {
   $on_read = sub {
     my (undef, $bufref) = @_;
     $aha = 1 if $$bufref =~ m/Aha!\n/;
+    $$bufref = "";
     return 0;
   };
   # Timestamp needs to change for the writes to be picked up:
@@ -332,19 +333,16 @@ test "EPFLSTI::Async::NewFileStream" => sub {
   $loop->await($loop->delay_future(after => 1.1));
   is $aha, 0;
   echo "$testfile.rotated", "More Aha!";
-  wait_for { $aha };
+  wait_for { $aha};
   pass("Follows the old file during rotation");
 
   # Doesn't need a delay here since dev / ino will change.
   $aha = 0;
-  echo $testfile, "Rotated Aha!";
-  wait_for { $aha };
-  pass("Switches over to rotated file");
-
   my $truncated;
-  $on_truncated = sub { $truncated = 1 };
-  truncate($testfile, 0);
-  wait_for { $truncated };
+  $on_truncated = sub { $truncated = 1};
+  echo $testfile, "Rotated Aha!";
+  wait_for { $aha && $truncated };
+  pass("Switches over to rotated file");
 };
 
 test "EPFLSTI::Async::NewFileStream on existing file" => sub {
