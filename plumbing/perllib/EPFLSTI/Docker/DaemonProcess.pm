@@ -1,19 +1,21 @@
 #!/usr/bin/perl -w
 
+package EPFLSTI::Docker::DaemonProcess;
+
 use strict;
 
 =head1 NAME
 
-EPFLSTI::Init - Support for writing the init.pl script
+EPFLSTI::Docker::DaemonProcess - Support for writing the init.pl script
 
 =head1 SYNOPSIS
 
   use IO::Async::Loop;
-  use EPFLSTI::Init;
+  use EPFLSTI::Docker::DaemonProcess;
 
   my $loop = IO::Async::Loop;
 
-  my $future = EPFLSTI::Init::DaemonProcess
+  my $future = EPFLSTI::Docker::DaemonProcess
      ->start($loop, "tincd", "--no-detach")
      ->when_ready(qr/Ready/)->then(sub {
     # Do something, return a Future
@@ -23,8 +25,6 @@ EPFLSTI::Init - Support for writing the init.pl script
 
 =cut
 
-package EPFLSTI::Init::DaemonProcess;
-
 use Future;
 use IO::Async::Process;
 use EPFLSTI::Docker::Log;
@@ -33,11 +33,12 @@ use EPFLSTI::Docker::Log;
 
 Start @command on the event loop $loop.
 
-  my $daemon = EPFLSTI::Init::DaemonProcess->start(
+  my $daemon = EPFLSTI::Docker::DaemonProcess->start(
     $loop, "tincd", "--no-detach");
 
 The command will start as soon as C<$loop> has a chance to run (i.e.
-C<< $loop->run() >> or returning from an event handler).
+C<< $loop->run() >> or returning from an event handler). Its standard
+input and output will be set up using L<EPFLSTI::Docker::Log/open>.
 
 The command is allotted a failure budget of $daemon->{max_restarts}
 times (defaults to 4). If it blows through it, failure will be
@@ -163,7 +164,8 @@ require My::Tests::Below unless caller();
 
 # To run the test suite:
 #
-# perl -Iplumbing/perllib -Idevsupport/perllib plumbing/perllib/EPFLSTI/Init.pm
+# perl -Iplumbing/perllib -Idevsupport/perllib \
+#   plumbing/perllib/EPFLSTI/Docker/DaemonProcess.pm
 
 __END__
 
@@ -228,20 +230,20 @@ test "await_ok: positive" => sub {
   await_ok $loop, sub {$are_we_there_yet}, "awaits ok";
 };
 
-test "EPFLSTI::Init::DaemonProcess: fire and forget" => sub {
+test "EPFLSTI::Docker::DaemonProcess: fire and forget" => sub {
   my $loop = new IO::Async::Loop;
   my $touched = My::Tests::Below->tempdir() . "/touched.1";
-  my $daemon = EPFLSTI::Init::DaemonProcess->start(
+  my $daemon = EPFLSTI::Docker::DaemonProcess->start(
     $loop, "sh", "-c", "sleep 1 && touch $touched && sleep 30");
   ok(! -f $touched);
   await_ok $loop, sub {-f $touched};
   $daemon->stop();
 };
 
-test "EPFLSTI::Init::DaemonProcess: expect message" => sub {
+test "EPFLSTI::Docker::DaemonProcess: expect message" => sub {
   my $loop = new IO::Async::Loop;
   my $done = 0;
-  my $daemon = EPFLSTI::Init::DaemonProcess
+  my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, "sh", "-c", "sleep 1 && echo Ready && sleep 30");
   my $unused_future = $daemon->when_ready(qr/Ready/)->then(sub {
         $done = 1;
@@ -250,11 +252,11 @@ test "EPFLSTI::Init::DaemonProcess: expect message" => sub {
   $daemon->stop();
 };
 
-test "EPFLSTI::Init::DaemonProcess: dies, but not too often" => sub {
+test "EPFLSTI::Docker::DaemonProcess: dies, but not too often" => sub {
   my $loop = new IO::Async::Loop;
   my $failbudget_file = My::Tests::Below->tempdir() . "/failbudget";
   FileHandle->new($failbudget_file, "w")->print(3);
-  my $daemon = EPFLSTI::Init::DaemonProcess
+  my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, $^X, "-we", <<'SCRIPT', $failbudget_file);
 use strict;
 use FileHandle;
@@ -280,19 +282,19 @@ SCRIPT
 };
 
 
-test "EPFLSTI::Init::DaemonProcess: dies too often" => sub {
+test "EPFLSTI::Docker::DaemonProcess: dies too often" => sub {
   my $loop = new IO::Async::Loop;
-  my $daemon = EPFLSTI::Init::DaemonProcess
+  my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, "/bin/true");
   my $result = $loop->run();
   like $result, qr|/bin/true|;
   like $result, qr/failed too many times/;
 };
 
-test "EPFLSTI::Init::DaemonProcess: keeps dying after successful start"
+test "EPFLSTI::Docker::DaemonProcess: keeps dying after successful start"
 => sub {
   my $loop = new IO::Async::Loop;
-  my $daemon = EPFLSTI::Init::DaemonProcess
+  my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, "sh", "-c", "sleep 0.1; echo Ready");
   my $survived = 0;
   my $future = $daemon->when_ready(qr/Ready/)->then(sub {
