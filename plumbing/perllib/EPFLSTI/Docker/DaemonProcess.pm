@@ -171,40 +171,41 @@ __END__
 
 use Test::More qw(no_plan);
 use Test::Group;
+use IO::Async::Test;
 
 use Carp;
 use FileHandle;
 
 use IO::Async::Loop;
 use IO::Async::Timer::Periodic;
-use EPFLSTI::Async::Tests qw(await_ok);
 
 sub xtest {}
 
 test "EPFLSTI::Docker::DaemonProcess: fire and forget" => sub {
-  my $loop = new IO::Async::Loop;
+  testing_loop(my $loop = new_builtin IO::Async::Loop);
   my $touched = My::Tests::Below->tempdir() . "/touched.1";
   my $daemon = EPFLSTI::Docker::DaemonProcess->start(
     $loop, "sh", "-c", "sleep 1 && touch $touched && sleep 30");
   ok(! -f $touched);
-  await_ok $loop, sub {-f $touched};
+  wait_for {-f $touched};
   $daemon->stop();
 };
 
 test "EPFLSTI::Docker::DaemonProcess: expect message" => sub {
-  my $loop = new IO::Async::Loop;
+  testing_loop(my $loop = new_builtin IO::Async::Loop);
   my $done = 0;
   my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, "sh", "-c", "sleep 1 && echo Ready && sleep 30");
   my $unused_future = $daemon->when_ready(qr/Ready/)->then(sub {
         $done = 1;
   });
-  await_ok $loop, sub { $done };
+  wait_for { $done };
+  pass("Ready seen");
   $daemon->stop();
 };
 
 test "EPFLSTI::Docker::DaemonProcess: dies, but not too often" => sub {
-  my $loop = new IO::Async::Loop;
+  testing_loop(my $loop = new_builtin IO::Async::Loop);
   my $failbudget_file = My::Tests::Below->tempdir() . "/failbudget";
   FileHandle->new($failbudget_file, "w")->print(3);
   my $daemon = EPFLSTI::Docker::DaemonProcess
@@ -227,14 +228,15 @@ SCRIPT
   my $unused_future = $daemon->when_ready(qr/Ready/)->then(sub {
         $done = 1;
   });
-  await_ok $loop, sub {$done}, "Progresses to ready state";
+  wait_for {$done};
+  pass("Progresses to ready state");
   is(FileHandle->new($failbudget_file, "r")->getline(), 0);
   $daemon->stop();
 };
 
 
 test "EPFLSTI::Docker::DaemonProcess: dies too often" => sub {
-  my $loop = new IO::Async::Loop;
+  my $loop = new_builtin IO::Async::Loop;
   my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, "/bin/true");
   my $result = $loop->run();
@@ -244,7 +246,7 @@ test "EPFLSTI::Docker::DaemonProcess: dies too often" => sub {
 
 test "EPFLSTI::Docker::DaemonProcess: keeps dying after successful start"
 => sub {
-  my $loop = new IO::Async::Loop;
+  my $loop = new_builtin IO::Async::Loop;
   my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, "sh", "-c", "sleep 0.1; echo Ready");
   my $survived = 0;
@@ -258,6 +260,6 @@ test "EPFLSTI::Docker::DaemonProcess: keeps dying after successful start"
   is $survived, 0;
 };
 
-# If your test waits 30 seconds here, you are leaking processes.
+# If the test waits 30 seconds here, it means we are leaking processes.
 while (wait() != -1) {};
 1;
