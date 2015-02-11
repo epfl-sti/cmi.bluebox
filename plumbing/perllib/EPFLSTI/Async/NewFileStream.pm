@@ -59,6 +59,37 @@ sub on_devino_changed {
   return $self->SUPER::on_devino_changed(@_);
 }
 
+=head2 read_more
+
+Overridden to always run at top-level context wrt $self->loop.
+
+I found this weird bug whence L<IO::Async::Timer::Periodic/_make_cb>
+assumes that it can unconditionnally $self->start (line 229 of
+IO::Async::Timer::Periodic $VERSION=0.64), relying on the fact that it
+deleted the ->{id} (which is the same as ->stop()ping) on line 224.
+Unfortunately in between there is line 226, which calls the on_tick
+handler, which may call e.g. the on_devino_changed handler
+(IO::Async::File line), which may call
+L<IO::Async::FileStream/read_more>, which may start the timer
+(IO::Async::FileStream line 197) if the ->{file} transitions from !
+->{want_read} to ->{want_read}. (The latter is never the case in
+vanilla L<IO::Async::FileStream>, because it assumes that the tailed
+log file always exists; hence ->{want_read} starts true at
+construction time, and stays so forever, and the return path on line
+535 of L<IO::Async::Handle> is always taken, masking the bug since
+line 545 is never called.)
+
+The workaround is to just defer the call to read_more() outside of any
+(involuntary) critical section, using $self->loop->later.
+
+=cut
+
+sub read_more {
+  my $self = shift;
+  $self->loop->later( sub { $self->SUPER::read_more } );
+}
+
+
 =head2 read_handle
 
 Overridden to be $self->{file}->handle, which (unlike with
