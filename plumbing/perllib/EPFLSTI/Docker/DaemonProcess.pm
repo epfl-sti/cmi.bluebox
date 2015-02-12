@@ -238,10 +238,19 @@ use Test::Group;
 use IO::Async::Test;
 
 use Carp;
+
 use FileHandle;
+use File::Spec::Functions qw(catfile);
 
 use IO::Async::Loop;
 use IO::Async::Timer::Periodic;
+
+use EPFLSTI::Docker::Log;
+
+mkdir(my $logdir = catfile(My::Tests::Below->tempdir, "log"))
+  or die "mkdir: $!";
+
+EPFLSTI::Docker::Log::log_dir($logdir);
 
 sub xtest {}
 
@@ -260,6 +269,9 @@ test "EPFLSTI::Docker::DaemonProcess: expect message" => sub {
   my $done = 0;
   my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, "sh", "-c", "sleep 1 && echo Ready && sleep 30");
+  @DB::typeahead = ["b EPFLSTI::Async::Process::_on_log_line",
+                    "c"];
+  $DB::single = 1;
   my $unused_future = $daemon->when_ready(qr/Ready/)->then(sub {
         $done = 1;
   });

@@ -37,13 +37,15 @@ sub import {
     ## Just for fun, this works:
     # import(); msg("Logging to $logfile");
   }
-  my $caller = (caller())[0];
+  my ($callpkg, undef, $callline) = caller;
   my $msg = sub {
-    Log::Message::Simple::msg(sprintf("[%s %s] %s",
-                                      $caller, scalar(localtime), $_[0]),
-                              1);
+    my $txtmsg = sprintf(
+      "[%s:%s %s] %s",
+      $callpkg, $callline, scalar(localtime), $_[0]);
+                              
+    Log::Message::Simple::msg($txtmsg, 1);
   };
-  { no strict "refs"; *{"${caller}::msg"} = $msg; }
+  { no strict "refs"; *{"${callpkg}::msg"} = $msg; }
 }
 
 =head2 log_dir

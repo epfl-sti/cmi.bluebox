@@ -309,8 +309,11 @@ sub _update_watchers {
   # ->add_child() / ->remove_child().
   foreach my $unwatched ($old_watchlist->
                            difference($new_watchlist)->elements) {
-    my $obj_or_one = delete $self->{_watched_files};
-    $self->remove_child($obj_or_one) if (ref $obj_or_one);
+    my $obj_or_one = delete $self->{_watched_files}->{$unwatched};
+    if (ref $obj_or_one) {
+      msg "Stop watching $unwatched";
+      $self->remove_child($obj_or_one);
+    }
   }
 
   foreach my $watched ($new_watchlist->difference($old_watchlist)->elements) {
@@ -326,6 +329,7 @@ sub _update_watchers {
     my $activate = $self->_needs_watching;
     next unless ($activate xor ref($self->{_watched_files}->{$path}));
     if ($activate) {
+      msg "Watching $path";
       $self->add_child($self->{_watched_files}->{$path} =
           new EPFLSTI::Async::NewFileStream(
             ($self->{interval} ? (interval => $self->{interval}) : ()),
@@ -339,6 +343,7 @@ sub _update_watchers {
                 return 0;
               })));
     } else {
+      msg "Stop watching $path";
       $self->remove_child($self->{_watched_files}->{$path});
       $self->{_watched_files}->{$path} = 1;
     }
