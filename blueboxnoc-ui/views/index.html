@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head><title></title><link rel="stylesheet" href="/stylesheets/style.css"><link rel="stylesheet" href="/bower_components/ng-admin/build/ng-admin.min.css"><script type="text/javascript" src="/bower_components/angular/angular.min.js"></script><script type="text/javascript" src="/bower_components/ng-admin/build/ng-admin.min.js"></script><script>var BlueboxNocApp = angular.module("BlueboxNocApp", ["ng-admin"]);
 // https://github.com/marmelab/ng-admin
-BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany) {
+BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany, RestangularProvider) {
     // set the main API endpoint for this admin
     var rootUrl = (location.protocol + '//' + location.hostname +
         (location.port ? ':' + location.port : ''));
