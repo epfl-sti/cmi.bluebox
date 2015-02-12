@@ -8,7 +8,7 @@ block jsheader
             // set the main API endpoint for this admin
             var rootUrl = (location.protocol + '//' + location.hostname +
                 (location.port ? ':' + location.port : ''));
-            var app = new Application('BlueBoxAPI'). // application main title
+            var app = new Application('Blue Box NOC'). // application main title
                     baseApiUrl(rootUrl + "/api/"); // main API endpoint
 
             // define all entities at the top to allow references between them
@@ -17,7 +17,7 @@ block jsheader
                     .identifier(new Field('title'));
 
             var bbx = new Entity('bbx')
-                    .label("BBXs")
+                    .label("Blue Boxes")
                     .identifier(new Field('title'));
 
             // set the application entities
@@ -42,12 +42,13 @@ block jsheader
                         new Field("title").editable(false).isDetailLink(true),
                         new Field("detail"),
                         new ReferenceMany('bbxs') // a Reference is a particular type of field that references another entity
+                                .label('Blue Boxes')
                                 .targetEntity(bbx) // the tag entity is defined later in this file
                                 .targetField(new Field('title')) // the field to be displayed in this list
                                 // .cssClasses('css_bboxes') // Sadly this is not working on list view (issue https://github.com/marmelab/ng-admin/issues/309)
                     ]);
             vpn.listView()
-                    .title("VPNs List")
+                    .title("All VPNs")
                     .fields(vpn.editionView().fields());
             var titleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
             vpn.creationView().fields([
@@ -61,7 +62,7 @@ block jsheader
 
             // BlueBoxes
             bbx.dashboardView().title("BlueBoxes List").fields([new Field("title").isDetailLink(true).label("BBX"), new Field("detail"), new Field("vpn")]);
-            bbx.editionView().title("BBX {{entry.values.title}}")
+            bbx.editionView().title("Blue Box {{entry.values.title}}")
                     .actions(["list", "show", "delete"])
                     .fields([
                         new Field("title").editable(false).isDetailLink(true),
@@ -69,7 +70,7 @@ block jsheader
                         new Field("detail")
                     ]);
             bbx.listView()
-                    .title("BBXs List")
+                    .title("All Blue Boxes")
                     .fields(bbx.editionView().fields());
             var titleAtCreationTime = new Field("title").validation({validator: !{BBXTitleValidator}});
             bbx.creationView().fields([
