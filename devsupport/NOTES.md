@@ -56,6 +56,13 @@ From the point of view of the NOC, the Blue Boxes' state diagram is as follows:
 
 Additionally, the Blue Box can be deleted from any state.
 
+There are exactly two NOC-side operations that take a long time and
+are prone to failure: to prepare a .tar.gz, and to sync a Blue Box.
+When these operations are initiated from the Web UI, progress will be
+shown in "console" style (whence the administrator can see the output
+of a shell command running on the NOC, piped through their browser in
+real time).
+
 2015-02-08 - Installing Tinc on Mac OS X Yosemite
 =====================================================
 
