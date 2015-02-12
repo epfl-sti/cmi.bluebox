@@ -1,8 +1,19 @@
 body {
-  padding: 50px;
+  padding: 5px 50px 50px 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
-
+#content {
+    position: relative;
+}
+.logo {
+    position:absolute;
+    top:0;
+    right:0;
+    z-index:1001;
+}
 a {
-  color: #00B7FF;
+    color: #00B7FF;
+}
+h1 {
+    line-height: 100px;
 }

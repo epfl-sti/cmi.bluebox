@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="100"
+   height="100"
+   id="svg4882"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="blue_cube.svg"
+   inkscape:export-filename="/home/nborboen/Desktop/BBXs/blue_cube.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"
+   enable-background="new">
+  <title
+     id="title4989">Blue Cube</title>
+  <defs
+     id="defs4884">
+    <filter
+       inkscape:collect="always"
+       id="filter5802">
+      <feBlend
+         inkscape:collect="always"
+         mode="lighten"
+         in2="BackgroundImage"
+         id="feBlend5804" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="3.5"
+     inkscape:cx="-5.0591922"
+     inkscape:cy="40.531234"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:grid-bbox="true"
+     inkscape:document-units="px"
+     inkscape:window-width="1598"
+     inkscape:window-height="859"
+     inkscape:window-x="1"
+     inkscape:window-y="22"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata4887">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Blue Cube</dc:title>
+        <dc:date>2015-02-11</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Nicolas Borboën</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title />
+          </cc:Agent>
+        </dc:rights>
+        <dc:description>Blue Cube</dc:description>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Base White"
+     style="filter:url(#filter5802)" />
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     transform="translate(0,52)"
+     style="display:inline">
+    <g
+       id="g5810">
+      <g
+         transform="translate(0,-52)"
+         style="fill:#ffffff;filter:url(#filter5802)"
+         id="g5247">
+        <rect
+           style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+           id="rect4939-0-8"
+           width="49.899624"
+           height="45.436779"
+           x="-105.3333"
+           y="72.839302"
+           transform="matrix(-0.90181041,0.43213191,0,1,0,0)" />
+        <rect
+           style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+           id="rect4939-0-8-0"
+           width="49.899624"
+           height="45.436779"
+           x="5.5547543"
+           y="24.908739"
+           transform="matrix(0.90181041,0.43213191,0,1,0,0)" />
+        <rect
+           style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline"
+           id="rect4939-8-8"
+           width="49.926407"
+           height="49.926407"
+           x="34.291878"
+           y="-21.195398"
+           transform="matrix(0.90110749,0.43359578,-0.90110749,0.43359578,0,0)" />
+      </g>
+      <rect
+         transform="matrix(-0.90181041,0.43213191,0,1,0,0)"
+         y="21.837549"
+         x="-105.10303"
+         height="44.212578"
+         width="48.55518"
+         id="rect4939-0-8-8"
+         style="fill:#337ab7;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+      <rect
+         transform="matrix(0.90181041,0.43213191,0,1,0,0)"
+         y="-26.072147"
+         x="5.750773"
+         height="44.212578"
+         width="48.55518"
+         id="rect4939-0-8-0-6"
+         style="fill:#337ab7;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+      <rect
+         transform="matrix(0.90110749,0.43359578,-0.90110749,0.43359578,0,0)"
+         y="-80.935181"
+         x="-25.447912"
+         height="48.581242"
+         width="48.581242"
+         id="rect4939-8-8-6"
+         style="fill:#337ab7;fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline" />
+    </g>
+  </g>
+</svg>
