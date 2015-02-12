@@ -494,6 +494,22 @@ test "synopsis" => sub {
   is $exitcode, POSIX::SIGHUP;
 };
 
+test "Saying 'Ready' on stdout" => sub {
+  testing_loop(my $loop = new_builtin IO::Async::Loop);
+
+  my $ready;
+  my $process = new EPFLSTI::Async::Process(
+    command => ["sh", "-c", "sleep 0.5; echo Ready; sleep 30"],
+    ready_line_regexp => qr/Ready/,
+    on_ready => sub { $ready = 1 },
+    on_exit => sub { "Should not exit so soon" },
+    on_exec_failed => sub { "Should not fail exec" },
+  );
+  $loop->add($process);
+  wait_for {$ready};
+  pass;
+};
+
 test "command that terminates normally" => sub {
   testing_loop(my $loop = new_builtin IO::Async::Loop);
 
