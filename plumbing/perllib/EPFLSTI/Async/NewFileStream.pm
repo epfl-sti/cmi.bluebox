@@ -119,7 +119,8 @@ use File::stat;
 
 =head2 configure
 
-The superclass will only ever see handles, not the file name.
+The superclass will only ever see handles, not the file name. Also,
+allow changing the interval of a running timer.
 
 =cut
 
@@ -132,6 +133,14 @@ sub configure
     $self->{EPFLSTI_Async_NewFileStream__filename} = delete $params{filename};
     $self->_EPFLSTI__Async_NewFileStream__watch_file();
   }
+
+  if (exists $params{interval}) {
+    my $was_started = $self->is_running;
+    $self->stop if $was_started;
+    $self->SUPER::configure(interval => delete $params{interval});
+    $self->start if $was_started;
+  }
+
   $self->SUPER::configure(%params);
 }
 
@@ -215,7 +224,7 @@ use IO::Async::Test;
 
 use Carp 'verbose';
 
-use File::Spec::Functions qw(catfile);
+use File::Spec::Functions qw(catfile devnull);
 use File::stat;
 
 use IO::Async::Loop;
@@ -362,4 +371,13 @@ test "EPFLSTI::Async::NewFileStream on existing file" => sub {
 
   wait_for { $on_initial };
   pass "on_initial event called";
+};
+
+test "->configure the interval after start" => sub {
+  testing_loop(my $loop = new_builtin IO::Async::Loop);
+  my $f = EPFLSTI::Async::NewFileStream->new(filename => devnull,
+                                             on_read => {});
+  $loop->add($f);
+  $f->configure(interval => 0.1);
+  is($f->{file}->{interval}, 0.1);
 };
