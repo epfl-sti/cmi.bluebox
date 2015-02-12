@@ -23,10 +23,28 @@ EPFLSTI::Docker::DaemonProcess - Support for writing the init.pl script
 
 =head1 DESCRIPTION
 
+This is a lot like L<EPFLSTI::Async::Process>, with the following
+features on top:
+
+=over 4
+
+=item *
+
+Automated flakyness monitoring and recovery: an
+EPFLSTI::Docker::DaemonProcess simply is not supposed to exit.
+
+=item *
+
+Leaner API with L<Future>s, more geared towards using directly in
+init.pl than the usual $loop->add() based stuff.
+
+=back
+
 =cut
 
 use Future;
-use IO::Async::Process;
+use IO::Async::Notifier;  # For _capture_weakself
+use EPFLSTI::Async::Process;
 use EPFLSTI::Docker::Log;
 
 =head2 start ($loop, @command)
@@ -37,8 +55,9 @@ Start @command on the event loop $loop.
     $loop, "tincd", "--no-detach");
 
 The command will start as soon as C<$loop> has a chance to run (i.e.
-C<< $loop->run() >> or returning from an event handler). Its standard
-input and output will be set up using L<EPFLSTI::Docker::Log/open>.
+C<< $loop->run() >> or after returning from the current event
+handler). Its standard input and output will be set up to files as per
+the L<EPFLSTI::Docker::Log> convention.
 
 The command is allotted a failure budget of $daemon->{max_restarts}
 times (defaults to 4). If it blows through it, failure will be
@@ -68,25 +87,19 @@ sub when_ready {
     $timeout = 30;
   }
 
-  my $when = Future->new();
+  my $when = $self->{future} = Future->new();
 
-  $self->{_on_read} = sub {
-    my ($bufref) = @_;
-    if ($$bufref =~ $running_re) {
-      $when->done($$bufref);
-      $$bufref = "";
-    };
-  };
-
-  $self->{on_too_many_restarts} = sub {
-    $when->fail(shift);
-  };
+  $self->{process}->configure(
+    ready_line_regexp => $running_re,
+    on_ready => sub { $when->done() },
+  );
 
   $self->{ready_timeout} = $self->{loop}
     ->delay_future(after => $timeout)
     ->then(sub {
       # $when is still live, otherwise _make_quiet would have cancelled us.
-      $when->fail("Timeout waiting for $self->{name} to start");
+      my $name = $self->process_name;
+      $when->fail("Timeout waiting for $name to start");
       delete $self->{loop};  # Prevent cyclic garbage
     });
 
@@ -96,14 +109,16 @@ sub when_ready {
 
 sub _make_quiet {
   my ($self) = @_;
-  delete $self->{_on_read};
-  delete $self->{on_too_many_restarts};
+  $self->{process}->configure(ready_line_regexp => undef);
   if ($self->{ready_timeout}) {
     $self->{ready_timeout}->cancel();
   };
+  if ($self->{future}) {
+    $self->{future}->cancel();
+  }
 }
 
-=head2 stop()
+=head2 stop ()
 
 Stop the daemon and all pending conditions (start timeout, watching
 ready messages, restart logic etc.)
@@ -119,46 +134,95 @@ sub stop {
   delete $self->{loop};  # Prevent cyclic garbage, unwanted restarts
 }
 
+=head2 process_name ()
+
+=head2 process_name ($newval)
+
+Delegated to L<EPFL::Async::Process>.
+
+=cut
+
+sub process_name {
+  my $self = shift;
+  return $self->{process}->process_name(@_);
+}
+
+=begin internals
+
+=head2 _start_process_on_loop ()
+
+Create an L<EPFLSTI::Async::Process> instance and put it on $self->{loop}.
+
+May be called recursively from L</_on_daemon_exited>, although we hope
+it won't be.
+
+=cut
+
 sub _start_process_on_loop {
   my ($self) = @_;
   do { warn "No loop"; return } unless (my $loop = $self->{loop});
 
-  $self->{process} = new IO::Async::Process(
+  $self->{process} = new EPFLSTI::Async::Process(
     command => $self->{command},
-    stdin => { from => "" },
-    stdout => { via => "pipe_read" },
-    stderr => { via => "pipe_read" },
-    on_finish => sub {
-      if ($self->{max_restarts}--) {
-        $self->_start_process_on_loop();
-      } else {
-        my $msg = $self->{name} . " failed too many times";
-        msg $msg;
-        delete $self->{loop};  # Prevent cyclic garbage
-        if ($self->{on_too_many_restarts}) {
-          $self->{on_too_many_restarts}->($msg);
-        } else {
-          # A flapping daemon causes init.pl to stop, even if ->when_ready()
-          # has succeeded already.
-          $loop->stop($msg);
-        }
-      }});
-
-  foreach my $stream ($self->{process}->stdout(), $self->{process}->stderr()) {
-    $stream->configure(on_read => sub {
-      my ($stream, $buffref, $eof) = @_;
-      if ($self->{_on_read}) {
-        $self->{_on_read}->($buffref);
-      } else {
-        $$buffref = "";
-      }
-      return 0;
-    });
-  }
+    on_exec_failed => sub {
+      my $dollarbang = shift;
+      my $name = $self->process_name;
+      $self->_fatal("exec() failed for $name: $dollarbang"),
+    },
+    on_exit => IO::Async::Notifier::_capture_weakself(
+      $self, '_on_daemon_exited'));
 
   $loop->add($self->{process});
 }
 
+=head2 _on_daemon_exited ($exitcode)
+
+Bad news are afoot.
+
+Restart with L</_start_process_on_loop> if within failure budget,
+otherwise signal the error, up to and including L</_fatal> – An
+unmanaged, flapping daemon is fatal, even if L</when_ready> has
+succeeded already.
+
+=cut
+
+sub _on_daemon_exited {
+  my $self = shift or return;  # Gets a weak ref to self
+  if ($self->{max_restarts}--) {
+    $self->_start_process_on_loop();
+    return;
+  }
+
+  my $name = $self->process_name;
+  my $msg = "$name failed too many times";
+  msg $msg;
+  delete $self->{loop};  # Prevent cyclic garbage
+  if (my $cb = $self->can_event("on_too_many_restarts")) {
+    $cb->($self->{process});
+  } else {
+    self->_fatal($msg);
+  }
+}
+
+
+=head2 _fatal ($msg)
+
+Ensure that init.pl cares about $msg.
+
+If a L<Future> instance was returned by L</when_ready> and is still
+live, terminate it with an error. Otherwise, interrupt the main loop.
+In both cases, use $msg as the error message.
+
+=cut
+
+sub _fatal {
+  my ($self, $msg) = @_;
+}
+
+
+=end internals
+
+=cut
 
 require My::Tests::Below unless caller();
 
