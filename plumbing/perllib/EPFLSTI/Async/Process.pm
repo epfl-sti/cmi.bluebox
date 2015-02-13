@@ -499,6 +499,19 @@ test "synopsis" => sub {
   is $exitcode, POSIX::SIGHUP;
 };
 
+test "STDOUT / STDERR files are created" => sub {
+  testing_loop(my $loop = new_builtin IO::Async::Loop);
+  my $process = new EPFLSTI::Async::Process(
+    command => ["true"]);
+  $loop->add($process);
+  my $pid;
+  wait_for { $pid = $process->pid };
+  ok(-f EPFLSTI::Docker::Log::logfile_path(
+    "true", $pid, ".stdout"));
+  ok(-f EPFLSTI::Docker::Log::logfile_path(
+    "true", $pid, ".stderr"));
+};
+
 test "Saying 'Ready' on stdout" => sub {
   testing_loop(my $loop = new_builtin IO::Async::Loop);
 
