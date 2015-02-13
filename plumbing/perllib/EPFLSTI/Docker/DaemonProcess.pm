@@ -164,10 +164,10 @@ sub _start_process_on_loop {
 
   $self->{process} = new EPFLSTI::Async::Process(
     command => $self->{command},
-    on_exec_failed => sub {
-      my $dollarbang = shift;
+    on_setup_failed => sub {
+      my (undef, $error, $dollarbang) = @_;
       my $name = $self->process_name;
-      $self->_fatal("exec() failed for $name: $dollarbang"),
+      $self->_fatal("Cannot start $name: $error: $dollarbang"),
     },
     on_exit => IO::Async::Notifier::_capture_weakself(
       $self, '_on_daemon_exited'));

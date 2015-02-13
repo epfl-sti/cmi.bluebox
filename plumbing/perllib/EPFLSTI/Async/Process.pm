@@ -25,7 +25,7 @@ EPFLSTI::Async::Process - A fork()ed process to monitor asynchronously
     ready_line_regexp => qr/Ready|Listening|Serving/i,
     on_ready => \&on_ready_callback,
     on_exit => \&on_exit_callback,
-    on_exec_failed => \&on_exec_failed,
+    on_setup_failed => \&on_setup_failed,
   );
   $loop->add($process);
 
@@ -48,6 +48,26 @@ Both one-shot processes (that do something and exit), and daemons
 however, for the latter consider using
 L<EPFLSTI::Docker::DaemonProcess> instead that handles all the restart
 / flapping logic.
+
+=head1 EVENTS
+
+The following events are invoked, either using subclass methods or CODE
+references in parameters:
+
+=head2 on_ready
+
+Fired when the C<ready_line_regexp> is seen on any of the C<log_files>
+or the files automatically created for the process' STDOUT and STDERR
+
+=head2 on_exit $exitcode
+
+Fired when the process exit()s
+
+=head2 on_setup_failed $error, $dollarbang
+
+Fired if one of the system calls executed in the fork()ed child failed
+prior to exec()ing the process. $error describes the error, and
+$dollarbang will be the $! value at the time that happened.
 
 =cut
 
@@ -103,8 +123,7 @@ sub configure {
         # (Besides, we are probably PID 1 so it wouldnt't work.)
 
         die "Cannot detach from controlling terminal" if setsid() < 0;
-        exec(@{$self->{command}}) or
-          die "__CANNOT_EXEC__";
+        exec(@{$self->{command}}) or die "Cannot exec()";
       },
       on_finish => $self->_capture_weakself( sub {
          my $self = shift or return;
@@ -114,14 +133,8 @@ sub configure {
          my $self = shift or return;
          my (undef, $exn, $errno, $exitcode) = @_;
 
-         if ($exn && $exn =~ m/^__CANNOT_EXEC__/) {
-           $self->_on_exec_failed($errno);
-         } elsif (length $exn) {
-           $self->_fatal({
-             message => "Forked process died before exec()",
-             errno => $errno,
-             exception => $exn
-            });
+         if (length $exn) {
+           $self->_on_setup_failed($exn, $errno);
          } else {
            $self->_fatal({
              message => "Forked process exit()ed before exec()",
@@ -158,8 +171,8 @@ sub configure {
     $self->{on_exit} = delete $params{on_exit};
   }
 
-  if (exists $params{on_exec_failed}) {
-    $self->{on_exec_failed} = delete $params{on_exec_failed};
+  if (exists $params{on_setup_failed}) {
+    $self->{on_setup_failed} = delete $params{on_setup_failed};
   }
 
   $self->SUPER::configure(%params);
@@ -355,23 +368,23 @@ sub _make_file_stream {
       }));
 }
 
-=head2 _on_process_exit ($?)
+=head2 _on_process_exit ($process, $?)
 
-=head2 _on_exec_failed ($!)
+=head2 _on_setup_failed ($@, $!)
 
 =cut
 
 sub _on_process_exit {
   my ($self, $unused_process, $exitcode) = @_;
   if (my $cb = $self->can_event("on_exit")) {
-    $cb->($exitcode);
+    $cb->($self, $exitcode);
   }
 }
 
-sub _on_exec_failed {
-  my ($self, $error) = @_;
-  if (my $cb = $self->can_event("on_exec_failed")) {
-    $cb->($error);
+sub _on_setup_failed {
+  my ($self, $error, $dollarbang) = @_;
+  if (my $cb = $self->can_event("on_setup_failed")) {
+    $cb->($self, $error, $dollarbang);
   }
 }
 
@@ -383,7 +396,7 @@ sub _on_log_line {
   my ($self, $path, $line) = @_;
   return unless $self->_needs_watching;
   if ($line =~ $self->{ready_line_regexp}) {
-    $self->can_event("on_ready")->();
+    $self->can_event("on_ready")->($self);
     delete $self->{ready_line_regexp};
     $self->_update_watchers();  # i.e. close them all
   }
@@ -449,11 +462,11 @@ our (@command_and_args, $extra_log_file);
 
 our $on_ready_callback = sub {};
 our $on_exit_callback = sub {};
-our $on_exec_failed_callback = sub {};
+our $on_setup_failed_callback = sub {};
 
 sub on_ready_callback { $on_ready_callback->(@_); }
 sub on_exit_callback { $on_exit_callback->(@_); }
-sub on_exec_failed_callback { $on_exec_failed_callback->(@_); }
+sub on_setup_failed_callback { $on_setup_failed_callback->(@_); }
 
 sub run_synopsis {
 %s
@@ -470,8 +483,8 @@ test "synopsis" => sub {
 
   $Synopsis::on_ready_callback = sub { fail "on_ready: too soon!" };
   $Synopsis::on_exit_callback = sub { fail "on_exit: too soon!" };
-  $Synopsis::on_exec_failed_callback = sub {
-    fail "on_exec_failed: not expected in this test"};
+  $Synopsis::on_setup_failed_callback = sub {
+    fail "on_setup_failed: not expected in this test"};
   my ($loop, $process) = Synopsis::run_synopsis();
   $process->configure(interval => 0.1);  # Speed up test
   testing_loop($loop);
@@ -493,7 +506,7 @@ test "synopsis" => sub {
   wait_for {$ready};
 
   my $exitcode;
-  $Synopsis::on_exit_callback = sub { $exitcode = shift };
+  $Synopsis::on_exit_callback = sub { (undef, $exitcode) = @_ };
   $process->kill("SIGHUP");
   wait_for {$exitcode};
   is $exitcode, POSIX::SIGHUP;
@@ -521,11 +534,12 @@ test "Saying 'Ready' on stdout" => sub {
     ready_line_regexp => qr/Ready/,
     on_ready => sub { $ready = 1 },
     on_exit => sub { "Should not exit so soon" },
-    on_exec_failed => sub { "Should not fail exec" },
+    on_setup_failed => sub { "Should not fail" },
   );
   $loop->add($process);
   wait_for {$ready};
   pass;
+  $process->kill("SIGHUP");
 };
 
 test "command that terminates normally" => sub {
@@ -536,8 +550,8 @@ test "command that terminates normally" => sub {
   my $process = new EPFLSTI::Async::Process(
     command => ["sh", "-c", "exit 42"],
     on_ready => sub { fail "Should not become ready" },
-    on_exit => sub { $exitcode = shift },
-    on_exec_failed => sub { "Should not fail exec" },
+    on_exit => sub { (undef, $exitcode) = @_ },
+    on_setup_failed => sub { "Should not fail" },
   );
   $loop->add($process);
 
@@ -553,8 +567,8 @@ test "command that terminates with a signal" => sub {
   my $process = new EPFLSTI::Async::Process(
     command => [$^X, "-e", 'kill HUP => $$'],
     on_ready => sub { fail "Should not become ready" },
-    on_exit => sub { $exitcode = shift },
-    on_exec_failed => sub { fail "Should not fail exec" },
+    on_exit => sub { (undef, $exitcode) = @_ },
+    on_setup_failed => sub { fail "Should not fail" },
   );
   $loop->add($process);
 
@@ -566,19 +580,19 @@ test "exec() fails" => sub {
   my $does_not_exist = "/zbin/falze";
   -f $does_not_exist and die "O RLY?";
 
-  $main::stop_now = 1;
   testing_loop(my $loop = new_builtin IO::Async::Loop);
 
-  my $dollarbang;
+  my ($error, $dollarbang);
   my $process = new EPFLSTI::Async::Process(
     command => [$does_not_exist],
     on_ready => sub { fail "Should not become ready" },
     on_exit => sub { fail "Should not exit" },
-    on_exec_failed => sub { $dollarbang = shift },
+    on_setup_failed => sub { (undef, $error, $dollarbang) = @_ },
   );
   $loop->add($process);
 
   wait_for { $dollarbang };
+  like $error, qr/Cannot exec/i;
   is((0 + $dollarbang), Errno::ENOENT);
   is("$dollarbang", POSIX::strerror(Errno::ENOENT));
 };
