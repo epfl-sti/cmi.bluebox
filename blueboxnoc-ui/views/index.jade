@@ -8,7 +8,7 @@ block jsheader
             // set the main API endpoint for this admin
             var rootUrl = (location.protocol + '//' + location.hostname +
                 (location.port ? ':' + location.port : ''));
-            var app = new Application('Blue Box NOC'). // application main title
+            var app = new Application('Menu'). // application main title
                     baseApiUrl(rootUrl + "/api/"); // main API endpoint
 
             // define all entities at the top to allow references between them
@@ -20,49 +20,86 @@ block jsheader
                     .label("Blue Boxes")
                     .identifier(new Field('title'));
 
+            var vnc = new Entity('vnc')
+                    .label("VNCs")
+                    .identifier(new Field('title'));
+
+            var user = new Entity('user')
+                    .label("Users")
+                    .identifier(new Field('username'));
+
             // set the application entities
             app
                 .addEntity(vpn)
-                .addEntity(bbx);
+                .addEntity(bbx)
+                .addEntity(vnc)
+                .addEntity(user);
 
             // set the application menu entries
             vpn.menuView()
                     .order(1)
-                    .icon('<span class="glyphicon glyphicon-unchecked"></span>');
+                    .icon('<span class="glyphicon glyphicon-road"></span>');
             bbx.menuView()
                     .order(2)
-                    .icon('<span class="glyphicon glyphicon-th"></span>');
+                    .icon('<span class="glyphicon glyphicon-th-large"></span>');
+            vnc.menuView()
+                    .order(3)
+                    .icon('<span class="glyphicon glyphicon-new-window"></span>');
+            user.menuView()
+                    .order(4)
+                    .icon('<span class="glyphicon glyphicon-user"></span>');
 
             // VPNs
-            vpn.dashboardView().title("VPNs List").fields([new Field("title").isDetailLink(true).label("VPN"), new Field("detail")]);
+            vpn.dashboardView()
+                    .title("VPNs List")
+                    .order(1) // display the post panel first in the dashboard
+                    .limit(5) // limit the panel to the 5 latest posts
+                    .fields([
+                        new Field("title").isDetailLink(true).label("VPN"),
+                        new Field("detail")
+                    ]);
             vpn.editionView()
-                    .title("Edit VPN {{entry.values.title}}")
-                    .actions(["list", "show", "delete"])
+                    .title("Edit VPN : {{entry.values.title}}")
+                    .actions(["list", "show", "delete", "bluebox"])
                     .fields([
                         new Field("title").editable(false).isDetailLink(true),
                         new Field("detail"),
                         new ReferenceMany('bbxs') // a Reference is a particular type of field that references another entity
-                                .label('Blue Boxes')
-                                .targetEntity(bbx) // the tag entity is defined later in this file
-                                .targetField(new Field('title')) // the field to be displayed in this list
-                                // .cssClasses('css_bboxes') // Sadly this is not working on list view (issue https://github.com/marmelab/ng-admin/issues/309)
+                            .label('Blue Boxes')
+                            .targetEntity(bbx) // the tag entity is defined later in this file
+                            .targetField(new Field('title')) // the field to be displayed in this list
                     ]);
             vpn.listView()
                     .title("All VPNs")
-                    .fields(vpn.editionView().fields());
+                    .fields([
+                        vpn.editionView().fields(),
+                        // duplicated ReferenceMany field to get the class only on list view
+                        new ReferenceMany('bbxs') // a Reference is a particular type of field that references another entity
+                                .label('Blue Boxes')
+                                .targetEntity(bbx) // the tag entity is defined later in this file
+                                .targetField(new Field('title')) // the field to be displayed in this list
+                        .cssClasses('bboxes_tag')
+                    ]);
             var titleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
             vpn.creationView().fields([
-                titleAtCreationTime,
-                new Field("detail")]);
+                    titleAtCreationTime,
+                    new Field("detail")]);
             vpn.showView().fields([
-                new Field("title").editable(false).isDetailLink(true),
-                new Field("detail"),
-                new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+                    new Field("title").editable(false).isDetailLink(true),
+                    new Field("detail"),
+                    new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
             ]);
 
             // BlueBoxes
-            bbx.dashboardView().title("BlueBoxes List").fields([new Field("title").isDetailLink(true).label("BBX"), new Field("detail"), new Field("vpn")]);
-            bbx.editionView().title("Blue Box {{entry.values.title}}")
+            bbx.dashboardView()
+                    .title("BlueBoxes List")
+                    .order(2) // display the post panel first in the dashboard
+                    .limit(10) // limit the panel to the 5 latest posts
+                    .fields([
+                        new Field("title").isDetailLink(true).label("BBX"),
+                        new Field("detail"), new Field("vpn")
+                    ]);
+            bbx.editionView().title("Blue Box : {{entry.values.title}}")
                     .actions(["list", "show", "delete"])
                     .fields([
                         new Field("title").editable(false).isDetailLink(true),
@@ -74,13 +111,96 @@ block jsheader
                     .fields(bbx.editionView().fields());
             var titleAtCreationTime = new Field("title").validation({validator: !{BBXTitleValidator}});
             bbx.creationView().fields([
+                    titleAtCreationTime,
+                    new Field("detail")]);
+            bbx.showView().fields([
+                    new Field("title").editable(false).isDetailLink(true),
+                    new Field("detail"),
+                    new Field("vpn"),
+                    new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+            ]);
+
+            // VNCs
+            vnc.dashboardView()
+                    .title("VNCs List")
+                    .order(3) // display the post panel first in the dashboard
+                    .limit(5) // limit the panel to the 5 latest posts
+                    .fields([
+                        new Field("title").isDetailLink(true).label("VNC"),
+                        new Field("detail")
+                    ]);
+            vnc.editionView()
+                    .title("Edit VNC : {{entry.values.title}}")
+                    .actions(["list", "show", "delete"])
+                    .fields([
+                        new Field("title").editable(false).isDetailLink(true),
+                        new Field("detail"),
+                        new Field("ip"),
+                        new Field("port"),
+                            // @todo preselect current vpn in the list
+                        new Reference('vpn')
+                            .label('VPN title')
+                            .targetEntity(vpn) // Select a target Entity
+                            .targetField(new Field('title')), // Select a label Field
+                            // @todo see how to add a frame with VNC
+                        new Field('Open VNC', 'template')
+                                .type('template')
+                                .editable(false)
+                                .template('<a href="/connect?ip={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">Open {{entry.values.title}} in a new window</a>')
+                    ]);
+            vnc.listView()
+                    .title("All VNCs")
+                    .fields(vnc.editionView().fields());
+            var titleAtCreationTime = new Field("title").validation({validator: !{VNCTitleValidator}});
+            vnc.creationView().fields([
+                    titleAtCreationTime,
+                    new Field("detail")]);
+            vnc.showView().fields([
+                    new Field("title").editable(false).isDetailLink(true),
+                    new Field("detail"),
+                    new Field("vncBoxes").type("template").template('<div id="VNC_connect"><a href="/connect?ip={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">Connect to {{entry.values.title}}</a></div>')
+            ]);
+
+            // USERs
+            user.dashboardView()
+                    .title("Users List")
+                    .order(4)
+                    .limit(10)
+                    .fields([
+                        new Field("username").isDetailLink(true).label("Users").identifier(true),
+                        new Field("sciper"),
+                        new Field("email")
+                    ]);
+            user.editionView()
+                    .title("Edit user : {{entry.values.title}}")
+                    .actions(["list", "show", "delete"])
+                    .fields([
+                        new Field("username").editable(false).isDetailLink(true).identifier(true),
+                        new Field("sciper").editable(false),
+                        new Field("email").editable(false),
+                        new Field("group"),
+                        /*new ReferencedList('group') // display list of related comments
+                                .targetEntity(user)
+                                .targetReferenceField('username')
+                                .targetFields([
+                                    new Field('group')
+                                ]),*/
+                        new Field('View details', 'template')
+                                .type('template')
+                                .editable(false)
+                                .template('<a href="http://people.epfl.ch/cgi-bin/people/showcv?id={{entry.values.sciper}}&op=admindata&type=show&login=1&lang=en&cvlang=en" target="_blank">Open {{entry.values.username}} details</a>')
+                    ]);
+            user.listView()
+                    .title("All Users")
+                    .fields(user.editionView().fields());
+            var titleAtCreationTime = new Field("title").validation({validator: !{VNCTitleValidator}});
+            user.creationView().fields([
                 titleAtCreationTime,
                 new Field("detail")]);
-            bbx.showView().fields([
+            user.showView().fields([
                 new Field("title").editable(false).isDetailLink(true),
                 new Field("detail"),
-                new Field("vpn"),
-                new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+                new Field("vncBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
             ]);
 
             NgAdminConfigurationProvider.configure(app);
@@ -102,4 +222,4 @@ block content
             p(class="text-muted" style="padding-top:20px;float:right")
                 a(href="https://github.com/epfl-sti/cmi.bluebox")
                     img(src='../images/blue_cube20.png')
-                    span #{title} on github // fork me
+                    span &nbsp; #{title} on github // fork me
