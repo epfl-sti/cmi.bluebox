@@ -10,6 +10,8 @@ EPFLSTI::Docker::Init::Base - Abstract base class for programs run by init.pl
 
 =cut
 
+use POSIX qw(WIFEXITED WEXITSTATUS);
+
 use base 'IO::Async::Notifier';
 
 =head1 DESCRIPTION
@@ -73,6 +75,18 @@ sub _fatal {
   } else {
     $self->loop->stop($msg);
   }
+}
+
+=head3 _exit_code_to_string ($exitcode)
+
+Interprets $exitcode to a string, e.g. "code 4" or "signal 13".
+
+=cut
+
+sub _exit_code_to_string {
+  my ($self, $exitcode) = @_;
+  return (WIFEXITED($exitcode) ? "code " . WEXITSTATUS($exitcode):
+            "signal $exitcode");
 }
 
 1;

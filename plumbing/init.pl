@@ -10,24 +10,26 @@ init.pl – Process number 1 in the Docker container
 
 Start tinc and the Web UI.
 
-TODO: monitor subprocesses, restart them, and terminate the whole container if
-they can't be kept running.
-
-TONOTDO: turn into systemd-in-Perl.
-
 =cut
 
 use EPFLSTI::Docker::Log -main => "init.pl";
 
-msg "Starting firsttime.pl";
-system("/opt/blueboxnoc/plumbing/firsttime.pl");
-($? == 0) || exit $?;
+use EPFLSTI::Docker::Init;
 
-msg "Starting tinc";
-system("/etc/init.d/tinc", "start");
-# Note: until /etc/tinc/nets.boot exists, tinc will not start up.
-
-msg "Starting node";
-system("node", "/opt/blueboxnoc/blueboxnoc-ui/helloworld.js");
-
-wait;
+init_sequence {
+  run_command("/opt/blueboxnoc/plumbing/firsttime.pl")
+    ->when_done
+    ->then(sub {
+      run_command("/etc/init.d/tinc", "start")
+        ->when_done
+    })
+    ->then(sub {
+      run_daemon("node", "/opt/blueboxnoc/blueboxnoc-ui/helloworld.js")
+        ->when_ready(qr/ready|serving|running/i)
+    })
+  # apache comes last, so that the world never sees a half-running system.
+#  ->then(sub {
+#    run_command("/etc/init.d/apache2", "start")
+#    ->when_done
+#  })
+}

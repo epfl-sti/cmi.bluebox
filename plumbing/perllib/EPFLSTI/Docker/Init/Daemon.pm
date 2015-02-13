@@ -45,7 +45,6 @@ init.pl than the usual $loop->add() based stuff.
 use base 'EPFLSTI::Docker::Init::Base';
 
 use Future;
-use POSIX qw(WIFEXITED WEXITSTATUS);
 use EPFLSTI::Async::Process;
 use EPFLSTI::Docker::Log;
 
@@ -188,8 +187,7 @@ sub _on_daemon_exited {
   my (undef, $exitcode) = @_;
   my $name = $self->process_name;
   if (--$self->{max_restarts} >= 0) {
-    my $status = (WIFEXITED($exitcode) ? "code " . WEXITSTATUS($exitcode):
-                    "signal $exitcode");
+    my $status = $self->_exit_code_to_string($exitcode);
     msg "$name exited with $status, restarting " .
       "($self->{max_restarts} attempt(s) remaining)";
     $self->_start_process_on_loop();
