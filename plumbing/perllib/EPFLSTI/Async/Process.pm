@@ -331,23 +331,28 @@ sub _update_watchers {
     if ($activate) {
       msg "Watching $path";
       $self->add_child($self->{_watched_files}->{$path} =
-          new EPFLSTI::Async::NewFileStream(
-            ($self->{interval} ? (interval => $self->{interval}) : ()),
-            filename => $path,
-            on_read => $self->_capture_weakself( sub {
-                my $self = shift or return;
-                my (undef, $bufref) = @_;
-                while( $$bufref =~ s/^(.*\n)// ) {
-                  $self->_on_log_line($path, $1);
-                }
-                return 0;
-              })));
+                         $self->_make_file_stream($path));
     } else {
       msg "Stop watching $path";
       $self->remove_child($self->{_watched_files}->{$path});
       $self->{_watched_files}->{$path} = 1;
     }
   }
+}
+
+sub _make_file_stream {
+  my ($self, $path) = @_;
+  return new EPFLSTI::Async::NewFileStream(
+    ($self->{interval} ? (interval => $self->{interval}) : ()),
+    filename => $path,
+    on_read => $self->_capture_weakself( sub {
+        my $self = shift or return;
+        my (undef, $bufref) = @_;
+        while( $$bufref =~ s/^(.*\n)// ) {
+          $self->_on_log_line($path, $1);
+        }
+        return 0;
+      }));
 }
 
 =head2 _on_process_exit ($?)
