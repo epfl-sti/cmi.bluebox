@@ -110,14 +110,19 @@ sub configure {
     $self->{process} = IO::Async::Process->new(
       setup => [
         stdin  => [ "open", "<", File::Spec->devnull ],
-        stdout => [ "open", ">>", EPFLSTI::Docker::Log::logfile_path(
-          $self->process_name, $$, ".stdout") ],
-        stderr => [ "open", ">>", EPFLSTI::Docker::Log::logfile_path(
-          $self->process_name, $$, ".stderr") ],
+        # Cannot setup stdout and stderr yet, since we don't know the names
+        # of the files to redirect to.
         chdir => File::Spec->rootdir,
        ],
       code => sub {
-        # L<IO::Async::ChildManager> handles the entire daemon
+        open(STDOUT, ">>", EPFLSTI::Docker::Log::logfile_path(
+          $self->process_name, $$, ".stdout"))
+          or die "Cannot redirect STDOUT";
+        open(STDERR, ">>", EPFLSTI::Docker::Log::logfile_path(
+          $self->process_name, $$, ".stderr"))
+          or die "Cannot redirect STDERR";
+
+        # L<IO::Async::ChildManager> handles the rest of the daemon
         # ritual, except setsid() and the double fork(). We don't
         # want the latter; we need to wait() on the children.
         # (Besides, we are probably PID 1 so it wouldnt't work.)
@@ -514,11 +519,15 @@ test "synopsis" => sub {
 
 test "STDOUT / STDERR files are created" => sub {
   testing_loop(my $loop = new_builtin IO::Async::Loop);
+
+  my $exited;
   my $process = new EPFLSTI::Async::Process(
-    command => ["true"]);
+    command => ["true"],
+    on_exit => sub { $exited = 1 });
   $loop->add($process);
-  my $pid;
-  wait_for { $pid = $process->pid };
+  wait_for { $exited };
+
+  my $pid = $process->pid;
   ok(-f EPFLSTI::Docker::Log::logfile_path(
     "true", $pid, ".stdout"));
   ok(-f EPFLSTI::Docker::Log::logfile_path(
