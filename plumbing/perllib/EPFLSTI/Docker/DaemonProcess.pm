@@ -252,8 +252,6 @@ mkdir(my $logdir = catfile(My::Tests::Below->tempdir, "log"))
 
 EPFLSTI::Docker::Log::log_dir($logdir);
 
-sub xtest {}
-
 test "EPFLSTI::Docker::DaemonProcess: fire and forget" => sub {
   testing_loop(my $loop = new_builtin IO::Async::Loop);
   my $touched = My::Tests::Below->tempdir() . "/touched.1";
@@ -269,9 +267,7 @@ test "EPFLSTI::Docker::DaemonProcess: expect message" => sub {
   my $done = 0;
   my $daemon = EPFLSTI::Docker::DaemonProcess
     ->start($loop, "sh", "-c", "sleep 1 && echo Ready && sleep 30");
-  @DB::typeahead = ["b EPFLSTI::Async::Process::_on_log_line",
-                    "c"];
-  $DB::single = 1;
+
   my $unused_future = $daemon->when_ready(qr/Ready/)->then(sub {
         $done = 1;
   });
