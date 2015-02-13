@@ -69,6 +69,7 @@ sub start {
       command => [@command],
       on_setup_failed => $self->_capture_weakself('_on_setup_failed'),
       on_exit => $self->_capture_weakself('_on_exit'));
+  $self->add_child($self->{process});
   $loop->add($self);
 
   return $self;
