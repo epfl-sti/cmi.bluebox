@@ -10,6 +10,13 @@
 : ${BLUEBOXNOC_CODE_DIR:="$(cd $(dirname "$0")/..; pwd)"}
 : ${BLUEBOXNOC_VAR_DIR:="${BLUEBOXNOC_CODE_DIR}/var"}
 
+usage() {
+    echo >&2 "Usage:"
+    echo >&2 ""
+    echo >&2 "    $(basename "$0") ( start | stop | status | restart | shell)"
+    echo >&2 ""
+    exit 2
+}
 
 start() {
     test 0 '!=' $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | wc -l) && return
@@ -19,7 +26,6 @@ start() {
         -v "$BLUEBOXNOC_VAR_DIR":/srv \
         -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
         "$BLUEBOXNOC_DOCKER_NAME"
-        sleep 3600
 }
 
 stop() {
@@ -31,6 +37,7 @@ is_running() {
     test 0 != $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME" | wc -l)
 }
 
+[ -n "$1" ] || usage
 while [ -n "$1" ]; do
     case "$1" in
         status)
@@ -44,13 +51,14 @@ while [ -n "$1" ]; do
                 echo >&2 "$BLUEBOXNOC_DOCKER_NAME" is not running
                 exit 2
             }
-            docker exec -it $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME") bash ;;
+            docker exec -it $(docker ps -q "$BLUEBOXNOC_DOCKER_NAME") bash || \
+                exit $?;;
         restart)
             stop
             start ;;
         *)
             echo >&2 "Unknown subcommand: $1\n"
-            exit 2 ;;
+            usage ;;
     esac
     shift
 done
