@@ -13,3 +13,4 @@
 *.gzip binary
 *.otf binary
 *.woff binary
+*.xcf binary
