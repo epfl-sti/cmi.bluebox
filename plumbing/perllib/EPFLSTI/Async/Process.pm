@@ -131,23 +131,22 @@ sub configure {
         exec(@{$self->{command}}) or die "Cannot exec()";
       },
       on_finish => $self->_capture_weakself( sub {
-         my $self = shift or return;
-         $self->_on_process_exit(@_);
+        my $self = shift or return;
+        $self->_on_process_exit(@_);
        }),
       on_exception => $self->_capture_weakself( sub {
-         my $self = shift or return;
-         my (undef, $exn, $errno, $exitcode) = @_;
+        my $self = shift or return;
+        my (undef, $exn, $errno, $exitcode) = @_;
 
-         if (length $exn) {
-           $self->_on_setup_failed($exn, $errno);
-         } else {
-           $self->_fatal({
-             message => "Forked process exit()ed before exec()",
-             exitcode => $exitcode
-            });
-         }
-       }),
-    );
+        if (length $exn) {
+          $self->_on_setup_failed($exn, $errno);
+        } else {
+          $self->_fatal({
+            message => "Forked process exit()ed before exec()",
+            exitcode => $exitcode
+          });
+        }
+      }));
     $self->add_child($self->{process});
   }
 
