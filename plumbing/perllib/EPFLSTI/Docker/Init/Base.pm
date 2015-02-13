@@ -1,18 +1,21 @@
 #!/usr/bin/perl -w
 
-package EPFLSTI::Docker::InitProgramBase;
+package EPFLSTI::Docker::Init::Base;
 
 use strict;
 
 =head1 NAME
 
-EPFLSTI::Docker::InitProgramBase - Abstract base class for the tasks of init.pl
+EPFLSTI::Docker::Init::Base - Abstract base class for programs run by init.pl
 
 =cut
 
 use base 'IO::Async::Notifier';
 
 =head1 DESCRIPTION
+
+See subclasses L<EPFLSTI::Docker::Init::Daemon> and
+L<EPFLSTI::Docker::Init::Command>.
 
 =head2 Attributes
 

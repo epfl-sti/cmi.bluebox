@@ -1,21 +1,21 @@
 #!/usr/bin/perl -w
 
-package EPFLSTI::Docker::DaemonProcess;
+package EPFLSTI::Docker::Init::Daemon;
 
 use strict;
 
 =head1 NAME
 
-EPFLSTI::Docker::DaemonProcess - Daemons for the init.pl script
+EPFLSTI::Docker::Init::Daemon - Daemons for the init.pl script
 
 =head1 SYNOPSIS
 
   use IO::Async::Loop;
-  use EPFLSTI::Docker::DaemonProcess;
+  use EPFLSTI::Docker::Init::Daemon;
 
   my $loop = IO::Async::Loop;
 
-  my $future = EPFLSTI::Docker::DaemonProcess
+  my $future = EPFLSTI::Docker::Init::Daemon
      ->start($loop, "tincd", "--no-detach")
      ->when_ready(qr/Ready/)->then(sub {
     # Do something, return a Future
@@ -31,7 +31,7 @@ features on top:
 =item *
 
 Automated flakyness monitoring and recovery: an
-EPFLSTI::Docker::DaemonProcess simply is not supposed to exit.
+EPFLSTI::Docker::Init::Daemon simply is not supposed to exit.
 
 =item *
 
@@ -42,7 +42,7 @@ init.pl than the usual $loop->add() based stuff.
 
 =cut
 
-use base 'EPFLSTI::Docker::InitProgramBase';
+use base 'EPFLSTI::Docker::Init::Base';
 
 use Future;
 use POSIX qw(WIFEXITED WEXITSTATUS);
@@ -53,7 +53,7 @@ use EPFLSTI::Docker::Log;
 
 Start @command on the event loop $loop.
 
-  my $daemon = EPFLSTI::Docker::DaemonProcess->start(
+  my $daemon = EPFLSTI::Docker::Init::Daemon->start(
     $loop, "tincd", "--no-detach");
 
 The command will start as soon as C<$loop> has a chance to run (i.e.
@@ -214,7 +214,7 @@ require My::Tests::Below unless caller();
 # To run the test suite:
 #
 # perl -Iplumbing/perllib -Idevsupport/perllib \
-#   plumbing/perllib/EPFLSTI/Docker/DaemonProcess.pm
+#   plumbing/perllib/EPFLSTI/Docker/InitDaemon.pm
 
 __END__
 
@@ -237,20 +237,20 @@ mkdir(my $logdir = catfile(My::Tests::Below->tempdir, "log"))
 
 EPFLSTI::Docker::Log::log_dir($logdir);
 
-test "EPFLSTI::Docker::DaemonProcess: fire and forget" => sub {
+test "EPFLSTI::Docker::Init::Daemon: fire and forget" => sub {
   testing_loop(my $loop = new_builtin IO::Async::Loop);
   my $touched = My::Tests::Below->tempdir() . "/touched.1";
-  my $daemon = EPFLSTI::Docker::DaemonProcess->start(
+  my $daemon = EPFLSTI::Docker::Init::Daemon->start(
     $loop, "sh", "-c", "sleep 1 && touch $touched && sleep 30");
   ok(! -f $touched);
   wait_for {-f $touched};
   $daemon->stop();
 };
 
-test "EPFLSTI::Docker::DaemonProcess: expect message" => sub {
+test "EPFLSTI::Docker::Init::Daemon: expect message" => sub {
   testing_loop(my $loop = new_builtin IO::Async::Loop);
   my $done = 0;
-  my $daemon = EPFLSTI::Docker::DaemonProcess
+  my $daemon = EPFLSTI::Docker::Init::Daemon
     ->start($loop, "sh", "-c", "sleep 1 && echo Ready && sleep 30");
 
   my $unused_future = $daemon->when_ready(qr/Ready/)->then(sub {
@@ -261,11 +261,11 @@ test "EPFLSTI::Docker::DaemonProcess: expect message" => sub {
   $daemon->stop();
 };
 
-test "EPFLSTI::Docker::DaemonProcess: dies, but not too often" => sub {
+test "EPFLSTI::Docker::Init::Daemon: dies, but not too often" => sub {
   testing_loop(my $loop = new_builtin IO::Async::Loop);
   my $failbudget_file = My::Tests::Below->tempdir() . "/failbudget";
   FileHandle->new($failbudget_file, "w")->print(3);
-  my $daemon = EPFLSTI::Docker::DaemonProcess
+  my $daemon = EPFLSTI::Docker::Init::Daemon
     ->start($loop, $^X, "-we", <<'SCRIPT', $failbudget_file);
 use strict;
 use FileHandle;
@@ -294,23 +294,23 @@ SCRIPT
 };
 
 
-test "EPFLSTI::Docker::DaemonProcess: dies too often" => sub {
+test "EPFLSTI::Docker::Init::Daemon: dies too often" => sub {
   my $loop = new_builtin IO::Async::Loop;
-  my $daemon = EPFLSTI::Docker::DaemonProcess
+  my $daemon = EPFLSTI::Docker::Init::Daemon
     ->start($loop, "true");
   my $result = $loop->run();
   like $result, qr|true|;
   like $result, qr/failed too many times/;
 };
 
-test "EPFLSTI::Docker::DaemonProcess: keeps dying after successful start"
+test "EPFLSTI::Docker::Init::Daemon: keeps dying after successful start"
 => sub {
   testing_loop(my $loop = new_builtin IO::Async::Loop);
   my $soapbox = My::Tests::Below->tempdir() . "/soapbox";
   FileHandle->new($soapbox, "w")->close;
   ok(-f $soapbox);
 
-  my $daemon = EPFLSTI::Docker::DaemonProcess
+  my $daemon = EPFLSTI::Docker::Init::Daemon
     ->start($loop, $^X, "-we",
             "use strict; if (-f '$soapbox') { warn 'Ready\n'; sleep(30) } else { sleep 0.1 }");
   my $future = $daemon
