@@ -6,7 +6,7 @@ use strict;
 
 =head1 NAME
 
-EPFLSTI::Docker::DaemonProcess - Support for writing the init.pl script
+EPFLSTI::Docker::DaemonProcess - Daemons for the init.pl script
 
 =head1 SYNOPSIS
 
@@ -42,9 +42,10 @@ init.pl than the usual $loop->add() based stuff.
 
 =cut
 
+use base 'EPFLSTI::Docker::InitProgramBase';
+
 use Future;
 use POSIX qw(WIFEXITED WEXITSTATUS);
-use IO::Async::Notifier;  # For _capture_weakself
 use EPFLSTI::Async::Process;
 use EPFLSTI::Docker::Log;
 
@@ -73,11 +74,10 @@ voluntarily L</stop>ped.
 sub start {
   my ($class, $loop, @command) = @_;
   my $self = bless {
-    name => join(" ", @command),
     command => [@command],
     max_restarts => 4,
-    loop => $loop,
   }, $class;
+  $loop->add($self);
   $self->_start_process_on_loop();
   return $self;
 }
@@ -93,13 +93,12 @@ sub when_ready {
   $self->{ready_line_regexp} = $running_re;
   $self->_reconfigure_process();
 
-  $self->{ready_timeout} = $self->{loop}
+  $self->{ready_timeout} = $self->loop
     ->delay_future(after => $timeout)
     ->then(sub {
       # $when is still live, otherwise _make_quiet would have cancelled us.
       my $name = $self->process_name;
       $when->fail("Timeout waiting for $name to start");
-      delete $self->{loop};  # Prevent cyclic garbage
     });
 
   return $when->then(sub {$self->_make_quiet; $when},
@@ -139,27 +138,13 @@ sub stop {
   if ($self->{process}) {
     $self->{process}->kill("TERM");
   }
-  delete $self->{loop};  # Prevent cyclic garbage, unwanted restarts
-}
-
-=head2 process_name ()
-
-=head2 process_name ($newval)
-
-Delegated to L<EPFL::Async::Process>.
-
-=cut
-
-sub process_name {
-  my $self = shift;
-  return $self->{process}->process_name(@_);
 }
 
 =begin internals
 
 =head2 _start_process_on_loop ()
 
-Create an L<EPFLSTI::Async::Process> instance and put it on $self->{loop}.
+Create an L<EPFLSTI::Async::Process> instance and put it on $self->loop.
 
 May be called recursively from L</_on_daemon_exited>, although we hope
 it won't be.
@@ -168,7 +153,11 @@ it won't be.
 
 sub _start_process_on_loop {
   my ($self) = @_;
-  do { warn "No loop"; return } unless (my $loop = $self->{loop});
+  do { warn "No loop"; return } unless (my $loop = $self->loop);
+
+  if ($self->{process}) {
+    $self->remove_child(delete $self->{process});
+  }
 
   $self->{process} = new EPFLSTI::Async::Process(
     command => $self->{command},
@@ -177,11 +166,10 @@ sub _start_process_on_loop {
       my $name = $self->process_name;
       $self->_fatal("Cannot start $name: $error: $dollarbang"),
     },
-    on_exit => IO::Async::Notifier::_capture_weakself(
-      $self, '_on_daemon_exited'));
+    on_exit => $self->_capture_weakself('_on_daemon_exited'));
   $self->_reconfigure_process();
 
-  $loop->add($self->{process});
+  $self->add_child($self->{process});
 }
 
 =head2 _on_daemon_exited ($exitcode)
@@ -199,7 +187,7 @@ sub _on_daemon_exited {
   my $self = shift or return;  # Gets a weak ref to self
   my (undef, $exitcode) = @_;
   my $name = $self->process_name;
-  if ($self->{max_restarts}-- >= 0) {
+  if (--$self->{max_restarts} >= 0) {
     my $status = (WIFEXITED($exitcode) ? "code " . WEXITSTATUS($exitcode):
                     "signal $exitcode");
     msg "$name exited with $status, restarting " .
@@ -210,29 +198,12 @@ sub _on_daemon_exited {
 
   my $msg = "$name failed too many times";
   msg $msg;
-  delete $self->{loop};  # Prevent cyclic garbage
   if (my $cb = $self->can_event("on_too_many_restarts")) {
-    $cb->($self->{process});
+    $cb->($self, $self->{process});
   } else {
-    self->_fatal($msg);
+    $self->_fatal($msg);
   }
 }
-
-
-=head2 _fatal ($msg)
-
-Ensure that init.pl cares about $msg.
-
-If a L<Future> instance was returned by L</when_ready> and is still
-live, terminate it with an error. Otherwise, interrupt the main loop.
-In both cases, use $msg as the error message.
-
-=cut
-
-sub _fatal {
-  my ($self, $msg) = @_;
-}
-
 
 =end internals
 
@@ -260,8 +231,6 @@ use IO::Async::Loop;
 use IO::Async::Timer::Periodic;
 
 use EPFLSTI::Docker::Log;
-
-test_only qr/not too often/;
 
 mkdir(my $logdir = catfile(My::Tests::Below->tempdir, "log"))
   or die "mkdir: $!";
@@ -328,26 +297,39 @@ SCRIPT
 test "EPFLSTI::Docker::DaemonProcess: dies too often" => sub {
   my $loop = new_builtin IO::Async::Loop;
   my $daemon = EPFLSTI::Docker::DaemonProcess
-    ->start($loop, "/bin/true");
+    ->start($loop, "true");
   my $result = $loop->run();
-  like $result, qr|/bin/true|;
+  like $result, qr|true|;
   like $result, qr/failed too many times/;
 };
 
 test "EPFLSTI::Docker::DaemonProcess: keeps dying after successful start"
 => sub {
-  my $loop = new_builtin IO::Async::Loop;
+  testing_loop(my $loop = new_builtin IO::Async::Loop);
+  my $soapbox = My::Tests::Below->tempdir() . "/soapbox";
+  FileHandle->new($soapbox, "w")->close;
+  ok(-f $soapbox);
+
   my $daemon = EPFLSTI::Docker::DaemonProcess
-    ->start($loop, "sh", "-c", "sleep 0.1; echo Ready");
-  my $survived = 0;
-  my $future = $daemon->when_ready(qr/Ready/)->then(sub {
-        return $loop->delay_future(after => 2);
-  })->then(sub {
-        $survived = 1;
-  });
+    ->start($loop, $^X, "-we",
+            "use strict; if (-f '$soapbox') { warn 'Ready\n'; sleep(30) } else { sleep 0.1 }");
+  my $future = $daemon
+    ->when_ready(qr/Ready/)
+    ->then(sub { return Future->done("DONE") });
+
+  wait_for { eval { $future->get } };
+  is($future->get, "DONE");
+
+  # Kick the soapbox from under the process
+  unlink $soapbox;
+
+  my $pid = $daemon->pid;
+  kill HUP => $pid or die $!;
+  # Do *NOT* waitpid, or $loop would be none the wiser!
+
+  # This made the Perl scriptlet flaky; the loop should now exit
   my $result = $loop->run();
   like $result, qr/failed too many times/;
-  is $survived, 0;
 };
 
 # If the test waits 30 seconds here, it means we are leaking processes.
