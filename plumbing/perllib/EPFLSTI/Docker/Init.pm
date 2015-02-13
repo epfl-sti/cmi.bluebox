@@ -58,14 +58,18 @@ sub init_sequence (&) {
 sub run_daemon {
   require EPFLSTI::Docker::Init::Daemon;
   my $daemon = EPFLSTI::Docker::Init::Daemon->start($loop, @_);
-  msg "Started daemon " . $daemon->process_name;
+  my $name = $daemon->process_name;
+  msg qq'Started daemon "$name:" ' .
+    join(" ", @{$daemon->{process}->{command}});
   return $daemon;
 };
 
 sub run_command {
   require EPFLSTI::Docker::Init::Command;
   my $command = EPFLSTI::Docker::Init::Command->start($loop, @_);
-  msg "Started command " . $command->process_name;
+  my $name = $command->process_name;
+  msg qq'Started command "$name:" ' .
+    join(" ", @{$command->{process}->{command}});
   return $command;
 };
 

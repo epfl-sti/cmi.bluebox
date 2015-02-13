@@ -180,7 +180,7 @@ sub _on_ready {
   my (undef, $matching_line, $path) = @_;
   my $name = $self->process_name;
   chomp($matching_line);
-  msg qq'Daemon "$name" looks ready - Seen this line in $path: $matching_line";
+  msg qq'Daemon "$name" looks ready - Seen this line in $path: $matching_line';
   $self->{future}->done();
 }
 

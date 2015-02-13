@@ -14,6 +14,8 @@ use POSIX qw(WIFEXITED WEXITSTATUS);
 
 use base 'IO::Async::Notifier';
 
+use EPFLSTI::Docker::Log;
+
 =head1 DESCRIPTION
 
 See subclasses L<EPFLSTI::Docker::Init::Daemon> and
@@ -69,7 +71,7 @@ use $msg as the error message.
 
 sub _fatal {
   my ($self, $msg) = @_;
-
+  msg $msg;
   if ($self->{future} and not $self->{future}->is_ready) {
     $self->{future}->fail($msg);
   } else {

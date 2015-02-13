@@ -97,15 +97,15 @@ sub _on_setup_failed {
 
 sub _on_exit {
   my $self = shift or return;  # Weakened self
-  return unless $self->{future};  # No future
 
   my (undef, $exitcode) = @_;
+  my $name = $self->process_name;
 
   if (! $exitcode) {
-    $self->{future}->done;
+    msg qq'Command "$name" finished successfully';
+    $self->{future}->done if $self->{future};
   } else {
     my $status = $self->_exit_code_to_string($exitcode);
-    my $name = $self->process_name;
     $self->_fatal("$name failed with $status");
   }
 }
