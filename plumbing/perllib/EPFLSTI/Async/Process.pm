@@ -400,7 +400,7 @@ sub _on_log_line {
   my ($self, $path, $line) = @_;
   return unless $self->_needs_watching;
   if ($line =~ $self->{ready_line_regexp}) {
-    $self->can_event("on_ready")->($self);
+    $self->can_event("on_ready")->($self, $line, $path);
     delete $self->{ready_line_regexp};
     $self->_update_watchers();  # i.e. close them all
   }

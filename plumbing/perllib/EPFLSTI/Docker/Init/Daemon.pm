@@ -108,7 +108,7 @@ sub _reconfigure_process {
   my ($self) = @_;
   $self->{process}->configure(
     ready_line_regexp => $self->{ready_line_regexp},
-    on_ready => sub { $self->{future}->done() },
+    on_ready => $self->_capture_weakself('_on_ready'),
    );
 }
 
@@ -169,6 +169,19 @@ sub _start_process_on_loop {
   $self->_reconfigure_process();
 
   $self->add_child($self->{process});
+}
+
+=head2 _on_ready ($process, $matching_line, $file)
+
+=cut
+
+sub _on_ready {
+  my $self = shift or return;  # Weak ref to $self
+  my (undef, $matching_line, $path) = @_;
+  my $name = $self->process_name;
+  chomp($matching_line);
+  msg qq'Daemon "$name" looks ready - Seen this line in $path: $matching_line";
+  $self->{future}->done();
 }
 
 =head2 _on_daemon_exited ($exitcode)
