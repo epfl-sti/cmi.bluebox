@@ -131,7 +131,7 @@ sub configure
 
   if (exists $params{filename}) {
     $self->{EPFLSTI_Async_NewFileStream__filename} = delete $params{filename};
-    $self->_EPFLSTI__Async_NewFileStream__watch_file();
+    $self->_EPFLSTI__Async_NewFileStream__maybe_reopen_file();
   }
 
   if (exists $params{interval}) {
@@ -146,26 +146,33 @@ sub configure
 
 =head2 on_tick
 
-Overridden to call L</_EPFLSTI__Async_NewFileStream__watch_file>, and
+Overridden to call L</_EPFLSTI__Async_NewFileStream__maybe_reopen_file>, and
 do nothing if we don't have a handle yet.
 
 =cut
 
 sub on_tick {
   my $self = shift;
-  $self->_EPFLSTI__Async_NewFileStream__watch_file();
+  $self->_EPFLSTI__Async_NewFileStream__maybe_reopen_file();
   return if ! $self->{handle};
+  if (! $self->{last_stat}) {
+    # First time file exists: pretend it had size 0, so that we don't
+    # skip the first few lines written to it.
+    $self->{last_stat} = stat $self->{handle};
+    $self->{last_stat}->size(0);
+  }
+
   $self->SUPER::on_tick();
 }
 
-=head2 _EPFLSTI__Async_NewFileStream__watch_file
+=head2 _EPFLSTI__Async_NewFileStream__maybe_reopen_file
 
 Private method (hence the name) to open or rotate C<< $self->{handle} >>
 when needed.
 
 =cut
 
-sub _EPFLSTI__Async_NewFileStream__watch_file {
+sub _EPFLSTI__Async_NewFileStream__maybe_reopen_file {
   my $self = shift;
 
   my $filename = $self->{EPFLSTI_Async_NewFileStream__filename} or return;
@@ -179,15 +186,13 @@ sub _EPFLSTI__Async_NewFileStream__watch_file {
   return unless my $newhandle = FileHandle->new($filename, "r");
 
   $self->{handle} = $newhandle;
-  # Upon first open, need to restore the superclass invariants:
-  $self->{last_stat} ||= stat $self->{handle};
 }
 
 =head2 _reopen_file
 
 Neutered because the superclass assumes $self->{filename}.
 
-Superseded by L</_EPFLSTI__Async_NewFileStream__watch_file> anyway.
+Superseded by L</_EPFLSTI__Async_NewFileStream__maybe_reopen_file> anyway.
 
 =cut
 
@@ -298,6 +303,31 @@ test "EPFLSTI::Async::NewFileStream::_NewFile" => sub {
   $filestat = stat $testfile;
   is($handlestat->dev, $filestat->dev);
   is($handlestat->ino, $filestat->ino);
+};
+
+test "file appears between creation and first tick" => sub {
+  testing_loop(my $loop = new_builtin IO::Async::Loop);
+
+  my $testfile = catfile(My::Tests::Below->tempdir, "fabcaft");
+
+  my $on_devino_changed = sub {fail "Not expected in this test"};
+  my $on_size_changed = sub {fail "Too soon"};
+  my $f = EPFLSTI::Async::NewFileStream::_NewFile->new(
+    filename => $testfile,
+    on_size_changed => sub { $on_size_changed->() },
+    on_devino_changed => sub { $on_devino_changed->() },
+    interval => 1
+    );
+  $loop->add($f);
+
+  my $size_changed;
+  my $unused_future = $loop->delay_future(after => 0.1)->then(
+    sub {
+      echo $testfile, "Hello\n";
+      $on_size_changed = sub { $size_changed = 1 };
+    });
+  wait_for { $size_changed };
+  is $size_changed, 1;
 };
 
 test "EPFLSTI::Async::NewFileStream" => sub {
