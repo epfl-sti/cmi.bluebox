@@ -68,7 +68,7 @@ block jsheader
                             .label('Blue Boxes')
                             .targetEntity(bbx) // the tag entity is defined later in this file
                             .targetField(new Field('title')) // the field to be displayed in this list
-                            // .cssClasses('css_bboxes') // Sadly this is not working on list view (issue https://github.com/marmelab/ng-admin/issues/309)
+                            .cssClasses('bboxes_tag')
                     ]);
             vpn.listView()
                     .title("All VPNs")
