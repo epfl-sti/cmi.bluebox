@@ -43,6 +43,7 @@ init.pl than the usual $loop->add() based stuff.
 =cut
 
 use Future;
+use POSIX qw(WIFEXITED WEXITSTATUS);
 use IO::Async::Notifier;  # For _capture_weakself
 use EPFLSTI::Async::Process;
 use EPFLSTI::Docker::Log;
@@ -89,10 +90,8 @@ sub when_ready {
 
   my $when = $self->{future} = Future->new();
 
-  $self->{process}->configure(
-    ready_line_regexp => $running_re,
-    on_ready => sub { $when->done() },
-  );
+  $self->{ready_line_regexp} = $running_re;
+  $self->_reconfigure_process();
 
   $self->{ready_timeout} = $self->{loop}
     ->delay_future(after => $timeout)
@@ -107,9 +106,18 @@ sub when_ready {
                      sub {$self->_make_quiet; $when});
 }
 
+sub _reconfigure_process {
+  my ($self) = @_;
+  $self->{process}->configure(
+    ready_line_regexp => $self->{ready_line_regexp},
+    on_ready => sub { $self->{future}->done() },
+   );
+}
+
 sub _make_quiet {
   my ($self) = @_;
-  $self->{process}->configure(ready_line_regexp => undef);
+  delete $self->{ready_line_regexp};
+  $self->_reconfigure_process();
   if ($self->{ready_timeout}) {
     $self->{ready_timeout}->cancel();
   };
@@ -171,6 +179,7 @@ sub _start_process_on_loop {
     },
     on_exit => IO::Async::Notifier::_capture_weakself(
       $self, '_on_daemon_exited'));
+  $self->_reconfigure_process();
 
   $loop->add($self->{process});
 }
@@ -188,12 +197,17 @@ succeeded already.
 
 sub _on_daemon_exited {
   my $self = shift or return;  # Gets a weak ref to self
-  if ($self->{max_restarts}--) {
+  my (undef, $exitcode) = @_;
+  my $name = $self->process_name;
+  if ($self->{max_restarts}-- >= 0) {
+    my $status = (WIFEXITED($exitcode) ? "code " . WEXITSTATUS($exitcode):
+                    "signal $exitcode");
+    msg "$name exited with $status, restarting " .
+      "($self->{max_restarts} attempt(s) remaining)";
     $self->_start_process_on_loop();
     return;
   }
 
-  my $name = $self->process_name;
   my $msg = "$name failed too many times";
   msg $msg;
   delete $self->{loop};  # Prevent cyclic garbage
@@ -247,6 +261,8 @@ use IO::Async::Timer::Periodic;
 
 use EPFLSTI::Docker::Log;
 
+test_only qr/not too often/;
+
 mkdir(my $logdir = catfile(My::Tests::Below->tempdir, "log"))
   or die "mkdir: $!";
 
@@ -294,6 +310,8 @@ if ($failbudget <= 0) {
 } else {
    open(FAIL_BUDGET, ">", $ARGV[0]);
    print FAIL_BUDGET ($failbudget - 1);
+   close FAIL_BUDGET;
+   exit 4;
 }
 SCRIPT
   my $done = 0;
