@@ -36,11 +36,12 @@ sub import {
     my $logfile = logfile_path($processname, $$);
     open(STDERR, ">", $logfile) or die "Cannot log to $logfile: $!";
     open(STDOUT, ">&2") or die "Cannot dup STDOUT to STDERR: $!";
-    local $Log::Message::Simple::MSG_FH = \*STDERR;
-    local $Log::Message::Simple::ERROR_FH = \*STDERR;
-    local $Log::Message::Simple::DEBUG_FH = \*STDERR;
+    $| = 1;
+    $Log::Message::Simple::MSG_FH = \*STDERR;
+    $Log::Message::Simple::ERROR_FH = \*STDERR;
+    $Log::Message::Simple::DEBUG_FH = \*STDERR;
     ## Just for fun, this works:
-    # import(); msg("Logging to $logfile");
+    # import(__PACKAGE__); msg("Logging to $logfile");
   }
   return $thispkg->export_to_level(1, @_);
 }
