@@ -56,7 +56,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             ]);
     vpn.editionView()
             .title("Edit VPN : {{entry.values.title}}")
-            .actions(["list", "show", "delete"])
+            .actions(["list", "show", "delete", "bluebox"])
             .fields([
                 new Field("title").editable(false).isDetailLink(true),
                 new Field("detail"),
@@ -64,11 +64,18 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
                     .label('Blue Boxes')
                     .targetEntity(bbx) // the tag entity is defined later in this file
                     .targetField(new Field('title')) // the field to be displayed in this list
-                    .cssClasses('bboxes_tag')
             ]);
     vpn.listView()
             .title("All VPNs")
-            .fields(vpn.editionView().fields());
+            .fields([
+                vpn.editionView().fields(),
+                // duplicated ReferenceMany field to get the class only on list view
+                new ReferenceMany('bbxs') // a Reference is a particular type of field that references another entity
+                        .label('Blue Boxes')
+                        .targetEntity(bbx) // the tag entity is defined later in this file
+                        .targetField(new Field('title')) // the field to be displayed in this list
+                .cssClasses('bboxes_tag')
+            ]);
     var titleAtCreationTime = new Field("title").validation({validator: });
     vpn.creationView().fields([
             titleAtCreationTime,
@@ -135,7 +142,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
                 new Field('Open VNC', 'template')
                         .type('template')
                         .editable(false)
-                        .template('<a ng-click="goToDashboard()">Open {{entry.values.title}} in a new window</a>')
+                        .template('<a href="/connect?ip={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">Open {{entry.values.title}} in a new window</a>')
             ]);
     vnc.listView()
             .title("All VNCs")
@@ -147,7 +154,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     vnc.showView().fields([
             new Field("title").editable(false).isDetailLink(true),
             new Field("detail"),
-            new Field("vncBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+            new Field("vncBoxes").type("template").template('<div id="VNC_connect"><a href="/connect?ip={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">Connect to {{entry.values.title}}</a></div>')
     ]);
 
     // USERs
