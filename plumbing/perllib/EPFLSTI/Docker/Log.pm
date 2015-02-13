@@ -21,14 +21,19 @@ redirect STDOUT and STDERR.
 
 package EPFLSTI::Docker::Log;
 
-use Log::Message::Simple qw(error);
+use base 'Exporter';
+
+our @EXPORT = our @EXPORT_OK = qw(msg);
+
 use FileHandle;
 
+use Log::Message::Simple ();
+
 sub import {
-  my $unused_class = shift;
-  if ($_[0] && $_[0] eq "-main") {
-    shift;
-    my $logfile = logfile_path(shift, $$);
+  my ($thispkg) = @_;
+  if ($_[1] && $_[1] eq "-main") {
+    my (undef, $processname) = splice(@_, 1, 2);
+    my $logfile = logfile_path($processname, $$);
     open(STDERR, ">", $logfile) or die "Cannot log to $logfile: $!";
     open(STDOUT, ">&2") or die "Cannot dup STDOUT to STDERR: $!";
     local $Log::Message::Simple::MSG_FH = \*STDERR;
@@ -37,15 +42,23 @@ sub import {
     ## Just for fun, this works:
     # import(); msg("Logging to $logfile");
   }
+  return $thispkg->export_to_level(1, @_);
+}
+
+=head2 msg
+
+Like L<Log::Message::Simple/msg>, only prettier and without the debug flag.
+
+=cut
+
+sub msg {
+  my ($msgbody) = @_;
   my ($callpkg, undef, $callline) = caller;
-  my $msg = sub {
-    my $txtmsg = sprintf(
-      "[%s:%s %s] %s",
-      $callpkg, $callline, scalar(localtime), $_[0]);
-                              
-    Log::Message::Simple::msg($txtmsg, 1);
-  };
-  { no strict "refs"; *{"${callpkg}::msg"} = $msg; }
+  my $txtmsg = sprintf(
+    "[%s line %s %s] %s",
+    $callpkg, $callline, scalar(localtime), $msgbody);
+
+  Log::Message::Simple::msg($txtmsg, 1);
 }
 
 =head2 log_dir
