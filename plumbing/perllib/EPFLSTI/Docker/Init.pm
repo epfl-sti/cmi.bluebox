@@ -49,10 +49,12 @@ sub init_sequence (&) {
     return Future->done;
   }, sub {
     $loop->stop(shift);
+    return Future->done;
   });
   msg "Starting event loop";
   my $parting_words = $loop->run();
-  die $parting_words;  # Which hopefully we won't
+  my $state = $future->is_ready? "main loop exiting": "init_sequence failed";
+  die "$state: $parting_words";  # Which hopefully we won't
 }
 
 sub run_daemon {

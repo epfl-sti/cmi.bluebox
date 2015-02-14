@@ -27,9 +27,9 @@ init_sequence {
       run_daemon("node", "/opt/blueboxnoc/blueboxnoc-ui/helloworld.js")
         ->when_ready(qr/ready|serving|running/i)
     })
-  # apache comes last, so that the world never sees a half-running system.
-#  ->then(sub {
-#    run_command("/etc/init.d/apache2", "start")
-#    ->when_done
-#  })
+    # apache comes last, so that the world never sees a half-running system.
+    ->then(sub {
+      run_command("/etc/init.d/apache2", "start")
+        ->when_done
+    })
 }
