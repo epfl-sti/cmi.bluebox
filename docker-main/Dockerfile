@@ -49,8 +49,23 @@ RUN rm -rf /etc/tinc
 RUN ln -sf /srv/etc/tinc /etc/tinc
 RUN rm -rf /usr/local/lib/site_perl
 RUN ln -sf /opt/blueboxnoc/plumbing/perllib /usr/local/lib/site_perl
-RUN rm -rf /etc/apache2
-RUN ln -sf /opt/blueboxnoc/plumbing/apache2 /etc/apache2
+RUN mv /etc/apache2/apache2.conf /etc/apache2/apache2.conf.ORIG
+RUN ln -sf /opt/blueboxnoc/plumbing/apache2.conf /etc/apache2
+RUN rm -rf /var/log/apache2
+RUN ln -sf /srv/log/apache2 /var/log/apache2
+
+# Configure Apache
+# https://www.digitalocean.com/community/tutorials/how-to-use-apache-http-server-as-reverse-proxy-using-mod_proxy-extension
+RUN a2enmod proxy
+RUN a2enmod proxy_http
+RUN a2enmod proxy_ajp
+RUN a2enmod proxy_wstunnel
+RUN a2enmod rewrite
+RUN a2enmod deflate
+RUN a2enmod headers
+RUN a2enmod proxy_balancer
+RUN a2enmod proxy_connect
+RUN a2enmod proxy_html
 
 # The command to run (unless coutermanded on the "docker run" command line).
 CMD ["/opt/blueboxnoc/plumbing/init.pl"]

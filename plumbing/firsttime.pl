@@ -16,7 +16,7 @@ Creates a skeleton tinc config, RSA keypair.
 
 use EPFLSTI::Docker::Log -main => "firsttime.pl";
 
-foreach my $emptydir (qw(/srv/etc /srv/etc/tinc srv/log)) {
+foreach my $emptydir (qw(/srv/etc /srv/etc/tinc /srv/log /srv/log/apache2)) {
   if (! -d $emptydir) {
     msg "Creating $emptydir";
     mkdir($emptydir);

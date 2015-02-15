@@ -12,7 +12,7 @@ var server = http.createServer(function (request, response) {
     });
 });
 
-server.listen(80, "0.0.0.0");
+server.listen(8001, "0.0.0.0");
 
 // Put a friendly message on the terminal
-console.log("Server running at http://0.0.0.0:80/");
+console.log("Server running at http://0.0.0.0:8001/");
