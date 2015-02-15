@@ -24,8 +24,8 @@ init_sequence {
         ->when_done
     })
     ->then(sub {
-      run_daemon("node", "/opt/blueboxnoc/blueboxnoc-ui/helloworld.js")
-        ->when_ready(qr/ready|serving|running/i)
+      run_daemon("node", "/opt/blueboxnoc/blueboxnoc-ui/bin/www")
+        ->when_ready(qr/ready|serving|running|Listening/i)
     })
     # apache comes last, so that the world never sees a half-running system.
     ->then(sub {
