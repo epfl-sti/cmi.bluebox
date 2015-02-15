@@ -45,27 +45,27 @@ RUN find / -xdev -perm /u=s,g=s | sed '/./q1'
 # Expected mount points (see shlib/start_stop.sh):
 # Code directory (top of the git checkout) -> /opt/blueboxnoc
 # Data directory (w/ all persistent state) -> /srv
-RUN rm -rf /etc/tinc
-RUN ln -sf /srv/etc/tinc /etc/tinc
-RUN rm -rf /usr/local/lib/site_perl
-RUN ln -sf /opt/blueboxnoc/plumbing/perllib /usr/local/lib/site_perl
-RUN mv /etc/apache2/apache2.conf /etc/apache2/apache2.conf.ORIG
-RUN ln -sf /opt/blueboxnoc/plumbing/apache2.conf /etc/apache2
-RUN rm -rf /var/log/apache2
-RUN ln -sf /srv/log/apache2 /var/log/apache2
+RUN rm -rf /etc/tinc && \
+    ln -sf /srv/etc/tinc /etc/tinc && \
+    rm -rf /usr/local/lib/site_perl && \
+    ln -sf /opt/blueboxnoc/plumbing/perllib /usr/local/lib/site_perl && \
+    mv /etc/apache2/apache2.conf /etc/apache2/apache2.conf.ORIG && \
+    ln -sf /opt/blueboxnoc/plumbing/apache2.conf /etc/apache2 && \
+    rm -rf /var/log/apache2 && \
+    ln -sf /srv/log/apache2 /var/log/apache2
 
 # Configure Apache
 # https://www.digitalocean.com/community/tutorials/how-to-use-apache-http-server-as-reverse-proxy-using-mod_proxy-extension
-RUN a2enmod proxy
-RUN a2enmod proxy_http
-RUN a2enmod proxy_ajp
-RUN a2enmod proxy_wstunnel
-RUN a2enmod rewrite
-RUN a2enmod deflate
-RUN a2enmod headers
-RUN a2enmod proxy_balancer
-RUN a2enmod proxy_connect
-RUN a2enmod proxy_html
+RUN a2enmod proxy            && \
+    a2enmod proxy_http       && \
+    a2enmod proxy_ajp        && \
+    a2enmod proxy_wstunnel   && \
+    a2enmod rewrite          && \
+    a2enmod deflate          && \
+    a2enmod headers          && \
+    a2enmod proxy_balancer   && \
+    a2enmod proxy_connect    && \
+    a2enmod proxy_html
 
 # The command to run (unless coutermanded on the "docker run" command line).
 CMD ["/opt/blueboxnoc/plumbing/init.pl"]
