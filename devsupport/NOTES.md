@@ -3,7 +3,7 @@ Random development notes that might be useful to colleagues / contributors
 2015-02-09 - Blue Box personalization use case
 ================================================
 
-To be transcribed into ../README.md at some point. DRAFT STATE - There may be a way to suppress step 
+To be transcribed into ../README.md at some point.
 
 1. The VPN operator procures a Blue Box and installs a standard OpenWRT image onto it.
 2. The VPN operator configures network access on the Blue box
