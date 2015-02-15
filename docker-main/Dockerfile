@@ -28,7 +28,8 @@ RUN curl -L get.rexify.org | perl - --sudo -n Rex
 RUN apt-get install -y apache2
 
 # Dependencies of the plumbing code
-RUN apt-get -y install liblog-message-perl libfuture-perl libio-async-perl libset-scalar-perl
+RUN apt-get -y install liblog-message-perl libio-async-perl libset-scalar-perl cpanminus
+RUN cpanm install Future   # apt's version is older (0.23)
 
 # Remove all setuid privileges to lock down non-root users in the container
 RUN find / -xdev -perm /u=s,g=s -print -exec chmod u-s,g-s '{}' \;
