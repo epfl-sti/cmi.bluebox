@@ -1,6 +1,10 @@
 cmi.bluebox
 ===========
-DevOps'ed Blue Boxes (OpenWRT routers for various computer security uses)
+
+DevOps'ed _Blue Boxes_: OpenWRT routers used at EPFL for various network
+security purposes.
+
+![screenshot](doc/images/screenshot-dashboard.png?raw=true)
 
 Installation
 ------------
