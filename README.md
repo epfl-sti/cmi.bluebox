@@ -1,8 +1,14 @@
 cmi.bluebox
 ===========
 
-DevOps'ed _Blue Boxes_: OpenWRT routers used at EPFL for various network
-security purposes.
+DevOps'ed _Blue Boxes_: orchestrate OpenWRT routers for ad-hoc network
+security tasks.
+
+* Full-mesh VPNs between boxes with [tinc](http://www.tinc-vpn.org/)
+* VNC access over the Web with [noVNC](https://kanaka.github.io/noVNC/)
+* Multi-tenant administration UI ([node.js](http://nodejs.org/) + [ng-admin](https://github.com/marmelab/ng-admin))
+* Plumbing with [Perl](http://www.perl.org/), Blue Box orchestration with ssh
+* Packaged with [Docker](http://www.docker.com/)
 
 ![screenshot](doc/images/screenshot-dashboard.png?raw=true)
 
