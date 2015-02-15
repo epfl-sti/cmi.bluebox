@@ -20,16 +20,22 @@ RUN apt-get update && apt-get -y upgrade && apt-get install -y tinc curl
 RUN curl -sL https://deb.nodesource.com/setup | sudo bash -
 RUN apt-get install -y nodejs
 
-# http://www.rexify.org/get
-RUN apt-get -y install build-essential libexpat1-dev libxml2-dev libssh2-1-dev libssl-dev
-RUN curl -L get.rexify.org | perl - --sudo -n Rex
-
 # Apache
 RUN apt-get install -y apache2
 
 # Dependencies of the plumbing code
-RUN apt-get -y install liblog-message-perl libio-async-perl libset-scalar-perl cpanminus
-RUN cpanm install Future   # apt's version is older (0.23)
+RUN apt-get -y install liblog-message-perl libio-async-perl \
+    libset-scalar-perl cpanminus liblwp-protocol-https-perl \
+    libarchive-zip-perl libmodule-install-perl \
+    build-essential libssh2-1-dev libssl-dev
+RUN cpanm Future   # apt's version is older (0.23)
+RUN cpanm Module::Install::CheckLib
+# Build and install latest version of Net::SSH2 right off GitHub!
+RUN cpanm https://github.com/rkitover/net-ssh2/archive/cdb99bad1dfa388c26d586b181d5465dad9a4723.zip
+
+# http://www.rexify.org/get
+RUN apt-get -y install libexpat1-dev libxml2-dev
+RUN curl -L get.rexify.org | perl - --sudo -n Rex
 
 # Remove all setuid privileges to lock down non-root users in the container
 RUN find / -xdev -perm /u=s,g=s -print -exec chmod u-s,g-s '{}' \;
