@@ -25,9 +25,11 @@ use base 'Exporter';
 
 our @EXPORT = our @EXPORT_OK = qw(msg);
 
-use FileHandle;
+use IO::All;
 
 use Log::Message::Simple ();
+
+use EPFLSTI::Docker::Paths;
 
 sub import {
   my ($thispkg) = @_;
@@ -71,13 +73,6 @@ this is /srv/log in production, and guessed in development.
 
 =cut
 
-sub _is_prod {
-  if ($^O ne "linux") { return 0; }
-  if ($0 =~ m|/Users/| or $0 =~ m|/home/|) { return 0; }
-  if ($0 =~ m|^/opt|) { return 1; }
-  return undef;
-}
-
 our $_log_dir;
 
 sub log_dir {
@@ -89,22 +84,8 @@ sub log_dir {
     return $_log_dir;
   }
 
-  if  (_is_prod) {
-    $_log_dir = "/srv/log";
-  } else {
-    require File::Spec;
-    require File::Basename;
-    my $scriptdir = File::Spec->rel2abs(File::Basename::dirname($0));
-    chomp(my $checkoutdir = `set +x; cd "$scriptdir"; git rev-parse --show-toplevel`);
-    if ($checkoutdir) {
-      $_log_dir = "$checkoutdir/var/log";
-    } else {
-      require File::Temp;
-      $_log_dir = File::Temp::tempdir("EPFL-Docker-Log-XXXXXX", TMPDIR => 1 );
-    }
-    warn "Logging to $_log_dir for development\n";
-  }
-  return $_log_dir;
+  return ($_log_dir = io->catdir(EPFLSTI::Docker::Paths->srv_dir, "log")
+            ->name);
 }
 
 
@@ -114,10 +95,7 @@ sub logfile_path {
   if (! defined $suffix) { $suffix = ".log"; }
   my $log_dir = log_dir();
   if (! $_path_created) {
-    if (! -d $log_dir) {
-      require File::Path;
-      File::Path::make_path($log_dir);
-    }
+    io->dir($log_dir)->mkpath;
     $_path_created = 1;
   }
   return "${log_dir}/${processname}.${pid}${suffix}";
