@@ -73,21 +73,7 @@ this is /srv/log in production, and guessed in development.
 
 =cut
 
-our $_log_dir;
-
-sub log_dir {
-  if (@_) {
-    $_log_dir = $_[0];
-    return;
-  }
-  if ($_log_dir) {
-    return $_log_dir;
-  }
-
-  return ($_log_dir = io->catdir(EPFLSTI::Docker::Paths->srv_dir, "log")
-            ->name);
-}
-
+*log_dir = EPFLSTI::Docker::Paths->settable_srv_subpath("log");
 
 our $_path_created;
 sub logfile_path {

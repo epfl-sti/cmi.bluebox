@@ -8,6 +8,8 @@ use base 'Exporter';
 
 our @EXPORT_OK = qw(srv_dir);
 
+use File::Spec;
+
 =head1 NAME
 
 EPFLSTI::Docker::Paths - Paths on the NOC and Blue Boxes
@@ -35,7 +37,6 @@ sub srv_dir {
     return ($_srv_dir = "/srv");
   }
 
-  require File::Spec;
   require File::Basename;
   my $scriptdir = File::Spec->rel2abs(File::Basename::dirname($0));
   chomp(my $checkoutdir = `set +x; cd "$scriptdir"; git rev-parse --show-toplevel`);
@@ -47,6 +48,22 @@ sub srv_dir {
   }
   warn "Substituting /srv with $_srv_dir for development\n";
   return $_srv_dir;
+}
+
+sub settable_srv_subpath {
+  my ($class, $subpath) = @_;
+
+  my $value;
+  return sub {
+    if (@_) {
+    $value = $_[0];
+    return;
+    } elsif ($value) {
+      return $value;
+    } else {
+      return ($value = File::Spec->catfile(srv_dir(), $subpath));
+    };
+  }
 }
 
 1;
