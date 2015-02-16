@@ -22,15 +22,32 @@ RUN apt-get install -y nodejs
 
 # Apache
 RUN apt-get install -y apache2
+# https://www.digitalocean.com/community/tutorials/how-to-use-apache-http-server-as-reverse-proxy-using-mod_proxy-extension
+RUN a2enmod proxy            && \
+    a2enmod proxy_http       && \
+    a2enmod proxy_ajp        && \
+    a2enmod proxy_wstunnel   && \
+    a2enmod rewrite          && \
+    a2enmod deflate          && \
+    a2enmod headers          && \
+    a2enmod proxy_balancer   && \
+    a2enmod proxy_connect    && \
+    a2enmod proxy_html
 
 # Dependencies of the plumbing code
 RUN apt-get -y install liblog-message-perl libio-async-perl \
-    libset-scalar-perl cpanminus liblwp-protocol-https-perl \
-    libarchive-zip-perl libmodule-install-perl \
-    build-essential libssh2-1-dev libssl-dev
-RUN cpanm Future   # apt's version is older (0.23)
-RUN cpanm Module::Install::CheckLib
+    libset-scalar-perl liblwp-protocol-https-perl \
+    libmodule-install-perl libio-all-perl libjson-perl \
+    libssh2-1-dev libssl-dev
+
+# We also install the latest version of some packages "by hand" with
+# CPANMinus. We want the latest Future.pm; Module::Install::CheckLib
+# is not Debian-packaged.
+RUN apt-get -y install cpanminus build-essential libarchive-zip-perl
+RUN cpanm Future \
+     Module::Install::CheckLib
 # Build and install latest version of Net::SSH2 right off GitHub!
+# (Requires libarchive-zip-perl)
 RUN cpanm https://github.com/rkitover/net-ssh2/archive/cdb99bad1dfa388c26d586b181d5465dad9a4723.zip
 
 # http://www.rexify.org/get
@@ -60,23 +77,10 @@ RUN rm -rf /etc/tinc && \
     rm -rf /var/log/apache2 && \
     ln -sf /srv/log/apache2 /var/log/apache2
 
-# Configure Apache
-# https://www.digitalocean.com/community/tutorials/how-to-use-apache-http-server-as-reverse-proxy-using-mod_proxy-extension
-RUN a2enmod proxy            && \
-    a2enmod proxy_http       && \
-    a2enmod proxy_ajp        && \
-    a2enmod proxy_wstunnel   && \
-    a2enmod rewrite          && \
-    a2enmod deflate          && \
-    a2enmod headers          && \
-    a2enmod proxy_balancer   && \
-    a2enmod proxy_connect    && \
-    a2enmod proxy_html
-
-# The command to run (unless coutermanded on the "docker run" command line).
-CMD ["/opt/blueboxnoc/plumbing/init.pl"]
-
 EXPOSE 80
 # For tinc:
 EXPOSE 655
 EXPOSE 655/udp
+
+# The command to run (unless coutermanded on the "docker run" command line).
+CMD ["/opt/blueboxnoc/plumbing/init.pl"]
