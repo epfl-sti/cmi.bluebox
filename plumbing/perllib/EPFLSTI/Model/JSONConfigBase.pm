@@ -90,6 +90,8 @@ sub load {
   my %data = %{from_json($self->json_file->slurp)};
   while(my ($key, $value) = each %data) {
     $self->{$key} = $value;
+    # Allow smart overloads of L</save>:
+    $self->{"${key}_ORIG"} = $value;
   }
   return $self;
 }
@@ -219,4 +221,18 @@ test "->new() on existing object" => sub {
 
   $obj = new My::JSONClass;
   is $obj->{foo}, "Foo";
+};
+
+test "ORIG_foo and load" => sub {
+  $testdir->rmtree;
+
+  my $obj = new My::JSONClass;
+  $obj->{foo} = "Foo";
+  is $obj->{foo_ORIG}, undef;
+  $obj->save();
+
+  $obj = load My::JSONClass;
+  $obj->{foo} = "Bar";
+  is $obj->{foo}, "Bar";
+  is $obj->{foo_ORIG}, "Foo";
 };
