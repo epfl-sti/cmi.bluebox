@@ -225,7 +225,7 @@ require My::Tests::Below unless caller();
 # To run the test suite:
 #
 # perl -Iplumbing/perllib -Idevsupport/perllib \
-#   plumbing/perllib/EPFLSTI/Docker/InitDaemon.pm
+#   plumbing/perllib/EPFLSTI/Docker/Init/Daemon.pm
 
 __END__
 
