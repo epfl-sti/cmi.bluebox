@@ -64,7 +64,9 @@ sub all {
 
 sub TO_JSON {
   my ($self) = @_;
-  return { name => $self->{name} };
+  # The name is denormalized for the view's comfort and also for
+  # ->all_json to make sense.
+  return { name => $self->{name}, desc => $self->{desc} };
 }
 
 sub data_dir { io->catdir(DATA_DIR, shift->{name}) }
@@ -130,6 +132,7 @@ test "all_json" => sub {
   io->dir(My::Tests::Below->tempdir)->dir("vpn")->dir("No_Third_VPN")
     ->mkpath->file("config.bson") < '{"name" : "Red herring", }';
 
+  $DB::single = 1;
   ok ((my $results = JSON::decode_json(EPFLSTI::BlueBox::VPN->all_json())),
       "Tastes like JSON");
 

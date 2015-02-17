@@ -37,11 +37,13 @@ This base class makes it easy to churn out classes that work like that.
 
 =head1 CLASS METHODS
 
-=head2 _load_from_dirs ($path, @load_args)
+=head2 _load_from_subdirs ($path, @load_args)
 
 Load a series of objects from directories.
 
-Call L</load> in sequence, discarding exceptions.
+Call L</load> in sequence, discarding exceptions. @load_args is the
+list of arguments to pass to L</load>, minus the last one which is
+assumed to be the name of the subdirectory to load from.
 
 =cut
 
@@ -73,7 +75,9 @@ sub all_json {
 
 =head1 METHODS
 
-=head2 load (@constructor_args, $subdirectory_name)
+=head2 load ()                    # Instance method
+
+=head2 load (@constructor_args)   # Class method
 
 Load the object from the directory indicated by $subdirectory_name.
 
@@ -82,8 +86,9 @@ If not possible, raise L<EPFLSTI::Model::LoadError>.
 =cut
 
 sub load {
-  my $class = shift;
-  my $self = $class->_new(@_);
+  my $self_or_class = shift;
+  my $self = ref($self_or_class) ? $self_or_class:
+  $self_or_class->_new(@_);
   throw EPFLSTI::Model::LoadError(
     message => "Not a VPN directory",
     dir => $self->data_dir) unless ($self->json_file->exists);
@@ -105,8 +110,11 @@ L</load> or create this object.
 sub new {
   my $class = shift;
   my $self = $class->_new(@_);
-  return ref($self)->load(@_) if $self->json_file->exists;
-  $self->save();
+  if ($self->json_file->exists) {
+    $self->load();
+  } else {
+    $self->save();
+  }
   return $self;
 }
 
