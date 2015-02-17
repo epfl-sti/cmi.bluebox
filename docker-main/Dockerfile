@@ -36,14 +36,15 @@ RUN a2enmod proxy            && \
 
 # Dependencies of the plumbing code
 RUN apt-get -y install liblog-message-perl libio-async-perl \
-    libset-scalar-perl liblwp-protocol-https-perl \
-    libmodule-install-perl libio-all-perl libjson-perl \
-    libssh2-1-dev libssl-dev
+    libset-scalar-perl  libio-all-perl libjson-perl \
+    libtry-tiny-perl libssh2-1-dev
 
 # We also install the latest version of some packages "by hand" with
-# CPANMinus. We want the latest Future.pm; Module::Install::CheckLib
-# is not Debian-packaged.
-RUN apt-get -y install cpanminus build-essential libarchive-zip-perl
+# CPANMinus.
+RUN apt-get -y install cpanminus build-essential libarchive-zip-perl \
+    libmodule-install-perl libssl-dev liblwp-protocol-https-perl
+# We want the latest Future.pm; Module::Install::CheckLib is not
+# Debian-packaged.
 RUN cpanm Future \
      Module::Install::CheckLib
 # Build and install latest version of Net::SSH2 right off GitHub!
