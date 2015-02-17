@@ -88,7 +88,7 @@ If not possible, raise L<EPFLSTI::Model::LoadError>.
 sub load {
   my $self_or_class = shift;
   my $self = ref($self_or_class) ? $self_or_class:
-  $self_or_class->_new(@_);
+    $self_or_class->_new(@_);
   throw EPFLSTI::Model::LoadError(
     message => "Not a VPN directory",
     dir => $self->data_dir) unless ($self->json_file->exists);
