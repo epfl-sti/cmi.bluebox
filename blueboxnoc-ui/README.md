@@ -1,5 +1,6 @@
 
 # Basic Schema
+```
                           +------------+
   +------------+          | BBXs       |
   | VPNs       |          +------------+
@@ -10,7 +11,7 @@
   | create_dt  |          | create_dt  |
   |            |          |            |
   +------------+          +------------+
-
+```
 
 # NOC
 Node Operations Controller
