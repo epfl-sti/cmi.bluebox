@@ -36,17 +36,21 @@ block jsheader
                 .addEntity(user);
 
             // set the application menu entries
+            var menuCnt = 0;
             vpn.menuView()
-                    .order(1)
+                    .order(menuCnt++)
                     .icon('<span class="glyphicon glyphicon-road"></span>');
             bbx.menuView()
-                    .order(2)
+                    .order(menuCnt++)
                     .icon('<span class="glyphicon glyphicon-th-large"></span>');
             vnc.menuView()
-                    .order(3)
+                    .order(menuCnt++)
                     .icon('<span class="glyphicon glyphicon-new-window"></span>');
             user.menuView()
-                    .order(4)
+                    .order(menuCnt++)
+                    .icon('<span class="glyphicon glyphicon-user"></span>');
+            about.menuView()
+                    .order(menuCnt++)
                     .icon('<span class="glyphicon glyphicon-user"></span>');
 
             // VPNs
@@ -80,9 +84,9 @@ block jsheader
                                 .targetField(new Field('title')) // the field to be displayed in this list
                         .cssClasses('bboxes_tag')
                     ]);
-            var titleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
+            var vpnTitleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
             vpn.creationView().fields([
-                    titleAtCreationTime,
+                vpnTitleAtCreationTime,
                     new Field("detail")]);
             vpn.showView().fields([
                     new Field("title").editable(false).isDetailLink(true),
@@ -109,9 +113,9 @@ block jsheader
             bbx.listView()
                     .title("All Blue Boxes")
                     .fields(bbx.editionView().fields());
-            var titleAtCreationTime = new Field("title").validation({validator: !{BBXTitleValidator}});
+            var bbxTitleAtCreationTime = new Field("title").validation({validator: !{BBXTitleValidator}});
             bbx.creationView().fields([
-                    titleAtCreationTime,
+                bbxTitleAtCreationTime,
                     new Field("detail")]);
             bbx.showView().fields([
                     new Field("title").editable(false).isDetailLink(true),
@@ -151,9 +155,9 @@ block jsheader
             vnc.listView()
                     .title("All VNCs")
                     .fields(vnc.editionView().fields());
-            var titleAtCreationTime = new Field("title").validation({validator: !{VNCTitleValidator}});
+            var vncTitleAtCreationTime = new Field("title").validation({validator: !{VNCTitleValidator}});
             vnc.creationView().fields([
-                    titleAtCreationTime,
+                vncTitleAtCreationTime,
                     new Field("detail")]);
             vnc.showView().fields([
                     new Field("title").editable(false).isDetailLink(true),
@@ -193,9 +197,9 @@ block jsheader
             user.listView()
                     .title("All Users")
                     .fields(user.editionView().fields());
-            var titleAtCreationTime = new Field("title").validation({validator: !{VNCTitleValidator}});
+            var userTitleAtCreationTime = new Field("title").validation({validator: !{USERTitleValidator}});
             user.creationView().fields([
-                titleAtCreationTime,
+                userTitleAtCreationTime,
                 new Field("detail")]);
             user.showView().fields([
                 new Field("title").editable(false).isDetailLink(true),
