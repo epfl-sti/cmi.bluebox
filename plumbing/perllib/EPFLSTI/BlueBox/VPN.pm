@@ -57,22 +57,6 @@ sub _new {
   }, $class;
 }
 
-sub new {
-  my $self = _new(@_);
-  return $self if $self->json_file->exists;
-  $self->save();
-  return $self;
-}
-
-sub load {
-  my ($class, $vpn_name) = @_;
-  my $self = _new(@_);
-  throw EPFLSTI::Model::LoadError(
-    message => "Not a VPN directory",
-    dir => $self->_data_dir) unless ($self->json_file->exists);
-  return $self;
-}
-
 sub all {
   my ($class) = @_;
   return $class->_load_from_subdirs(DATA_DIR);
@@ -85,9 +69,9 @@ sub TO_JSON {
 
 sub _data_dir { io->catdir(DATA_DIR, shift->{name}) }
 
-1;
-
 require My::Tests::Below unless caller();
+
+1;
 
 # To run the test suite:
 #

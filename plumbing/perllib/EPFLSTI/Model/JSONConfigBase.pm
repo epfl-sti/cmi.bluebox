@@ -73,6 +73,42 @@ sub all_json {
 
 =head1 METHODS
 
+=head2 load (@constructor_args, $subdirectory_name)
+
+Load the object from the directory indicated by $subdirectory_name.
+
+If not possible, raise L<EPFLSTI::Model::LoadError>.
+
+=cut
+
+sub load {
+  my $class = shift;
+  my $self = $class->_new(@_);
+  throw EPFLSTI::Model::LoadError(
+    message => "Not a VPN directory",
+    dir => $self->_data_dir) unless ($self->json_file->exists);
+  my %data = %{from_json($self->json_file->slurp)};
+  while(my ($key, $value) = each %data) {
+    $self->{$key} = $value;
+  }
+  return $self;
+}
+
+=head2 new (@constructor_args)
+
+L</load> or create this object.
+
+=cut
+
+sub new {
+  my $class = shift;
+  my $self = $class->_new(@_);
+  return ref($self)->load(@_) if $self->json_file->exists;
+  $self->save();
+  return $self;
+}
+
+
 =head2 save
 
 Save the state to this object's L</json_file>.
@@ -97,11 +133,12 @@ sub json_file { shift->_data_dir->catfile("config.json") }
 
 To be defined by the subclasss.
 
-=head2 load (@load_args, $subdirectory_name)
+=head2 _new (@constructor_args)
 
-Construct an instance of the class, or raise
-L<EPFLSTI::Model::LoadError> if not possible. The last argument
-$subdirectory_name will be the name of the subdirectory to load from.
+Construct an instance of the class. The arguments are supposed to
+select an instance only, so that @constructor_args can be passed as-is
+from L</new> or L</load>; mutations should be done by caller in
+another statement.
 
 =cut
 
@@ -111,10 +148,75 @@ To be defined by the subclasss.
 
 =head2 _data_dir ()
 
-Get the directory this object lives in.
+Get the directory this object lives in, as an L<IO::All> directory
+handle.
+
+=head2 TO_JSON ()
+
+Return the subset of $self->{} attributes that are persistent, in an
+unblessed hash reference. L</load> will put them right back.
 
 =cut
 
+1;
+
+require My::Tests::Below unless caller();
 
 1;
 
+# To run the test suite:
+#
+# perl -Iplumbing/perllib -Idevsupport/perllib \
+#   plumbing/perllib/EPFLSTI/Model/JSONConfigBase.pm
+
+__END__
+
+use Test::More qw(no_plan);
+use Test::Group;
+
+use JSON;
+
+use IO::All;
+
+our $testdir = io->dir(My::Tests::Below->tempdir)->dir("myobj");
+
+{
+  package My::JSONClass;
+  use base 'EPFLSTI::Model::JSONConfigBase';
+
+  use IO::All;
+
+  sub _new { bless {}, shift }
+
+  # Note: because _data_dir is so simple, this class is in fact a singleton.
+  sub _data_dir { $testdir }
+
+  sub TO_JSON {
+    my $self = shift;
+    return { foo => $self->{foo}, bar => $self->{bar} };
+  }
+}
+
+test "->new(), ->save() and ->load()" => sub {
+  $testdir->rmtree;
+
+  my $obj = new My::JSONClass;
+  $obj->{foo} = "Foo";
+  $obj->{unsaved} = "Baz";
+  $obj->save();
+  $obj = load My::JSONClass;
+  is $obj->{foo}, "Foo";
+  ok(! exists $obj->{unsaved});
+  is($obj->{bar}, undef);
+};
+
+test "->new() on existing object" => sub {
+  $testdir->rmtree;
+
+  my $obj = new My::JSONClass;
+  $obj->{foo} = "Foo";
+  $obj->save();
+
+  $obj = new My::JSONClass;
+  is $obj->{foo}, "Foo";
+};
