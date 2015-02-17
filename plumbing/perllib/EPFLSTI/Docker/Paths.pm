@@ -30,10 +30,14 @@ sub _is_prod {
 
 our $_srv_dir;
 sub srv_dir {
-  if ($_srv_dir) {
+  shift if UNIVERSAL::isa($_[0], __PACKAGE__);
+  if (@_) {
+    $_srv_dir = shift;
+    return;
+  } elsif ($_srv_dir) {
     return $_srv_dir;
   }
-  if  (_is_prod) {
+  elsif  (_is_prod) {
     return ($_srv_dir = "/srv");
   }
 
@@ -53,11 +57,13 @@ sub srv_dir {
 sub settable_srv_subpath {
   my ($class, $subpath) = @_;
 
+  my ($caller_pkg) = caller();
   my $value;
   return sub {
+    shift if UNIVERSAL::isa($_[0], $caller_pkg);
     if (@_) {
-    $value = $_[0];
-    return;
+      $value = $_[0];
+      return;
     } elsif ($value) {
       return $value;
     } else {
