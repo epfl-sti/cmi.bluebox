@@ -86,7 +86,7 @@ sub load {
   my $self = $class->_new(@_);
   throw EPFLSTI::Model::LoadError(
     message => "Not a VPN directory",
-    dir => $self->_data_dir) unless ($self->json_file->exists);
+    dir => $self->data_dir) unless ($self->json_file->exists);
   my %data = %{from_json($self->json_file->slurp)};
   while(my ($key, $value) = each %data) {
     $self->{$key} = $value;
@@ -119,7 +119,7 @@ Save the state to this object's L</json_file>.
 
 sub save {
   my ($self) = @_;
-  $self->_data_dir->mkpath();
+  $self->data_dir->mkpath();
   $self->json_file < to_json( $self->TO_JSON, { pretty => 1 } );
 }
 
@@ -129,7 +129,7 @@ Get the path to the JSON file that contains the state.
 
 =cut
 
-sub json_file { shift->_data_dir->catfile("config.json") }
+sub json_file { shift->data_dir->catfile("config.json") }
 
 =head1 ABSTRACT CLASS METHODS
 
@@ -148,7 +148,7 @@ another statement.
 
 To be defined by the subclasss.
 
-=head2 _data_dir ()
+=head2 data_dir ()
 
 Get the directory this object lives in, as an L<IO::All> directory
 handle.
@@ -190,8 +190,8 @@ our $testdir = io->dir(My::Tests::Below->tempdir)->dir("myobj");
 
   sub _new { bless {}, shift }
 
-  # Note: because _data_dir is so simple, this class is in fact a singleton.
-  sub _data_dir { $testdir }
+  # Note: because data_dir is so simple, this class is in fact a singleton.
+  sub data_dir { $testdir }
 
   sub TO_JSON {
     my $self = shift;

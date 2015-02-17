@@ -67,7 +67,7 @@ sub TO_JSON {
   return { name => $self->{name} };
 }
 
-sub _data_dir { io->catdir(DATA_DIR, shift->{name}) }
+sub data_dir { io->catdir(DATA_DIR, shift->{name}) }
 
 require My::Tests::Below unless caller();
 
