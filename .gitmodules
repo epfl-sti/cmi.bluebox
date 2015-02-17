@@ -1,3 +1,4 @@
 [submodule "noVNC"]
 	path = blueboxnoc-vnc/noVNC
-	url = https://github.com/kanaka/noVNC.git
+	url = https://github.com/epfl-sti/noVNC.git
+	#url = https://github.com/kanaka/noVNC.git

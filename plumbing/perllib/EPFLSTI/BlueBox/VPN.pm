@@ -26,8 +26,10 @@ Top directory.
 =item /srv/vpn/My_VPN_Name/config.json
 
 View-side data for this VPN. The view can either enumerate the
-subdirectories pf /srv/vpn that have a config.json file in them, or
-use the L</all> class method in a one-liner.
+subdirectories of /srv/vpn that have a config.json file in them, or
+use one of the the L</all> or
+L<EPFLSTI::Model::JSONConfigBase/all_json> class methods in a
+one-liner.
 
 =cut
 
