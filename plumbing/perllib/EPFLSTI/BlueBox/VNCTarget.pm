@@ -70,6 +70,8 @@ sub data_dir {
   return $self->_vnc_dir($self->{vpn})->dir($self->{id});
 }
 
+__PACKAGE__->mk_accessors(qw(desc ip port));
+
 require My::Tests::Below unless caller();
 
 1;
