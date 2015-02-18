@@ -1,6 +1,21 @@
 var BlueboxNocApp = angular.module("BlueboxNocApp", ["ng-admin"]);
 // https://github.com/marmelab/ng-admin
 BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany) {
+    // Common field types
+    function descField() { return new Field('desc').label('Description'); }
+    // Names are used as primary keys for all classes
+    function nameField() { return new Field('name'); }
+    function nameInputField(validator) {
+        return nameField().validation({validator: validator});
+    }
+    function dashboardClickyNameField(label) {
+        return nameField().isDetailLink(true).label(label);
+    }
+    function readOnlyNameField() {
+        // Clicky because it gets copied into list views a lot.
+        return nameField().isDetailLink(true).editable(false);
+    }
+
     // set the main API endpoint for this admin
     var rootUrl = (location.protocol + '//' + location.hostname +
     (location.port ? ':' + location.port : ''));
@@ -9,16 +24,16 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     // define all entities at the top to allow references between them
     var vpn = new Entity('vpn')
         .label("VPNs")
-        .identifier(new Field('title'));
+        .identifier(nameField());
     var bbx = new Entity('bbx')
         .label("Blue Boxes")
-        .identifier(new Field('title'));
+        .identifier(nameField());
     var vnc = new Entity('vnc')
         .label("VNCs")
-        .identifier(new Field('title'));
+        .identifier(nameField());
     var user = new Entity('user')
         .label("Users")
-        .identifier(new Field('username'));
+        .identifier(nameField());
     // set the application entities
     app
         .addEntity(vpn)
@@ -40,28 +55,25 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .order(menuCnt++)
         .icon('<span class="glyphicon glyphicon-user"></span>');
 
-    // Common fields
-    function descField() { return new Field('desc').label('Description') };
-
     // VPNs
     vpn.dashboardView()
         .title("VPNs List")
         .order(1) // display the post panel first in the dashboard
         .limit(5) // limit the panel to the 5 latest posts
         .fields([
-            new Field("title").isDetailLink(true).label("VPN"),
+            dashboardClickyNameField("VPN"),
             descField()
         ]);
     vpn.editionView()
-        .title("Edit VPN : {{entry.values.title}}")
+        .title("Edit VPN : {{entry.values.name}}")
         .actions(["list", "show", "delete", "bluebox"])
         .fields([
-            new Field("title").editable(false).isDetailLink(true),
+            readOnlyNameField(),
             descField(),
             new ReferenceMany('bbxs') // a Reference is a particular type of field that references another entity
                 .label('Blue Boxes')
                 .targetEntity(bbx) // the tag entity is defined later in this file
-                .targetField(new Field('title')) // the field to be displayed in this list
+                .targetField(nameField()) // the field to be displayed in this list
         ]);
     vpn.listView()
         .title("All VPNs")
@@ -71,15 +83,14 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new ReferenceMany('bbxs') // a Reference is a particular type of field that references another entity
                 .label('Blue Boxes')
                 .targetEntity(bbx) // the tag entity is defined later in this file
-                .targetField(new Field('title')) // the field to be displayed in this list
+                .targetField(nameField()) // the field to be displayed in this list
                 .cssClasses('bboxes_tag')
         ]);
-    var vpnTitleAtCreationTime = new Field("title").validation({validator: VPNTitleValidator});
     vpn.creationView().fields([
-        vpnTitleAtCreationTime,
+        nameInputField(VPNNameValidator),
         descField()]);
     vpn.showView().fields([
-        new Field("title").editable(false).isDetailLink(true),
+        readOnlyNameField(),
         descField(),
         new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
     ]);
@@ -89,25 +100,24 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .order(2) // display the post panel first in the dashboard
         .limit(10) // limit the panel to the 5 latest posts
         .fields([
-            new Field("title").isDetailLink(true).label("BBX"),
+            dashboardClickyNameField("BBX"),
             descField(), new Field("vpn")
         ]);
-    bbx.editionView().title("Blue Box : {{entry.values.title}}")
+    bbx.editionView().title("Blue Box : {{entry.values.name}}")
         .actions(["list", "show", "delete"])
         .fields([
-            new Field("title").editable(false).isDetailLink(true),
+            readOnlyNameField(),
             new Field("vpn").editable(false),
             descField()
         ]);
     bbx.listView()
         .title("All Blue Boxes")
         .fields(bbx.editionView().fields());
-    var bbxTitleAtCreationTime = new Field("title").validation({validator: BBXTitleValidator});
     bbx.creationView().fields([
-        bbxTitleAtCreationTime,
+        nameInputField(BBXNameValidator),
         descField()]);
     bbx.showView().fields([
-        new Field("title").editable(false).isDetailLink(true),
+        readOnlyNameField(),
         descField(),
         new Field("vpn"),
         new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
@@ -118,14 +128,14 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .order(3) // display the post panel first in the dashboard
         .limit(5) // limit the panel to the 5 latest posts
         .fields([
-            new Field("title").isDetailLink(true).label("VNC"),
+            dashboardClickyNameField("VNC"),
             descField()
         ]);
     vnc.editionView()
-        .title("Edit VNC : {{entry.values.title}}")
+        .title("Edit VNC : {{entry.values.name}}")
         .actions(["list", "show", "delete"])
         .fields([
-            new Field("title").editable(false).isDetailLink(true),
+            readOnlyNameField(),
             descField(),
             new Field("ip"),
             new Field("port"),
@@ -133,7 +143,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new Reference('vpn')
                 .label('VPN title')
                 .targetEntity(vpn) // Select a target Entity
-                .targetField(new Field('title')), // Select a label Field
+                .targetField(nameField()), // Select a label Field
             // @todo see how to add a frame with VNC
             new Field('Open VNC', 'template')
                 .type('template')
@@ -143,12 +153,11 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     vnc.listView()
         .title("All VNCs")
         .fields(vnc.editionView().fields());
-    var vncTitleAtCreationTime = new Field("title").validation({validator: VNCTitleValidator});
     vnc.creationView().fields([
-        vncTitleAtCreationTime,
+        nameInputField(VNCNameValidator),
         descField()]);
     vnc.showView().fields([
-        new Field("title").editable(false).isDetailLink(true),
+        readOnlyNameField(),
         descField(),
         new Field("vncBoxes").type("template").template('<div id="VNC_connect"><a href="/connect?ip={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">Connect to {{entry.values.title}}</a></div>')
     ]);
@@ -158,15 +167,15 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .order(4)
         .limit(10)
         .fields([
-            new Field("username").isDetailLink(true).label("Users").identifier(true),
+            nameField().isDetailLink(true).label("Users").identifier(true),
             new Field("sciper"),
             new Field("email")
         ]);
     user.editionView()
-        .title("Edit user : {{entry.values.title}}")
+        .title("Edit user : {{entry.values.name}}")
         .actions(["list", "show", "delete"])
         .fields([
-            new Field("username").editable(false).isDetailLink(true).identifier(true),
+            nameField().editable(false).isDetailLink(true).identifier(true),
             new Field("sciper").editable(false),
             new Field("email").editable(false),
             new Field("group"),
@@ -184,12 +193,11 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     user.listView()
         .title("All Users")
         .fields(user.editionView().fields());
-    var userTitleAtCreationTime = new Field("title").validation({validator: USERTitleValidator});
     user.creationView().fields([
-        userTitleAtCreationTime,
+        nameInputField(USERNameValidator),
         descField()]);
     user.showView().fields([
-        new Field("title").editable(false).isDetailLink(true),
+        readOnlyNameField(),
         descField(),
         new Field("vncBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
     ]);
