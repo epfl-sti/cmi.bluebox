@@ -12,6 +12,9 @@ Start tinc and the Web UI.
 
 =cut
 
+## Uncomment this to get early warnings about syntax errors etc:
+# BEGIN { open(STDERR, ">", "/srv/init.err"); }
+
 use EPFLSTI::Docker::Log -main => "init.pl";
 
 use EPFLSTI::Docker::Init;

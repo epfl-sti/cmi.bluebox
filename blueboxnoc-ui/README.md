@@ -7,7 +7,7 @@
   +------------+          | #bbxid     |
   | #vpnid     | <------- + vpn(title) |
   | title      |          | title      |
-  | detail     |          | detail     |
+  | desc       |          | desc       |
   | create_dt  |          | create_dt  |
   |            |          |            |
   +------------+          +------------+
