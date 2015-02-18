@@ -74,7 +74,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
                 .targetField(new Field('title')) // the field to be displayed in this list
                 .cssClasses('bboxes_tag')
         ]);
-    var vpnTitleAtCreationTime = new Field("title").validation({validator: !{VPNTitleValidator}});
+    var vpnTitleAtCreationTime = new Field("title").validation({validator: VPNTitleValidator});
     vpn.creationView().fields([
         vpnTitleAtCreationTime,
         descField()]);
@@ -102,7 +102,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     bbx.listView()
         .title("All Blue Boxes")
         .fields(bbx.editionView().fields());
-    var bbxTitleAtCreationTime = new Field("title").validation({validator: !{BBXTitleValidator}});
+    var bbxTitleAtCreationTime = new Field("title").validation({validator: BBXTitleValidator});
     bbx.creationView().fields([
         bbxTitleAtCreationTime,
         descField()]);
@@ -143,7 +143,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     vnc.listView()
         .title("All VNCs")
         .fields(vnc.editionView().fields());
-    var vncTitleAtCreationTime = new Field("title").validation({validator: !{VNCTitleValidator}});
+    var vncTitleAtCreationTime = new Field("title").validation({validator: VNCTitleValidator});
     vnc.creationView().fields([
         vncTitleAtCreationTime,
         descField()]);
@@ -184,7 +184,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     user.listView()
         .title("All Users")
         .fields(user.editionView().fields());
-    var userTitleAtCreationTime = new Field("title").validation({validator: !{USERTitleValidator}});
+    var userTitleAtCreationTime = new Field("title").validation({validator: USERTitleValidator});
     user.creationView().fields([
         userTitleAtCreationTime,
         descField()]);
