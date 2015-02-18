@@ -14,11 +14,11 @@ var USERModel = require("../model/user.js");
 
 // fake vpn data
 var vpn_data =  [
-    {title:"Foo", detail:"Foofoo", bbxs:["bboo", "bbar"]},
-    {title:"Bar", detail:"Foobar", bbxs:["bboo2"]},
-    {title:"Bax", detail:"Foobaz", bbxs:["bbax"]},
-    {title:"Bay", detail:"Foobay", bbxs:["bbay"]},
-    {title:"Baz", detail:"Foobaz", bbxs:["bbaz"]}
+    {title:"Foo", desc:"Foofoo", bbxs:["bboo", "bbar"]},
+    {title:"Bar", desc:"Foobar", bbxs:["bboo2"]},
+    {title:"Bax", desc:"Foobaz", bbxs:["bbax"]},
+    {title:"Bay", desc:"Foobay", bbxs:["bbay"]},
+    {title:"Baz", desc:"Foobaz", bbxs:["bbaz"]}
 ];
 router.get('/vpn', function(req, res, next) {
     res.json(VPNModel.sort(vpn_data, req.query._sortField, req.query._sortDir));
@@ -38,12 +38,12 @@ router.get('/vpn/*', function(req, res, next) {
 
 // fake bbx data
 var bbx_data = [
-    {title:"bboo", vpn:"Foo", detail:"Booboo"},
-    {title:"bboo2", vpn:"Bar", detail:"Booboo2"},
-    {title:"bbar", vpn:"Foo", detail:"Boobar2"},
-    {title:"bbax", vpn:"Bax", detail:"Boobax"},
-    {title:"bbay", vpn:"Bay", detail:"Boobay"},
-    {title:"bbaz", vpn:"Baz", detail:"Boobaz"}
+    {title:"bboo", vpn:"Foo", desc:"Booboo"},
+    {title:"bboo2", vpn:"Bar", desc:"Booboo2"},
+    {title:"bbar", vpn:"Foo", desc:"Boobar2"},
+    {title:"bbax", vpn:"Bax", desc:"Boobax"},
+    {title:"bbay", vpn:"Bay", desc:"Boobay"},
+    {title:"bbaz", vpn:"Baz", desc:"Boobaz"}
 ];
 router.get('/bbx', function(req, res, next) {
     res.json(BBXModel.sort(bbx_data, req.query._sortField, req.query._sortDir));
@@ -63,11 +63,11 @@ router.get('/bbx/*', function(req, res, next) {
 
 // fake vnc data
 var vnc_data = [
-    {title:"vnc1", ip:"192.168.10.10", port:"5900", vpn:"Foo", detail:"detail of my first vnc", token:"jiy1Wiebo7fa6Taaweesh4nae"},
-    {title:"vnc2", ip:"192.168.20.20", port:"5900", vpn:"Bar", detail:"detail of my second vnc", token:"queexahnohyahch3AhceiwooR"},
-    {title:"vnc3", ip:"192.168.30.30", port:"5900", vpn:"Bax", detail:"detail of my third vnc", token:"Ahd7heeshoni8phanohB2Siey"},
-    {title:"vnc4", ip:"192.168.40.40", port:"5901", vpn:"Bay", detail:"detail of my fourth vnc", token:"saeMohkaec7ax1aichohdoo6u"},
-    {title:"vnc5", ip:"192.168.50.50", port:"5901", vpn:"Baz", detail:"detail of my fifth vnc", token:"ooJee6ohwaevooQuoSu3chahk"}
+    {title:"vnc1", ip:"192.168.10.10", port:"5900", vpn:"Foo", desc:"detail of my first vnc", token:"jiy1Wiebo7fa6Taaweesh4nae"},
+    {title:"vnc2", ip:"192.168.20.20", port:"5900", vpn:"Bar", desc:"detail of my second vnc", token:"queexahnohyahch3AhceiwooR"},
+    {title:"vnc3", ip:"192.168.30.30", port:"5900", vpn:"Bax", desc:"detail of my third vnc", token:"Ahd7heeshoni8phanohB2Siey"},
+    {title:"vnc4", ip:"192.168.40.40", port:"5901", vpn:"Bay", desc:"detail of my fourth vnc", token:"saeMohkaec7ax1aichohdoo6u"},
+    {title:"vnc5", ip:"192.168.50.50", port:"5901", vpn:"Baz", desc:"detail of my fifth vnc", token:"ooJee6ohwaevooQuoSu3chahk"}
 ];
 router.get('/vnc', function(req, res, next) {
     res.json(VNCModel.sort(vnc_data, req.query._sortField, req.query._sortDir));
@@ -87,11 +87,11 @@ router.get('/vnc/*', function(req, res, next) {
 
 // fake users data
 var users_data = [
-    //{username:"user1", sciper:"100100", email:"foo.bar@epfl.ch", group: ["Foo", "Bar", "Baz"], detail:"detail of my first users"},
+    //{username:"user1", sciper:"100100", email:"foo.bar@epfl.ch", group: ["Foo", "Bar", "Baz"], desc:"detail of my first users"},
     // @todo check map function to get group in an array (https://github.com/marmelab/ng-admin/)
-    {username:"user1", sciper:"100100", email:"foo.bar@epfl.ch", group:"BlueBoxNoc_admins", detail:"detail of my first users"},
-    {username:"user2", sciper:"200200", email:"james.kilroy@epfl.ch", group:"BlueBoxNoc_admins", detail:"detail of my second users"},
-    {username:"user3", sciper:"300300", email:"andre.roussimoff@epfl.ch", group:"BlueBoxNoc_vncers", detail:"detail of my third users"}
+    {username:"user1", sciper:"100100", email:"foo.bar@epfl.ch", group:"BlueBoxNoc_admins", desc:"detail of my first users"},
+    {username:"user2", sciper:"200200", email:"james.kilroy@epfl.ch", group:"BlueBoxNoc_admins", desc:"detail of my second users"},
+    {username:"user3", sciper:"300300", email:"andre.roussimoff@epfl.ch", group:"BlueBoxNoc_vncers", desc:"detail of my third users"}
 ];
 
 router.get('/user', function(req, res, next) {
