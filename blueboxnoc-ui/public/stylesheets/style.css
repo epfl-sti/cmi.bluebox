@@ -26,6 +26,12 @@ h1 {
     padding-left: 25px;
 }
 
+.vncs_tag span.label.label-default.ng-binding:before {
+    font-family: "Glyphicons Halflings";
+    content: "\e164" /*""*/;
+    padding-right: 5px;
+}
+
 /* http://getbootstrap.com/components/#btn-groups
     INIT
     DOWNLOADED

@@ -81,7 +81,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .fields([
             dashboardClickyNameField("BBX"),
             descField(),
-            new Field("vpn"),
+            new Field("vpn").label("VPN"),
             new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-xs bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
         ]);
     bbx.listView()
@@ -119,7 +119,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             .label('VPN')
             .targetEntity(vpn) // Select a target Entity
             .targetField(nameField()),
-        new Field("Information").type("template").template('<div class="alert alert-success" role="alert">Some information about bbx creation process<br /><ul><li>First create the BBX</li><li>the be sure to have the correct VPN</li><li>Finally, if you want to be able to access a computer through VNC, be sure your VNC entity is connect to the same VPN than the BBX.</li></ul><a href="#" class="alert-link">Link to something</a></div>')
+        new Field("Information").type("template").template('<div class="alert alert-success" role="alert">Some information about bbx creation process<br /><ul><li>First create the BBX</li><li>Be sure to have the correct VPN</li><li>Finally, if you want to be able to access a computer through VNC, be sure your VNC entity is connect to the same VPN than the BBX.</li></ul><a href="#" class="alert-link">Link to something</a></div>')
     ]);
     bbx.showView()
         .title("Blue Box : {{entry.values.name}}")
@@ -165,7 +165,12 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
                 .label('Blue Boxes')
                 .targetEntity(bbx) // the tag entity is defined later in this file
                 .targetField(nameField()) // the field to be displayed in this list
-                .cssClasses('bboxes_tag')
+                .cssClasses('bboxes_tag'),
+            new ReferenceMany('vncs') // a Reference is a particular type of field that references another entity
+                .label('VNC')
+                .targetEntity(vnc) // the tag entity is defined later in this file
+                .targetField(nameField()) // the field to be displayed in this list
+                .cssClasses('vncs_tag'),
         ]);
     vpn.creationView().fields([
         nameInputField(VPNNameValidator),
@@ -183,7 +188,11 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .limit(5) // limit the panel to the 5 latest posts
         .fields([
             dashboardClickyNameField("VNC"),
-            descField()
+            descField(),
+            new Reference('vpn')
+                .label('VPN')
+                .targetEntity(vpn)
+                .targetField(nameField())
         ]);
     vnc.editionView()
         .title("Edit VNC : {{entry.values.name}}")
@@ -195,7 +204,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new Field("port"),
             // @todo preselect current vpn in the list
             new Reference('vpn')
-                .label('VPN title')
+                .label('VPN')
                 .targetEntity(vpn) // Select a target Entity
                 .targetField(nameField()), // Select a label Field
             // @todo see how to add a frame with VNC
@@ -213,7 +222,9 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     vnc.showView().fields([
         readOnlyNameField(),
         descField(),
-        new Field("vncBoxes").type("template").template('Open {{entry.values.title}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>')
+        new Field("link").type("template").template('<a href="http://{{entry.values.ip}}:{{entry.values.port}}">{{entry.values.ip}}:{{entry.values.port}}</a>'),
+        new Field("vncBoxes").type("template").template('Open {{entry.values.title}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>'),
+        new Field("noVNC").type("template").template('<canvas></canvas>')
     ]);
 
     // USERs
@@ -268,17 +279,17 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         ])
         .sortField("name")
         .sortDir("ASC");
+    group.listView()
+        .fields([
+            nameField().editable(false).isDetailLink(true).identifier(true),
+            descField().editable(false),
+            new Field("group_email").editable(false)
+        ]);
     group.editionView()
         .title("All groups")
         .actions([])
         .fields([
             readOnlyNameField().identifier(true),
-            descField().editable(false),
-            new Field("group_email").editable(false)
-        ]);
-    group.listView()
-        .fields([
-            nameField().editable(false).isDetailLink(true).identifier(true),
             descField().editable(false),
             new Field("group_email").editable(false)
         ]);
