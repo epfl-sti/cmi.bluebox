@@ -1,19 +1,31 @@
+var json = require("./_json");
+
 var VPN = module.exports;
 
-/* TODO: de-bogosify */
+/**
+ * Return all VPNs asynchronously.
+ *
+ * @param done Called either as done(null, error) or like this:
+ *   done([
+ *   {name:"Foo", desc:"Foofoo", bbxs:["bboo", "bbar"], vncs:["vnc1"]},
+ *   // ...
+ *   ]);
+ */
 VPN.all = function(done) {
-        done([
-    {name:"Foo", desc:"Foofoo", bbxs:["bboo", "bbar"], vncs:["vnc1"]},
-    {name:"Bar", desc:"Foobar", bbxs:["bboo2"], vncs:["vnc2"]},
-    {name:"Bax", desc:"Foobaz", bbxs:["bbax"], vncs:["vnc1","vnc3"]},
-    {name:"Bay", desc:"Foobay", bbxs:["bbay"], vncs:["vnc4"]},
-    {name:"Baz", desc:"Foobaz", bbxs:["bbaz"], vncs:["vnc5"]}
-]);
-}
+    json.asyncProcessVPNs(done, function(jsonTree) {
+        var returned = [];
+        Object.keys(jsonTree).forEach(function (k) {
+            var vpnDesc = jsonTree[k];
+            returned.push(vpnDesc);
+            vpnDesc.bbxs = Object.keys(vpnDesc.bboxes);
+            vpnDesc.vncs = Object.keys(vpnDesc.vncs);
+        });
+        return returned;
+    });
+};
 
 VPN.validName = function (value) {
     if (! value.match(/^[A-Za-z_0-9]+$/)) {
         throw new Error("VPN names can only contain letters, underscores and digits");
     };
 };
-

@@ -1,11 +1,12 @@
 /**
- * Support models materialized in JSON classes
+ * Support for models materialized in JSON classes
  */
 
 var assert = require("assert"),
     path = require("path"),
     fs = require("fs"),
-    readdirp = require("readdirp");
+    readdirp = require("readdirp"),
+    runtime = require("../lib/runtime");
 
 
 module.exports.loadAllConfigs = function(dir, done) {
@@ -37,4 +38,18 @@ module.exports.loadAllConfigs = function(dir, done) {
                 insertInto[k] = data[k];
             })
         });
+};
+
+module.exports.asyncProcessVPNs = function(done, result_cb) {
+    module.exports.loadAllConfigs(path.join(runtime.srvDir(), "vpn"), function(jsonTree, err) {
+        if (err) {
+            done(null, err);
+        } else {
+            try {
+                done(result_cb(jsonTree));
+            } catch (err) {
+                done(null, err);
+            }
+        }
+    });
 };
