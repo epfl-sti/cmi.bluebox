@@ -135,8 +135,8 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         readOnlyNameField(),
         descField(),
         new Field("vpn"),
-        new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')/*
-    ]);
+        new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+    ]);*/
 
     // VPNs
     vpn.dashboardView()
