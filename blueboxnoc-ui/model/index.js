@@ -1,6 +1,7 @@
 module.exports.VPN = require("./vpn");
 module.exports.BBox = require("./bbx");
 module.exports.User = require("./user");
+module.exports.Group = require("./group");
 module.exports.VNCTarget = require("./vnc");
 
 module.exports.sort = function (array, sortField, sortDir) {

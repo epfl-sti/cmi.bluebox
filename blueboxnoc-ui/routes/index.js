@@ -1,9 +1,10 @@
-var express = require('express');
-var router = express.Router();
-var VPNModel = require("../model/vpn.js");
-var BBXModel = require("../model/bbx.js");
-var VNCModel = require("../model/vnc.js");
-var USERModel = require("../model/user.js");
+var express = require('express'),
+    router = express.Router(),
+    VPNModel = require("../model/vpn.js"),
+    BBXModel = require("../model/bbx.js"),
+    VNCModel = require("../model/vnc.js"),
+    USERModel = require("../model/user.js"),
+    GROUPModel = require("../model/group.js");
 
 /* GET home page. */
 router.get('/', function(req, res, next) {

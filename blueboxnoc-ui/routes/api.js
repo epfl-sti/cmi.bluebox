@@ -40,5 +40,6 @@ configure_API_subdir(router, "/vpn", Model.VPN);
 configure_API_subdir(router, "/vnc", Model.VNCTarget);
 configure_API_subdir(router, "/bbx", Model.BBox);
 configure_API_subdir(router, "/user", Model.User);
+configure_API_subdir(router, "/group", Model.Group);
 
 module.exports = router;

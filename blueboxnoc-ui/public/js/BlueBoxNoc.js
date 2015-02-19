@@ -21,6 +21,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     (location.port ? ':' + location.port : ''));
     var app = new Application('Menu'). // application main title
         baseApiUrl(rootUrl + "/api/"); // main API endpoint
+
     // define all entities at the top to allow references between them
     var vpn = new Entity('vpn')
         .label("VPNs")
@@ -34,12 +35,18 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     var user = new Entity('user')
         .label("Users")
         .identifier(nameField());
+    var group = new Entity('group')
+        .label("Groups")
+        .identifier(new Field('name'));
+
     // set the application entities
     app
         .addEntity(vpn)
         .addEntity(bbx)
         .addEntity(vnc)
-        .addEntity(user);
+		.addEntity(user)
+        .addEntity(group);
+
     // set the application menu entries
     var menuCnt = 0;
     vpn.menuView()
@@ -54,6 +61,9 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     user.menuView()
         .order(menuCnt++)
         .icon('<span class="glyphicon glyphicon-user"></span>');
+    group.menuView()
+        .order(menuCnt++)
+        .icon('<span class="glyphicon glyphicon-group"></span>');
 
     // VPNs
     vpn.dashboardView()
@@ -66,7 +76,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         ]);
     vpn.editionView()
         .title("Edit VPN : {{entry.values.name}}")
-        .actions(["list", "show", "delete", "bluebox"])
+        .actions(["list", "show", "delete"])
         .fields([
             readOnlyNameField(),
             descField(),
@@ -148,7 +158,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new Field('Open VNC', 'template')
                 .type('template')
                 .editable(false)
-                .template('<a href="/connect?ip={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">Open {{entry.values.title}} in a new window</a>')
+                .template('Open {{entry.values.title}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>')
         ]);
     vnc.listView()
         .title("All VNCs")
@@ -159,8 +169,9 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     vnc.showView().fields([
         readOnlyNameField(),
         descField(),
-        new Field("vncBoxes").type("template").template('<div id="VNC_connect"><a href="/connect?ip={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">Connect to {{entry.values.title}}</a></div>')
+        new Field("vncBoxes").type("template").template('Open {{entry.values.title}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>')
     ]);
+
     // USERs
     user.dashboardView()
         .title("Users List")
@@ -201,6 +212,39 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         descField(),
         new Field("vncBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
     ]);
+
+    // GROUPs
+    group.dashboardView()
+        .title("Groups List")
+        .order(5)
+        .limit(10)
+        .fields([
+            nameField().editable(false).isDetailLink(true).identifier(true).label("Groups")
+        ])
+        .sortField("name")
+        .sortDir("ASC");
+    group.editionView()
+        .title("All groups")
+        .actions([])
+        .fields([
+            readOnlyNameField().identifier(true),
+            descField().editable(false),
+            new Field("group_email").editable(false)
+        ]);
+    group.listView()
+        .fields([
+            nameField().editable(false).isDetailLink(true).identifier(true),
+            descField().editable(false),
+            new Field("group_email").editable(false)
+        ]);
+    group.creationView().disable();
+    group.showView()
+        .fields([
+            nameField().editable(false).isDetailLink(true).identifier(true),
+            descField().editable(false),
+            new Field("group_email").editable(false)
+        ]);
+
     NgAdminConfigurationProvider.configure(app);
 });
 // How to slap additional UI on any of the ng-admin pages,
