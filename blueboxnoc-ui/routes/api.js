@@ -11,6 +11,8 @@ var VNCModel = require("../model/vnc.js");
 var USERModel = require("../model/user.js");
 var GROUPModel = require("../model/group.js");
 
+/* NOTE */
+
 /* TODO: de-bogosify */
 
 // fake vpn data

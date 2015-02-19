@@ -34,7 +34,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .identifier(nameField());
     var user = new Entity('user')
         .label("Users")
-        .identifier(nameField());
+        .identifier(nameField())
     var group = new Entity('group')
         .label("Groups")
         .identifier(new Field('name'));
@@ -49,21 +49,56 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
 
     // set the application menu entries
     var menuCnt = 0;
-    vpn.menuView()
-        .order(menuCnt++)
-        .icon('<span class="glyphicon glyphicon-road"></span>');
     bbx.menuView()
         .order(menuCnt++)
         .icon('<span class="glyphicon glyphicon-th-large"></span>');
+    vpn.menuView()
+        .order(menuCnt++)
+        .icon('<span class="glyphicon glyphicon-road"></span>');
     vnc.menuView()
         .order(menuCnt++)
         .icon('<span class="glyphicon glyphicon-new-window"></span>');
     user.menuView()
         .order(menuCnt++)
-        .icon('<span class="glyphicon glyphicon-user"></span>');
+        .icon('<span class="glyphicon glyphicon-user"></span>')
+        .disable(); // Users will not be used in interface;
     group.menuView()
         .order(menuCnt++)
-        .icon('<span class="glyphicon glyphicon-group"></span>');
+        .icon('<span class="glyphicon glyphicon-user"></span>');
+
+    // BlueBoxes
+    bbx.dashboardView()
+        .title("BlueBoxes List")
+        .order(2) // display the post panel first in the dashboard
+        .limit(10) // limit the panel to the 5 latest posts
+        .fields([
+            dashboardClickyNameField("BBX"),
+            descField(), new Field("vpn")
+        ]);
+    bbx.editionView().title("Blue Box : {{entry.values.name}}")
+        .actions(["list", "show", "delete"])
+        .fields([
+            readOnlyNameField(),
+            new Field("vpn").editable(false),
+            descField()
+        ]);
+    bbx.listView()
+        .title("All Blue Boxes")
+        .fields(bbx.editionView().fields());
+    bbx.creationView().fields([
+        nameInputField(BBXNameValidator),
+        descField(),
+        new Reference('vpn')
+            .label('VPN')
+            .targetEntity(vpn) // Select a target Entity
+            .targetField(nameField()), // Select a label Field
+    ]);
+    bbx.showView().fields([
+        readOnlyNameField(),
+        descField(),
+        new Field("vpn"),
+        new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
+    ]);
 
     // VPNs
     vpn.dashboardView()
@@ -104,34 +139,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         descField(),
         new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
     ]);
-    // BlueBoxes
-    bbx.dashboardView()
-        .title("BlueBoxes List")
-        .order(2) // display the post panel first in the dashboard
-        .limit(10) // limit the panel to the 5 latest posts
-        .fields([
-            dashboardClickyNameField("BBX"),
-            descField(), new Field("vpn")
-        ]);
-    bbx.editionView().title("Blue Box : {{entry.values.name}}")
-        .actions(["list", "show", "delete"])
-        .fields([
-            readOnlyNameField(),
-            new Field("vpn").editable(false),
-            descField()
-        ]);
-    bbx.listView()
-        .title("All Blue Boxes")
-        .fields(bbx.editionView().fields());
-    bbx.creationView().fields([
-        nameInputField(BBXNameValidator),
-        descField()]);
-    bbx.showView().fields([
-        readOnlyNameField(),
-        descField(),
-        new Field("vpn"),
-        new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
-    ]);
+
     // VNCs
     vnc.dashboardView()
         .title("VNCs List")
