@@ -1,6 +1,5 @@
 var STATUS = module.exports;
 
-/* TODO: de-bogosify */
 STATUS.all = function(done) {
         done([
             {name:"INIT", desc:""},
