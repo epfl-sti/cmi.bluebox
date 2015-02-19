@@ -3,6 +3,8 @@ var BlueboxNocApp = angular.module("BlueboxNocApp", ["ng-admin"]);
 BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany) {
     // Common field types
     function descField() { return new Field('desc').label('Description'); }
+    function statusField() { return new Field('status').label('State'); }
+    function lastIPField() { return new Field('lastKnownIP').label('Last known IP').editable(false); }
     // Names are used as primary keys for all classes
     function nameField() { return new Field('name'); }
     function nameInputField(validator) {
@@ -38,6 +40,9 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     var group = new Entity('group')
         .label("Groups")
         .identifier(new Field('name'));
+    var status = new Entity('status')
+        .label("Status")
+        .identifier(new Field('name'));
 
     // set the application entities
     app
@@ -45,25 +50,91 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .addEntity(bbx)
         .addEntity(vnc)
 		.addEntity(user)
-        .addEntity(group);
+        .addEntity(group)
+        .addEntity(status);
 
     // set the application menu entries
     var menuCnt = 0;
-    vpn.menuView()
-        .order(menuCnt++)
-        .icon('<span class="glyphicon glyphicon-road"></span>');
     bbx.menuView()
         .order(menuCnt++)
         .icon('<span class="glyphicon glyphicon-th-large"></span>');
+    vpn.menuView()
+        .order(menuCnt++)
+        .icon('<span class="glyphicon glyphicon-road"></span>');
     vnc.menuView()
         .order(menuCnt++)
         .icon('<span class="glyphicon glyphicon-new-window"></span>');
     user.menuView()
         .order(menuCnt++)
-        .icon('<span class="glyphicon glyphicon-user"></span>');
+        .icon('<span class="glyphicon glyphicon-user"></span>')
+        .disable(); // Users will not be used in interface;
     group.menuView()
         .order(menuCnt++)
-        .icon('<span class="glyphicon glyphicon-group"></span>');
+        .icon('<span class="glyphicon glyphicon-user"></span>');
+    status.menuView().disable();
+
+    // BlueBoxes
+    bbx.dashboardView()
+        .title("BlueBoxes List")
+        .order(2) // display the post panel first in the dashboard
+        .limit(10) // limit the panel to the 5 latest posts
+        .fields([
+            dashboardClickyNameField("BBX"),
+            descField(),
+            new Field("vpn").label("VPN"),
+            new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-xs bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
+        ]);
+    bbx.listView()
+        .title("All Blue Boxes")
+        .fields([
+            readOnlyNameField(),
+            descField(),
+            lastIPField(),
+            new Field("vpn").editable(false),
+            new Reference('status')
+                .label('Status')
+                .targetEntity(status)
+                .targetField(nameField())
+                .cssClasses("bbx_status")
+                .type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>')
+        ]);
+    bbx.editionView()
+        .title("Blue Box : {{entry.values.name}}")
+        .actions(["list", "show", "delete"])
+        .fields([
+            readOnlyNameField(),
+            descField(),
+            lastIPField(),
+            new Field("vpn").editable(false),
+            new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
+            new Field("Logs").type("template").template('<div ng-controller="bbx_logs"><textarea style="width:100%; border-style: none; border-color: Transparent; overflow: auto; outline: none;textarea:focus">{{logs}}</textarea></div>'),
+            /* More smart way: http://www.grobmeier.de/bootstrap-tabs-with-angular-js-25112012.html#.VOXJ4eRMcUE */
+            //new Field("Logs").type("template").template(' <div class="panel panel-default"> <div class="panel-heading"> {{entry.values.name}}\'s logs </div> <!-- /.panel-heading --> <div class="panel-body"> <!-- Nav tabs --> <ul class="nav nav-tabs"> <li class=""><a aria-expanded="false" href="#home" data-toggle="tab">Home</a> </li> <li class=""><a aria-expanded="false" href="http://localhost:3000/#/edit/bbx/bboo#profile" data-toggle="tab">Profile</a> </li> <li class="active"><a aria-expanded="true" href="#messages" data-toggle="tab">Messages</a> </li> <li><a href="#settings" data-toggle="tab">Settings</a> </li> </ul> <!-- Tab panes --> <div class="tab-content"> <div class="tab-pane fade" id="home"> <h4>Home Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="profile"> <h4>Profile Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade active in" id="messages"> <h4>Messages Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="settings"> <h4>Settings Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> </div> </div> <!-- /.panel-body --> </div> <!-- /.panel --> ')
+            new Field("TarFile").type("template").template('<div class="alert alert-info" id="bbx_tar_download_info"><h4>Download Installation File</h4><p>Note about status and Installation file installation process...</p><br /><div class="text-center"><button type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Download tar.gz file</button></div></div>')
+        ]);
+    bbx.creationView().fields([
+        nameInputField(BBXNameValidator),
+        descField(),
+        new Reference('vpn')
+            .label('VPN')
+            .targetEntity(vpn) // Select a target Entity
+            .targetField(nameField()),
+        new Field("Information").type("template").template('<div class="alert alert-success" role="alert">Some information about bbx creation process<br /><ul><li>First create the BBX</li><li>Be sure to have the correct VPN</li><li>Finally, if you want to be able to access a computer through VNC, be sure your VNC entity is connect to the same VPN than the BBX.</li></ul><a href="#" class="alert-link">Link to something</a></div>')
+    ]);
+    bbx.showView()
+        .title("Blue Box : {{entry.values.name}}")
+        .actions(["list", "delete"])
+        .fields([
+            readOnlyNameField(),
+            descField(),
+            lastIPField(),
+            new Field("vpn").editable(false),
+            new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
+            new Field("Logs").type("template").template('<div ng-controller="bbx_logs"><textarea style="width:100%; border-style: none; border-color: Transparent; overflow: auto; outline: none;textarea:focus">{{logs}}</textarea></div>'),
+            /* More smart way: http://www.grobmeier.de/bootstrap-tabs-with-angular-js-25112012.html#.VOXJ4eRMcUE */
+            //new Field("Logs").type("template").template(' <div class="panel panel-default"> <div class="panel-heading"> {{entry.values.name}}\'s logs </div> <!-- /.panel-heading --> <div class="panel-body"> <!-- Nav tabs --> <ul class="nav nav-tabs"> <li class=""><a aria-expanded="false" href="#home" data-toggle="tab">Home</a> </li> <li class=""><a aria-expanded="false" href="http://localhost:3000/#/edit/bbx/bboo#profile" data-toggle="tab">Profile</a> </li> <li class="active"><a aria-expanded="true" href="#messages" data-toggle="tab">Messages</a> </li> <li><a href="#settings" data-toggle="tab">Settings</a> </li> </ul> <!-- Tab panes --> <div class="tab-content"> <div class="tab-pane fade" id="home"> <h4>Home Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="profile"> <h4>Profile Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade active in" id="messages"> <h4>Messages Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="settings"> <h4>Settings Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> </div> </div> <!-- /.panel-body --> </div> <!-- /.panel --> ')
+            new Field("TarFile").type("template").template('<div class="alert alert-info" id="bbx_tar_download_info"><h4>Download Installation File</h4><p>Note about status and Installation file installation process...</p><br /><div class="text-center"><button type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Download tar.gz file</button></div></div>')
+        ]);
 
     // VPNs
     vpn.dashboardView()
@@ -94,7 +165,12 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
                 .label('Blue Boxes')
                 .targetEntity(bbx) // the tag entity is defined later in this file
                 .targetField(nameField()) // the field to be displayed in this list
-                .cssClasses('bboxes_tag')
+                .cssClasses('bboxes_tag'),
+            new ReferenceMany('vncs') // a Reference is a particular type of field that references another entity
+                .label('VNC')
+                .targetEntity(vnc) // the tag entity is defined later in this file
+                .targetField(nameField()) // the field to be displayed in this list
+                .cssClasses('vncs_tag'),
         ]);
     vpn.creationView().fields([
         nameInputField(VPNNameValidator),
@@ -104,34 +180,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         descField(),
         new Field("vpnBoxes").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
     ]);
-    // BlueBoxes
-    bbx.dashboardView()
-        .title("BlueBoxes List")
-        .order(2) // display the post panel first in the dashboard
-        .limit(10) // limit the panel to the 5 latest posts
-        .fields([
-            dashboardClickyNameField("BBX"),
-            descField(), new Field("vpn")
-        ]);
-    bbx.editionView().title("Blue Box : {{entry.values.name}}")
-        .actions(["list", "show", "delete"])
-        .fields([
-            readOnlyNameField(),
-            new Field("vpn").editable(false),
-            descField()
-        ]);
-    bbx.listView()
-        .title("All Blue Boxes")
-        .fields(bbx.editionView().fields());
-    bbx.creationView().fields([
-        nameInputField(BBXNameValidator),
-        descField()]);
-    bbx.showView().fields([
-        readOnlyNameField(),
-        descField(),
-        new Field("vpn"),
-        new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
-    ]);
+
     // VNCs
     vnc.dashboardView()
         .title("VNCs List")
@@ -139,7 +188,11 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .limit(5) // limit the panel to the 5 latest posts
         .fields([
             dashboardClickyNameField("VNC"),
-            descField()
+            descField(),
+            new Reference('vpn')
+                .label('VPN')
+                .targetEntity(vpn)
+                .targetField(nameField())
         ]);
     vnc.editionView()
         .title("Edit VNC : {{entry.values.name}}")
@@ -151,7 +204,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new Field("port"),
             // @todo preselect current vpn in the list
             new Reference('vpn')
-                .label('VPN title')
+                .label('VPN')
                 .targetEntity(vpn) // Select a target Entity
                 .targetField(nameField()), // Select a label Field
             // @todo see how to add a frame with VNC
@@ -169,11 +222,13 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     vnc.showView().fields([
         readOnlyNameField(),
         descField(),
-        new Field("vncBoxes").type("template").template('Open {{entry.values.title}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>')
+        new Field("link").type("template").template('<a href="http://{{entry.values.ip}}:{{entry.values.port}}">{{entry.values.ip}}:{{entry.values.port}}</a>'),
+        new Field("vncBoxes").type("template").template('Open {{entry.values.title}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>'),
+        new Field("noVNC").type("template").template('<canvas></canvas>')
     ]);
 
     // USERs
-    user.dashboardView()
+    user.dashboardView().disable();/*
         .title("Users List")
         .order(4)
         .limit(10)
@@ -181,7 +236,8 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             nameField().isDetailLink(true).label("Users").identifier(true),
             new Field("sciper"),
             new Field("email")
-        ]);
+        ])
+        ;*/
     user.editionView()
         .title("Edit user : {{entry.values.name}}")
         .actions(["list", "show", "delete"])
@@ -223,17 +279,17 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         ])
         .sortField("name")
         .sortDir("ASC");
+    group.listView()
+        .fields([
+            nameField().editable(false).isDetailLink(true).identifier(true),
+            descField().editable(false),
+            new Field("group_email").editable(false)
+        ]);
     group.editionView()
         .title("All groups")
         .actions([])
         .fields([
             readOnlyNameField().identifier(true),
-            descField().editable(false),
-            new Field("group_email").editable(false)
-        ]);
-    group.listView()
-        .fields([
-            nameField().editable(false).isDetailLink(true).identifier(true),
             descField().editable(false),
             new Field("group_email").editable(false)
         ]);
@@ -245,10 +301,15 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new Field("group_email").editable(false)
         ]);
 
+    status.dashboardView().disable();
+
     NgAdminConfigurationProvider.configure(app);
 });
 // How to slap additional UI on any of the ng-admin pages,
 // e.g. here to access the VNC features
 BlueboxNocApp.controller("HelloWorld", function ($scope) {
     $scope.user = "Calvin Hobbes";
+});
+BlueboxNocApp.controller("bbx_logs", function ($scope) {
+    $scope.logs = "- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \netc...";
 });
