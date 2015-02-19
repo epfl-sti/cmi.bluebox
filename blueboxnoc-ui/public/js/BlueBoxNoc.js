@@ -114,7 +114,8 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         new Reference('vpn')
             .label('VPN')
             .targetEntity(vpn) // Select a target Entity
-            .targetField(nameField()) // Select a label Field
+            .targetField(nameField()),
+        new Field("Information").type("template").template('<div class="alert alert-success" role="alert">Some information about bbx creation process<br /><ul><li>First create the BBX</li><li>the be sure to have the correct VPN</li><li>Finally, if you want to be able to access a computer through VNC, be sure your VNC entity is connect to the same VPN than the BBX.</li></ul><a href="#" class="alert-link">Link to something</a></div>')
     ]);
     bbx.showView().fields([
         readOnlyNameField(),
