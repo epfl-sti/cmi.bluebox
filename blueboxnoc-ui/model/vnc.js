@@ -1,14 +1,14 @@
 var VNC = module.exports;
 
 /* TODO: de-bogosify */
-VNC.all = function() {
-    return [
+VNC.all = function(done) {
+    done([
     {name:"vnc1", ip:"192.168.10.10", port:"5900", vpn:"Foo", desc:"detail of my first vnc", token:"jiy1Wiebo7fa6Taaweesh4nae"},
     {name:"vnc2", ip:"192.168.20.20", port:"5900", vpn:"Bar", desc:"detail of my second vnc", token:"queexahnohyahch3AhceiwooR"},
     {name:"vnc3", ip:"192.168.30.30", port:"5900", vpn:"Bax", desc:"detail of my third vnc", token:"Ahd7heeshoni8phanohB2Siey"},
     {name:"vnc4", ip:"192.168.40.40", port:"5901", vpn:"Bay", desc:"detail of my fourth vnc", token:"saeMohkaec7ax1aichohdoo6u"},
     {name:"vnc5", ip:"192.168.50.50", port:"5901", vpn:"Baz", desc:"detail of my fifth vnc", token:"ooJee6ohwaevooQuoSu3chahk"}
-];
+]);
 }
 
 VNC.validName = function (value) {

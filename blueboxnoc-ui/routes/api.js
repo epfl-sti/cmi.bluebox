@@ -16,8 +16,12 @@ var Model = require("../model");
 function configure_API_subdir(router, api_path, model) {
     /* Serve e.g. /vpn */
     router.get(api_path, function(req, res, next) {
-        res.json(Model.sort(model.all(),
-                            req.query._sortField, req.query._sortDir));
+        model.all(function (all, error) {
+            if (error) {
+                return next(error);
+            }
+            res.json(Model.sort(all, req.query._sortField, req.query._sortDir));
+        });
     });
 
     /* Serve e.g. /vpn/* */
@@ -28,10 +32,15 @@ function configure_API_subdir(router, api_path, model) {
             model.validName(stem);
         }
         /* There has to be a better way than an exhaustive search here. */
-        model.all().forEach(function (value, index) {
-            if (value.name == stem) {
-                return res.json(value);
+        model.all(function(all, error) {
+            if (error) {
+                return next(error);
             }
+            all.forEach(function (value, index) {
+                if (value.name == stem) {
+                    return res.json(value);
+                }
+            }); 
         });
     });
 }

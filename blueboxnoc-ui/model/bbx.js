@@ -1,15 +1,15 @@
 var BBX = module.exports;
 
 /* TODO: de-bogosify */
-BBX.all = function() {
-    return [
+BBX.all = function(done) {
+    done([
     {name:"bboo", vpn:"Foo", desc:"Booboo", status:"INIT"},
     {name:"bboo2", vpn:"Bar", desc:"Booboo2", status:"INIT"},
     {name:"bbar", vpn:"Foo", desc:"Boobar2", status:"DOWNLOADED"},
     {name:"bbax", vpn:"Bax", desc:"Boobax", status:"NEEDS_UPDATE"},
     {name:"bbay", vpn:"Bay", desc:"Boobay", status:"NEEDS_UPDATE"},
     {name:"bbaz", vpn:"Baz", desc:"Boobaz", status:"ACTIVE"}
-];
+]);
 }
 
 BBX.validName = function (value) {
