@@ -4,6 +4,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     // Common field types
     function descField() { return new Field('desc').label('Description'); }
     function statusField() { return new Field('status').label('State'); }
+    function lastIPField() { return new Field('lastKnownIP').label('Last known IP').editable(false); }
     // Names are used as primary keys for all classes
     function nameField() { return new Field('name'); }
     function nameInputField(validator) {
@@ -83,31 +84,33 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new Field("vpn"),
             new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-xs bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
         ]);
-    bbx.editionView()
-        .title("Blue Box : {{entry.values.name}}")
-        .actions(["list", "show", "delete"])
-        .fields([
-            readOnlyNameField(),
-            new Field("vpn").editable(false),
-            descField(),
-            new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
-            new Field("Logs").type("template").template('<div ng-controller="bbx_logs"><textarea style="width:100%; border-style: none; border-color: Transparent; overflow: auto; outline: none;textarea:focus">{{logs}}</textarea></div>'),
-            /* More smart way: http://www.grobmeier.de/bootstrap-tabs-with-angular-js-25112012.html#.VOXJ4eRMcUE */
-            //new Field("Logs").type("template").template(' <div class="panel panel-default"> <div class="panel-heading"> {{entry.values.name}}\'s logs </div> <!-- /.panel-heading --> <div class="panel-body"> <!-- Nav tabs --> <ul class="nav nav-tabs"> <li class=""><a aria-expanded="false" href="#home" data-toggle="tab">Home</a> </li> <li class=""><a aria-expanded="false" href="http://localhost:3000/#/edit/bbx/bboo#profile" data-toggle="tab">Profile</a> </li> <li class="active"><a aria-expanded="true" href="#messages" data-toggle="tab">Messages</a> </li> <li><a href="#settings" data-toggle="tab">Settings</a> </li> </ul> <!-- Tab panes --> <div class="tab-content"> <div class="tab-pane fade" id="home"> <h4>Home Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="profile"> <h4>Profile Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade active in" id="messages"> <h4>Messages Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="settings"> <h4>Settings Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> </div> </div> <!-- /.panel-body --> </div> <!-- /.panel --> ')
-            new Field("TarFile").type("template").template('<div class="alert alert-info" id="bbx_tar_download_info"><h4>Download Installation File</h4><p>Note about status and Installation file installation process...</p><br /><div class="text-center"><button type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Download tar.gz file</button></div></div>')
-        ]);
     bbx.listView()
         .title("All Blue Boxes")
         .fields([
             readOnlyNameField(),
-            new Field("vpn").editable(false),
             descField(),
+            lastIPField(),
+            new Field("vpn").editable(false),
             new Reference('status')
                 .label('Status')
                 .targetEntity(status)
                 .targetField(nameField())
                 .cssClasses("bbx_status")
                 .type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>')
+        ]);
+    bbx.editionView()
+        .title("Blue Box : {{entry.values.name}}")
+        .actions(["list", "show", "delete"])
+        .fields([
+            readOnlyNameField(),
+            descField(),
+            lastIPField(),
+            new Field("vpn").editable(false),
+            new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
+            new Field("Logs").type("template").template('<div ng-controller="bbx_logs"><textarea style="width:100%; border-style: none; border-color: Transparent; overflow: auto; outline: none;textarea:focus">{{logs}}</textarea></div>'),
+            /* More smart way: http://www.grobmeier.de/bootstrap-tabs-with-angular-js-25112012.html#.VOXJ4eRMcUE */
+            //new Field("Logs").type("template").template(' <div class="panel panel-default"> <div class="panel-heading"> {{entry.values.name}}\'s logs </div> <!-- /.panel-heading --> <div class="panel-body"> <!-- Nav tabs --> <ul class="nav nav-tabs"> <li class=""><a aria-expanded="false" href="#home" data-toggle="tab">Home</a> </li> <li class=""><a aria-expanded="false" href="http://localhost:3000/#/edit/bbx/bboo#profile" data-toggle="tab">Profile</a> </li> <li class="active"><a aria-expanded="true" href="#messages" data-toggle="tab">Messages</a> </li> <li><a href="#settings" data-toggle="tab">Settings</a> </li> </ul> <!-- Tab panes --> <div class="tab-content"> <div class="tab-pane fade" id="home"> <h4>Home Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="profile"> <h4>Profile Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade active in" id="messages"> <h4>Messages Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="settings"> <h4>Settings Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> </div> </div> <!-- /.panel-body --> </div> <!-- /.panel --> ')
+            new Field("TarFile").type("template").template('<div class="alert alert-info" id="bbx_tar_download_info"><h4>Download Installation File</h4><p>Note about status and Installation file installation process...</p><br /><div class="text-center"><button type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Download tar.gz file</button></div></div>')
         ]);
     bbx.creationView().fields([
         nameInputField(BBXNameValidator),
@@ -123,20 +126,15 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .actions(["list", "delete"])
         .fields([
             readOnlyNameField(),
-            new Field("vpn").editable(false),
             descField(),
+            lastIPField(),
+            new Field("vpn").editable(false),
             new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
             new Field("Logs").type("template").template('<div ng-controller="bbx_logs"><textarea style="width:100%; border-style: none; border-color: Transparent; overflow: auto; outline: none;textarea:focus">{{logs}}</textarea></div>'),
             /* More smart way: http://www.grobmeier.de/bootstrap-tabs-with-angular-js-25112012.html#.VOXJ4eRMcUE */
             //new Field("Logs").type("template").template(' <div class="panel panel-default"> <div class="panel-heading"> {{entry.values.name}}\'s logs </div> <!-- /.panel-heading --> <div class="panel-body"> <!-- Nav tabs --> <ul class="nav nav-tabs"> <li class=""><a aria-expanded="false" href="#home" data-toggle="tab">Home</a> </li> <li class=""><a aria-expanded="false" href="http://localhost:3000/#/edit/bbx/bboo#profile" data-toggle="tab">Profile</a> </li> <li class="active"><a aria-expanded="true" href="#messages" data-toggle="tab">Messages</a> </li> <li><a href="#settings" data-toggle="tab">Settings</a> </li> </ul> <!-- Tab panes --> <div class="tab-content"> <div class="tab-pane fade" id="home"> <h4>Home Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="profile"> <h4>Profile Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade active in" id="messages"> <h4>Messages Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="settings"> <h4>Settings Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> </div> </div> <!-- /.panel-body --> </div> <!-- /.panel --> ')
             new Field("TarFile").type("template").template('<div class="alert alert-info" id="bbx_tar_download_info"><h4>Download Installation File</h4><p>Note about status and Installation file installation process...</p><br /><div class="text-center"><button type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Download tar.gz file</button></div></div>')
         ]);
-    /*.fields([
-        readOnlyNameField(),
-        descField(),
-        new Field("vpn"),
-        new Field("BBxVpn").type("template").template('<div ng-controller="HelloWorld">Hello, {{user}}.</div>')
-    ]);*/
 
     // VPNs
     vpn.dashboardView()

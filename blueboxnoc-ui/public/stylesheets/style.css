@@ -17,7 +17,7 @@ a {
 h1 {
     line-height: 100px;
 }
-.bboxes_tag span.label.label-INIT.ng-binding {
+.bboxes_tag span.label.label-default.ng-binding {
     background: url(/images/blue_cube20.png) left top;
     color: black;
     display: block;
