@@ -4,12 +4,6 @@ package EPFLSTI::Model::JSONConfigBase;
 
 use strict;
 
-use JSON;
-
-use IO::All;
-
-use Try::Tiny;
-
 =head1 NAME
 
 EPFLSTI::Model::JSONConfigBase - Base class for JSON-described model classes
@@ -47,6 +41,12 @@ assumed to be the name of the subdirectory to load from.
 
 =cut
 
+use JSON;
+
+use IO::All;
+
+use Try::Tiny;
+
 sub _load_from_subdirs {
   my ($class, $path, @load_args) = @_;
   return map {
@@ -71,6 +71,26 @@ $class->all(@args_for_all) >>, as a single string in JSON form.
 sub all_json {
   my $class = shift;
   return to_json([$class->all(@_)], { pretty => 1, convert_blessed => 1 });
+}
+
+=head2 mk_accessors (@names)
+
+L<Class::Accessor> style, with best practices, sans all the crud.
+
+=cut
+
+sub mk_accessors {
+  my $pkg = shift;
+  foreach my $field_name (@_) {
+    my $get = sub { shift->{$field_name} };
+    my $set = sub {
+      my $self = shift;
+      $self->{$field_name} = shift;
+    };
+    no strict "refs";
+    *{"${pkg}::get_${field_name}"} = $get;
+    *{"${pkg}::set_${field_name}"} = $set;
+  }
 }
 
 =head1 METHODS
@@ -205,6 +225,8 @@ our $testdir = io->dir(My::Tests::Below->tempdir)->dir("myobj");
     my $self = shift;
     return { foo => $self->{foo}, bar => $self->{bar} };
   }
+
+  My::JSONClass->mk_accessors(qw(zoinx));
 }
 
 test "->new(), ->save() and ->load()" => sub {
@@ -243,4 +265,18 @@ test "ORIG_foo and load" => sub {
   $obj->{foo} = "Bar";
   is $obj->{foo}, "Bar";
   is $obj->{foo_ORIG}, "Foo";
+};
+
+test "Accessors" => sub {
+  $testdir->rmtree;
+
+  my $obj = new My::JSONClass;
+  $obj->{zoinx} = "Zoinx";
+  is($obj->get_zoinx, "Zoinx");
+
+  $testdir->rmtree;
+
+  $obj = new My::JSONClass;
+  $obj->set_zoinx("Mew");
+  is($obj->{zoinx}, "Mew");
 };

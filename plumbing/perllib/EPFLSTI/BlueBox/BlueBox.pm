@@ -74,6 +74,8 @@ sub data_dir {
   return $self->_bbox_dir($self->{vpn})->dir($self->{name});
 }
 
+__PACKAGE__->mk_accessors(qw(desc));
+
 require My::Tests::Below unless caller();
 
 1;

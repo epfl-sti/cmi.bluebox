@@ -33,7 +33,7 @@ one-liner.
 
 =cut
 
-use base "EPFLSTI::Model::JSONConfigBase";
+use base qw(EPFLSTI::Model::JSONConfigBase);
 
 use EPFLSTI::Model::LoadError;
 
@@ -71,6 +71,8 @@ sub TO_JSON {
 
 sub data_dir { io->catdir(DATA_DIR, shift->{name}) }
 
+__PACKAGE__->mk_accessors(qw(desc));
+
 require My::Tests::Below unless caller();
 
 1;
@@ -95,14 +97,16 @@ use EPFLSTI::Docker::Paths;
 
 EPFLSTI::Docker::Paths->srv_dir(My::Tests::Below->tempdir);
 
+my $tempdir = io(My::Tests::Below->tempdir);
+
 test "synopsis" => sub {
+  $tempdir->rmtree;
   my $synopsis = My::Tests::Below->pod_code_snippet("synopsis");
 
   my $perlformula = join(" ", $^X, map { "-I" . io($_)->absolute } @INC);
 
   $synopsis =~ s/\bperl\b/$perlformula/;  # Not /g
 
-  my $tempdir = My::Tests::Below->tempdir;
   my $begin_for_tests = <<"BEGIN_FOR_TESTS";
 use EPFLSTI::Docker::Paths;
 EPFLSTI::Docker::Paths->srv_dir("$tempdir");
@@ -126,6 +130,7 @@ BEGIN_FOR_TESTS
 
 test "all_json" => sub {
   # Basically same as above, sans snarfing the code from the POD.
+  $tempdir->rmtree;
   EPFLSTI::BlueBox::VPN->new("My_First_VPN");
   EPFLSTI::BlueBox::VPN->new("My_Second_VPN");
   # Red herring:
@@ -141,6 +146,15 @@ test "all_json" => sub {
   ok($expected->is_equal($got))
     or diag "Unexpected: " . ($got - $expected) .
     ", missing: " . ($expected - $got);
+};
+
+test "Accessors" => sub {
+  $tempdir->rmtree;
+  my $vpn = EPFLSTI::BlueBox::VPN->new("My_First_VPN");
+  $vpn->set_desc("This is my first VPN.");
+  $vpn->save();
+  is(EPFLSTI::BlueBox::VPN->load("My_First_VPN")->get_desc,
+    "This is my first VPN.");
 };
 
 test "Cannot create VPN with wrong name" => sub {

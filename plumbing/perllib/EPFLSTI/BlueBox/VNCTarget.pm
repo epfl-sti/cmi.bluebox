@@ -57,7 +57,8 @@ sub TO_JSON {
   my ($self) = @_;
   # The id is denormalized for the view's comfort and also for
   # ->all_json to make sense.
-  return { id => $self->{id}, desc => $self->{desc} };
+  return { id => $self->{id}, desc => $self->{desc},
+           ip => $self->{ip}, port => $self->{port} };
 }
 
 sub _vnc_dir {
@@ -69,6 +70,8 @@ sub data_dir {
   my $self = shift;
   return $self->_vnc_dir($self->{vpn})->dir($self->{id});
 }
+
+__PACKAGE__->mk_accessors(qw(desc ip port));
 
 require My::Tests::Below unless caller();
 
