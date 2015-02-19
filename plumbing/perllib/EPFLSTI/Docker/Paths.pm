@@ -21,11 +21,8 @@ don't want to hard-code them in order to facilitate development.
 
 =cut
 
-sub _is_prod {
-  if ($^O ne "linux") { return 0; }
-  if ($0 =~ m|/Users/| or $0 =~ m|/home/|) { return 0; }
-  if ($0 =~ m|^/opt|) { return 1; }
-  return undef;
+sub _running_within_docker {
+  -f "/this_is_docker";
 }
 
 our $_srv_dir;
@@ -37,7 +34,7 @@ sub srv_dir {
   } elsif ($_srv_dir) {
     return $_srv_dir;
   }
-  elsif  (_is_prod) {
+  elsif  (_running_within_docker) {
     return ($_srv_dir = "/srv");
   }
 

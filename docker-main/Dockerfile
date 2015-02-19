@@ -78,6 +78,9 @@ RUN rm -rf /etc/tinc && \
     rm -rf /var/log/apache2 && \
     ln -sf /srv/log/apache2 /var/log/apache2
 
+# The finishing touch:
+RUN : > /this_is_docker
+
 EXPOSE 80
 # For tinc:
 EXPOSE 655
