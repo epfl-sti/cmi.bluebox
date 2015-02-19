@@ -81,7 +81,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             dashboardClickyNameField("BBX"),
             descField(),
             new Field("vpn"),
-            statusField()
+            new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-xs bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
         ]);
     bbx.editionView()
         .title("Blue Box : {{entry.values.name}}")
