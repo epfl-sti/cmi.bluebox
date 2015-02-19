@@ -17,11 +17,291 @@ a {
 h1 {
     line-height: 100px;
 }
-.bboxes_tag span.label.label-default.ng-binding {
+.bboxes_tag span.label.label-INIT.ng-binding {
     background: url(/images/blue_cube20.png) left top;
     color: black;
     display: block;
     float: left;
     background-repeat: no-repeat;
     padding-left: 25px;
+}
+
+/* http://getbootstrap.com/components/#btn-groups
+    INIT
+    DOWNLOADED
+    NEEDS_UPDATE
+    ACTIVE
+    FAIL
+   Matched with
+    Default (gray)      -> INIT
+    Primary (blue)      -> DOWNLOADED
+    Success (green)     -> ACTIVE
+    Info (light blue)   ->
+    Warning (orange)    -> NEEDS_UPDATE
+    Danger (red)        -> FAIL
+
+   */
+.bbx-btn{
+    display:inline-block;
+    margin-bottom:0;
+    font-weight:400;
+    text-align:center;
+    vertical-align:middle;
+    touch-action:manipulation;
+    cursor:pointer;
+    background-image:none;
+    border:1px solid transparent;
+    white-space:nowrap;
+    padding:6px 12px;
+    font-size:14px;
+    line-height:1.42857;
+    border-radius:4px;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none
+}
+
+.bbx.active.focus,.bbx.active:focus,.bbx.focus,.bbx:active.focus,.bbx:active:focus,.bbx:focus{
+    outline:dotted thin;
+    outline:-webkit-focus-ring-color auto 5px;
+    outline-offset:-2px
+}
+
+.bbx.focus,.bbx:focus,.bbx:hover{
+    color:#333;
+    text-decoration:none
+}
+
+.bbx.active,.bbx:active{
+    outline:0;
+    background-image:none;
+    -webkit-box-shadow:inset 0 3px 5px rgba(0,0,0,.125);
+    box-shadow:inset 0 3px 5px rgba(0,0,0,.125)
+}
+
+.bbx.disabled,.bbx[disabled],fieldset[disabled] .bbx{
+    cursor:not-allowed;
+    pointer-events:none;
+    opacity:.65;
+    filter:alpha(opacity=65);
+    -webkit-box-shadow:none;
+    box-shadow:none
+}
+
+.bbx-btn-INIT{
+    color:#333;
+    background-color:#fff;
+    border-color:#ccc
+}
+
+.bbx-btn-INIT.active,.bbx-btn-INIT.focus,.bbx-btn-INIT:active,.bbx-btn-INIT:focus,.bbx-btn-INIT:hover,.open>.bbx-btn-INIT.dropdown-toggle{
+    color:#333;
+    background-color:#e6e6e6;
+    border-color:#adadad
+}
+
+.bbx-btn-INIT.active,.bbx-btn-INIT:active,.open>.bbx-btn-INIT.dropdown-toggle{
+    background-image:none
+}
+
+.bbx-btn-INIT.disabled,.bbx-btn-INIT.disabled.active,.bbx-btn-INIT.disabled.focus,.bbx-btn-INIT.disabled:active,.bbx-btn-INIT.disabled:focus,.bbx-btn-INIT.disabled:hover,.bbx-btn-INIT[disabled],.bbx-btn-INIT[disabled].active,.bbx-btn-INIT[disabled].focus,.bbx-btn-INIT[disabled]:active,.bbx-btn-INIT[disabled]:focus,.bbx-btn-INIT[disabled]:hover,fieldset[disabled] .bbx-btn-INIT,fieldset[disabled] .bbx-btn-INIT.active,fieldset[disabled] .bbx-btn-INIT.focus,fieldset[disabled] .bbx-btn-INIT:active,fieldset[disabled] .bbx-btn-INIT:focus,fieldset[disabled] .bbx-btn-INIT:hover{
+    background-color:#fff;
+    border-color:#ccc
+}
+
+.bbx-btn-INIT .badge{
+    color:#fff;
+    background-color:#333
+}
+
+.bbx-btn-DOWNLOADED{
+    color:#fff;
+    background-color:#337ab7;
+    border-color:#2e6da4
+}
+
+.bbx-btn-DOWNLOADED.active,.bbx-btn-DOWNLOADED.focus,.bbx-btn-DOWNLOADED:active,.bbx-btn-DOWNLOADED:focus,.bbx-btn-DOWNLOADED:hover,.open>.bbx-btn-DOWNLOADED.dropdown-toggle{
+    color:#fff;
+    background-color:#286090;
+    border-color:#204d74
+}
+
+.bbx-btn-DOWNLOADED.active,.bbx-btn-DOWNLOADED:active,.open>.bbx-btn-DOWNLOADED.dropdown-toggle{
+    background-image:none
+}
+
+.bbx-btn-DOWNLOADED.disabled,.bbx-btn-DOWNLOADED.disabled.active,.bbx-btn-DOWNLOADED.disabled.focus,.bbx-btn-DOWNLOADED.disabled:active,.bbx-btn-DOWNLOADED.disabled:focus,.bbx-btn-DOWNLOADED.disabled:hover,.bbx-btn-DOWNLOADED[disabled],.bbx-btn-DOWNLOADED[disabled].active,.bbx-btn-DOWNLOADED[disabled].focus,.bbx-btn-DOWNLOADED[disabled]:active,.bbx-btn-DOWNLOADED[disabled]:focus,.bbx-btn-DOWNLOADED[disabled]:hover,fieldset[disabled] .bbx-btn-DOWNLOADED,fieldset[disabled] .bbx-btn-DOWNLOADED.active,fieldset[disabled] .bbx-btn-DOWNLOADED.focus,fieldset[disabled] .bbx-btn-DOWNLOADED:active,fieldset[disabled] .bbx-btn-DOWNLOADED:focus,fieldset[disabled] .bbx-btn-DOWNLOADED:hover{
+    background-color:#337ab7;
+    border-color:#2e6da4
+}
+
+.bbx-btn-DOWNLOADED .badge{
+    color:#337ab7;
+    background-color:#fff
+}
+
+.bbx-btn-ACTIVE{
+    color:#fff;
+    background-color:#5cb85c;
+    border-color:#4cae4c
+}
+
+.bbx-btn-ACTIVE.active,.bbx-btn-ACTIVE.focus,.bbx-btn-ACTIVE:active,.bbx-btn-ACTIVE:focus,.bbx-btn-ACTIVE:hover,.open>.bbx-btn-ACTIVE.dropdown-toggle{
+    color:#fff;
+    background-color:#449d44;
+    border-color:#398439
+}
+
+.bbx-btn-ACTIVE.active,.bbx-btn-ACTIVE:active,.open>.bbx-btn-ACTIVE.dropdown-toggle{
+    background-image:none
+}
+
+.bbx-btn-ACTIVE.disabled,.bbx-btn-ACTIVE.disabled.active,.bbx-btn-ACTIVE.disabled.focus,.bbx-btn-ACTIVE.disabled:active,.bbx-btn-ACTIVE.disabled:focus,.bbx-btn-ACTIVE.disabled:hover,.bbx-btn-ACTIVE[disabled],.bbx-btn-ACTIVE[disabled].active,.bbx-btn-ACTIVE[disabled].focus,.bbx-btn-ACTIVE[disabled]:active,.bbx-btn-ACTIVE[disabled]:focus,.bbx-btn-ACTIVE[disabled]:hover,fieldset[disabled] .bbx-btn-ACTIVE,fieldset[disabled] .bbx-btn-ACTIVE.active,fieldset[disabled] .bbx-btn-ACTIVE.focus,fieldset[disabled] .bbx-btn-ACTIVE:active,fieldset[disabled] .bbx-btn-ACTIVE:focus,fieldset[disabled] .bbx-btn-ACTIVE:hover{
+    background-color:#5cb85c;
+    border-color:#4cae4c
+}
+
+.bbx-btn-ACTIVE .badge{
+    color:#5cb85c;
+    background-color:#fff
+}
+
+.bbx-btn-info{
+    color:#fff;
+    background-color:#5bc0de;
+    border-color:#46b8da
+}
+
+.bbx-btn-info.active,.bbx-btn-info.focus,.bbx-btn-info:active,.bbx-btn-info:focus,.bbx-btn-info:hover,.open>.bbx-btn-info.dropdown-toggle{
+    color:#fff;
+    background-color:#31b0d5;
+    border-color:#269abc
+}
+
+.bbx-btn-info.active,.bbx-btn-info:active,.open>.bbx-btn-info.dropdown-toggle{
+    background-image:none
+}
+
+.bbx-btn-info.disabled,.bbx-btn-info.disabled.active,.bbx-btn-info.disabled.focus,.bbx-btn-info.disabled:active,.bbx-btn-info.disabled:focus,.bbx-btn-info.disabled:hover,.bbx-btn-info[disabled],.bbx-btn-info[disabled].active,.bbx-btn-info[disabled].focus,.bbx-btn-info[disabled]:active,.bbx-btn-info[disabled]:focus,.bbx-btn-info[disabled]:hover,fieldset[disabled] .bbx-btn-info,fieldset[disabled] .bbx-btn-info.active,fieldset[disabled] .bbx-btn-info.focus,fieldset[disabled] .bbx-btn-info:active,fieldset[disabled] .bbx-btn-info:focus,fieldset[disabled] .bbx-btn-info:hover{
+    background-color:#5bc0de;
+    border-color:#46b8da
+}
+
+.bbx-btn-info .badge{
+    color:#5bc0de;
+    background-color:#fff
+}
+
+.bbx-btn-NEEDS_UPDATE{
+    color:#fff;
+    background-color:#f0ad4e;
+    border-color:#eea236
+}
+
+.bbx-btn-NEEDS_UPDATE.active,.bbx-btn-NEEDS_UPDATE.focus,.bbx-btn-NEEDS_UPDATE:active,.bbx-btn-NEEDS_UPDATE:focus,.bbx-btn-NEEDS_UPDATE:hover,.open>.bbx-btn-NEEDS_UPDATE.dropdown-toggle{
+    color:#fff;
+    background-color:#ec971f;
+    border-color:#d58512
+}
+
+.bbx-btn-NEEDS_UPDATE.active,.bbx-btn-NEEDS_UPDATE:active,.open>.bbx-btn-NEEDS_UPDATE.dropdown-toggle{
+    background-image:none
+}
+
+.bbx-btn-NEEDS_UPDATE.disabled,.bbx-btn-NEEDS_UPDATE.disabled.active,.bbx-btn-NEEDS_UPDATE.disabled.focus,.bbx-btn-NEEDS_UPDATE.disabled:active,.bbx-btn-NEEDS_UPDATE.disabled:focus,.bbx-btn-NEEDS_UPDATE.disabled:hover,.bbx-btn-NEEDS_UPDATE[disabled],.bbx-btn-NEEDS_UPDATE[disabled].active,.bbx-btn-NEEDS_UPDATE[disabled].focus,.bbx-btn-NEEDS_UPDATE[disabled]:active,.bbx-btn-NEEDS_UPDATE[disabled]:focus,.bbx-btn-NEEDS_UPDATE[disabled]:hover,fieldset[disabled] .bbx-btn-NEEDS_UPDATE,fieldset[disabled] .bbx-btn-NEEDS_UPDATE.active,fieldset[disabled] .bbx-btn-NEEDS_UPDATE.focus,fieldset[disabled] .bbx-btn-NEEDS_UPDATE:active,fieldset[disabled] .bbx-btn-NEEDS_UPDATE:focus,fieldset[disabled] .bbx-btn-NEEDS_UPDATE:hover{
+    background-color:#f0ad4e;
+    border-color:#eea236
+}
+
+.bbx-btn-NEEDS_UPDATE .badge{
+    color:#f0ad4e;
+    background-color:#fff
+}
+
+.bbx-btn-FAIL{
+    color:#fff;
+    background-color:#d9534f;
+    border-color:#d43f3a
+}
+
+.bbx-btn-FAIL.active,.bbx-btn-FAIL.focus,.bbx-btn-FAIL:active,.bbx-btn-FAIL:focus,.bbx-btn-FAIL:hover,.open>.bbx-btn-FAIL.dropdown-toggle{
+    color:#fff;
+    background-color:#c9302c;
+    border-color:#ac2925
+}
+
+.bbx-btn-FAIL.active,.bbx-btn-FAIL:active,.open>.bbx-btn-FAIL.dropdown-toggle{
+    background-image:none
+}
+
+.bbx-btn-FAIL.disabled,.bbx-btn-FAIL.disabled.active,.bbx-btn-FAIL.disabled.focus,.bbx-btn-FAIL.disabled:active,.bbx-btn-FAIL.disabled:focus,.bbx-btn-FAIL.disabled:hover,.bbx-btn-FAIL[disabled],.bbx-btn-FAIL[disabled].active,.bbx-btn-FAIL[disabled].focus,.bbx-btn-FAIL[disabled]:active,.bbx-btn-FAIL[disabled]:focus,.bbx-btn-FAIL[disabled]:hover,fieldset[disabled] .bbx-btn-FAIL,fieldset[disabled] .bbx-btn-FAIL.active,fieldset[disabled] .bbx-btn-FAIL.focus,fieldset[disabled] .bbx-btn-FAIL:active,fieldset[disabled] .bbx-btn-FAIL:focus,fieldset[disabled] .bbx-btn-FAIL:hover{
+    background-color:#d9534f;
+    border-color:#d43f3a
+}
+
+.bbx-btn-FAIL .badge{
+    color:#d9534f;
+    background-color:#fff
+}
+
+.bbx-btn-link{
+    color:#337ab7;
+    font-weight:400;
+    border-radius:0
+}
+
+.bbx-btn-link,.bbx-btn-link.active,.bbx-btn-link:active,.bbx-btn-link[disabled],fieldset[disabled] .bbx-btn-link{
+    background-color:transparent;
+    -webkit-box-shadow:none;
+    box-shadow:none
+}
+
+.bbx-btn-link,.bbx-btn-link:active,.bbx-btn-link:focus,.bbx-btn-link:hover{
+    border-color:transparent
+}
+
+.bbx-btn-link:focus,.bbx-btn-link:hover{
+    color:#23527c;
+    text-decoration:underline;
+    background-color:transparent
+}
+
+.bbx-btn-link[disabled]:focus,.bbx-btn-link[disabled]:hover,fieldset[disabled] .bbx-btn-link:focus,fieldset[disabled] .bbx-btn-link:hover{
+    color:#777;
+    text-decoration:none
+}
+
+.bbx-btn-group-lg>.bbx,.bbx-btn-lg{
+    padding:10px 16px;
+    font-size:18px;
+    line-height:1.33;
+    border-radius:6px
+}
+
+.bbx-btn-group-sm>.bbx,.bbx-btn-sm{
+    padding:5px 10px;
+    font-size:12px;
+    line-height:1.5;
+    border-radius:3px
+}
+
+.bbx-btn-group-xs>.bbx,.bbx-btn-xs{
+    padding:1px 5px;
+    font-size:12px;
+    line-height:1.5;
+    border-radius:3px
+}
+
+.bbx-btn-block{
+    display:block;
+    width:100%
+}
+
+.bbx-btn-block+.bbx-btn-block{
+    margin-top:5px
+}
+
+input[type=button].bbx-btn-block,input[type=reset].bbx-btn-block,input[type=submit].bbx-btn-block{
+    width:100%
 }

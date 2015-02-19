@@ -7,7 +7,7 @@ BBX.all = function() {
     {name:"bboo2", vpn:"Bar", desc:"Booboo2", status:"INIT"},
     {name:"bbar", vpn:"Foo", desc:"Boobar2", status:"DOWNLOADED"},
     {name:"bbax", vpn:"Bax", desc:"Boobax", status:"NEEDS_UPDATE"},
-    {name:"bbay", vpn:"Bay", desc:"Boobay", status:"NEEDS_UPDATE"},
+    {name:"bbay", vpn:"Bay", desc:"Boobay", status:"FAIL"},
     {name:"bbaz", vpn:"Baz", desc:"Boobaz", status:"ACTIVE"}
 ];
 }

@@ -3,6 +3,7 @@ var BlueboxNocApp = angular.module("BlueboxNocApp", ["ng-admin"]);
 BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany) {
     // Common field types
     function descField() { return new Field('desc').label('Description'); }
+    function statusField() { return new Field('status').label('State'); }
     // Names are used as primary keys for all classes
     function nameField() { return new Field('name'); }
     function nameInputField(validator) {
@@ -34,9 +35,12 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .identifier(nameField());
     var user = new Entity('user')
         .label("Users")
-        .identifier(nameField())
+        .identifier(nameField());
     var group = new Entity('group')
         .label("Groups")
+        .identifier(new Field('name'));
+    var status = new Entity('status')
+        .label("Status")
         .identifier(new Field('name'));
 
     // set the application entities
@@ -45,7 +49,8 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .addEntity(bbx)
         .addEntity(vnc)
 		.addEntity(user)
-        .addEntity(group);
+        .addEntity(group)
+        .addEntity(status);
 
     // set the application menu entries
     var menuCnt = 0;
@@ -65,6 +70,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     group.menuView()
         .order(menuCnt++)
         .icon('<span class="glyphicon glyphicon-user"></span>');
+    status.menuView().disable();
 
     // BlueBoxes
     bbx.dashboardView()
@@ -73,25 +79,44 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         .limit(10) // limit the panel to the 5 latest posts
         .fields([
             dashboardClickyNameField("BBX"),
-            descField(), new Field("vpn")
+            descField(),
+            new Field("vpn"),
+            statusField()
         ]);
     bbx.editionView().title("Blue Box : {{entry.values.name}}")
         .actions(["list", "show", "delete"])
         .fields([
             readOnlyNameField(),
             new Field("vpn").editable(false),
-            descField()
+            descField(),
+            new Reference('status')
+                .label('Status')
+                .targetEntity(status)
+                .targetField(nameField()),
+            new Field("Logs").type("template").template('<div ng-controller="bbx_logs"><textarea style="width:100%">{{logs}}</textarea></div>')
+            /* More smart way: http://www.grobmeier.de/bootstrap-tabs-with-angular-js-25112012.html#.VOXJ4eRMcUE */
+            //new Field("Logs").type("template").template(' <div class="panel panel-default"> <div class="panel-heading"> {{entry.values.name}}\'s logs </div> <!-- /.panel-heading --> <div class="panel-body"> <!-- Nav tabs --> <ul class="nav nav-tabs"> <li class=""><a aria-expanded="false" href="#home" data-toggle="tab">Home</a> </li> <li class=""><a aria-expanded="false" href="http://localhost:3000/#/edit/bbx/bboo#profile" data-toggle="tab">Profile</a> </li> <li class="active"><a aria-expanded="true" href="#messages" data-toggle="tab">Messages</a> </li> <li><a href="#settings" data-toggle="tab">Settings</a> </li> </ul> <!-- Tab panes --> <div class="tab-content"> <div class="tab-pane fade" id="home"> <h4>Home Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="profile"> <h4>Profile Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade active in" id="messages"> <h4>Messages Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="settings"> <h4>Settings Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> </div> </div> <!-- /.panel-body --> </div> <!-- /.panel --> ')
         ]);
     bbx.listView()
         .title("All Blue Boxes")
-        .fields(bbx.editionView().fields());
+        .fields([
+            readOnlyNameField(),
+            new Field("vpn").editable(false),
+            descField(),
+            new Reference('status')
+                .label('Status')
+                .targetEntity(status)
+                .targetField(nameField())
+                .cssClasses("bbx_status")
+                .type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>')
+        ]);
     bbx.creationView().fields([
         nameInputField(BBXNameValidator),
         descField(),
         new Reference('vpn')
             .label('VPN')
             .targetEntity(vpn) // Select a target Entity
-            .targetField(nameField()), // Select a label Field
+            .targetField(nameField()) // Select a label Field
     ]);
     bbx.showView().fields([
         readOnlyNameField(),
@@ -181,7 +206,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     ]);
 
     // USERs
-    user.dashboardView()
+    user.dashboardView().disable();/*
         .title("Users List")
         .order(4)
         .limit(10)
@@ -189,7 +214,8 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             nameField().isDetailLink(true).label("Users").identifier(true),
             new Field("sciper"),
             new Field("email")
-        ]);
+        ])
+        ;*/
     user.editionView()
         .title("Edit user : {{entry.values.name}}")
         .actions(["list", "show", "delete"])
@@ -253,10 +279,15 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new Field("group_email").editable(false)
         ]);
 
+    status.dashboardView().disable();
+
     NgAdminConfigurationProvider.configure(app);
 });
 // How to slap additional UI on any of the ng-admin pages,
 // e.g. here to access the VNC features
 BlueboxNocApp.controller("HelloWorld", function ($scope) {
     $scope.user = "Calvin Hobbes";
+});
+BlueboxNocApp.controller("bbx_logs", function ($scope) {
+    $scope.logs = "- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \netc...";
 });
