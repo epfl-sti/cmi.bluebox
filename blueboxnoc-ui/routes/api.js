@@ -36,11 +36,16 @@ function configure_API_subdir(router, api_path, model) {
             if (error) {
                 return next(error);
             }
+            var done;
             all.forEach(function (value, index) {
-                if (value.name == stem) {
-                    return res.json(value);
+                if (! done && value.name == stem) {
+                    res.json(value);
+                    done = true;
                 }
-            }); 
+            });
+            if (! done) {
+                next({message: "Unknown resource " + req.url});
+            }
         });
     });
 }
