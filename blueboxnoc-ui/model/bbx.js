@@ -1,6 +1,16 @@
-var BBX = module.exports = function() {
+var BBX = module.exports;
 
-};
+/* TODO: de-bogosify */
+BBX.all = function() {
+    return [
+    {name:"bboo", vpn:"Foo", desc:"Booboo"},
+    {name:"bboo2", vpn:"Bar", desc:"Booboo2"},
+    {name:"bbar", vpn:"Foo", desc:"Boobar2"},
+    {name:"bbax", vpn:"Bax", desc:"Boobax"},
+    {name:"bbay", vpn:"Bay", desc:"Boobay"},
+    {name:"bbaz", vpn:"Baz", desc:"Boobaz"}
+];
+}
 
 BBX.validName = function (value) {
     if (! value.match(/^[A-Za-z_0-9]+$/)) {
@@ -8,15 +18,3 @@ BBX.validName = function (value) {
     };
 };
 
-BBX.sort = function (array, sortField, sortDir) {
-    sortField = typeof sortField !== 'undefined' ? sortField : 'title';
-    if (sortDir === 'ASC') {
-        return array.sort(function (A, B) {
-            return A[sortField] > B[sortField];
-        });
-    } else {
-        return array.sort(function (A, B) {
-            return A[sortField] < B[sortField];
-        });
-    }
-};

@@ -1,6 +1,15 @@
-var VPN = module.exports = function() {
+var VPN = module.exports;
 
-};
+/* TODO: de-bogosify */
+VPN.all = function() {
+        return  [
+    {name:"Foo", desc:"Foofoo", bbxs:["bboo", "bbar"]},
+    {name:"Bar", desc:"Foobar", bbxs:["bboo2"]},
+    {name:"Bax", desc:"Foobaz", bbxs:["bbax"]},
+    {name:"Bay", desc:"Foobay", bbxs:["bbay"]},
+    {name:"Baz", desc:"Foobaz", bbxs:["bbaz"]}
+];
+}
 
 VPN.validName = function (value) {
     if (! value.match(/^[A-Za-z_0-9]+$/)) {
@@ -8,15 +17,3 @@ VPN.validName = function (value) {
     };
 };
 
-VPN.sort = function (array, sortField, sortDir) {
-    sortField = typeof sortField !== 'undefined' ? sortField : 'title';
-    if (sortDir === 'ASC') {
-        return array.sort(function (A, B) {
-            return A[sortField] > B[sortField];
-        });
-    } else {
-        return array.sort(function (A, B) {
-            return A[sortField] < B[sortField];
-        });
-    }
-};
