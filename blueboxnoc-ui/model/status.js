@@ -10,3 +10,6 @@ STATUS.all = function(done) {
         ]);
 };
 
+STATUS.primaryKey = {
+    name: "name"
+};

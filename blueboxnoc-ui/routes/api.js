@@ -28,8 +28,8 @@ function configure_API_subdir(router, api_path, model) {
     router.get(api_path + '/*', function(req, res, next) {
         var urlparts = req.url.split("/");
         var stem = urlparts.pop();
-        if (model.validName) {
-            model.validName(stem);
+        if (model.primaryKey.validate) {
+            model.primaryKey.validate(stem);
         }
         /* There has to be a better way than an exhaustive search here. */
         model.all(function(all, error) {
@@ -38,7 +38,7 @@ function configure_API_subdir(router, api_path, model) {
             }
             var done;
             all.forEach(function (value, index) {
-                if (! done && value.name == stem) {
+                if (! done && value[model.primaryKey.name] == stem) {
                     res.json(value);
                     done = true;
                 }

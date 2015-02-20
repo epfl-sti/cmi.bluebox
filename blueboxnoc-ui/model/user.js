@@ -1,5 +1,14 @@
 var USER = module.exports;
 
+USER.primaryKey = {
+    name: "name",
+    validate: function (value) {
+        if (! value.match(/^[A-Za-z_0-9]+$/)) {
+            throw new Error("USERS names can only contain letters, underscores and digits");
+        };
+    }
+};
+
 /* TODO: de-bogosify */
 USER.all = function(done) {
     done([
@@ -9,11 +18,5 @@ USER.all = function(done) {
     {name:"user2", sciper:"200200", email:"james.kilroy@epfl.ch", group:"bBlueBoxNoc_admins", desc:"detail of my second users"},
     {name:"user3", sciper:"300300", email:"andre.roussimoff@epfl.ch", group:"cBlueBoxNoc_vncers", desc:"detail of my third users"}
 ]);
-};
-
-USER.validName = function (value) {
-    if (! value.match(/^[A-Za-z_0-9]+$/)) {
-        throw new Error("USERS names can only contain letters, underscores and digits");
-    };
 };
 

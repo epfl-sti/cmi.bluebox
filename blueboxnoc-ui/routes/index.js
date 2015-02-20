@@ -12,11 +12,13 @@ router.get('/', function(req, res, next) {
       title: 'BlueBoxNOC'
   });
 });
+
+/* Helper JS for client-side validations */
 router.get('/js/validations.js', function(req, res, next) {
     res.writeHead(200, {"Content-Type": "text/javascript"});
-    res.end(   "var VPNNameValidator = " + String(VPNModel.validName)+";"+
-                    "var BBXNameValidator = " + String(BBXModel.validName)+";"+
+    res.end(   "var VPNNameValidator = " + String(VPNModel.primaryKey.validate)+";"+
+                    "var BBXNameValidator = " + String(BBXModel.primaryKey.validate)+";"+
                     "var VNCNameValidator = " + String(VNCModel.validName)+";"+
-                    "var USERNameValidator = " + String(USERModel.validName)+";");
+                    "var USERNameValidator = " + String(USERModel.primaryKey.validate)+";");
 });
 module.exports = router;

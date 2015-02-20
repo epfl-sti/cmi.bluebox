@@ -5,7 +5,8 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     function descField() { return new Field('desc').label('Description'); }
     function statusField() { return new Field('status').label('State'); }
     function lastIPField() { return new Field('lastKnownIP').label('Last known IP').editable(false); }
-    // Names are used as primary keys for all classes
+    function idField() { return new Field('id'); }
+    // Names are used as primary keys for all classes except VNC targets
     function nameField() { return new Field('name'); }
     function nameInputField(validator) {
         return nameField().validation({validator: validator});
@@ -27,13 +28,13 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     // define all entities at the top to allow references between them
     var vpn = new Entity('vpn')
         .label("VPNs")
-        .identifier(nameField());
+        .identifier(new Field('id'));
     var bbx = new Entity('bbx')
         .label("Blue Boxes")
         .identifier(nameField());
     var vnc = new Entity('vnc')
         .label("VNCs")
-        .identifier(nameField());
+        .identifier(idField());
     var user = new Entity('user')
         .label("Users")
         .identifier(nameField());
@@ -168,7 +169,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
                 .cssClasses('bboxes_tag'),
             new ReferenceMany('vncs') // a Reference is a particular type of field that references another entity
                 .label('VNC')
-                .targetEntity(vnc) // the tag entity is defined later in this file
+                .targetEntity(vnc)
                 .targetField(nameField()) // the field to be displayed in this list
                 .cssClasses('vncs_tag'),
         ]);

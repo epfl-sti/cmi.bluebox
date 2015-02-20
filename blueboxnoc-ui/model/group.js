@@ -24,3 +24,7 @@ GROUP.sort = function (array, sortField, sortDir) {
         });
     }
 };
+
+GROUP.primaryKey = {
+    name: "name"
+};

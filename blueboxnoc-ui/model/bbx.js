@@ -2,6 +2,15 @@ var json = require("./_json");
 
 var BBX = module.exports;
 
+BBX.primaryKey = {
+    name: "name",
+    validate: function (value) {
+        if (! value.match(/^[A-Za-z_0-9]+$/)) {
+            throw new Error("BBX names can only contain letters, underscores and digits");
+        };
+    }
+};
+
 /**
  * Return all Blue Boxes asynchronously.
  *
@@ -25,10 +34,3 @@ BBX.all = function(done) {
         return returned;
     });
 };
-
-BBX.validName = function (value) {
-    if (! value.match(/^[A-Za-z_0-9]+$/)) {
-        throw new Error("BBX names can only contain letters, underscores and digits");
-    };
-};
-

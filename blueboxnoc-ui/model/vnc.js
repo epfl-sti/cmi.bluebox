@@ -1,15 +1,34 @@
+var json = require("./_json");
+
 var VNC = module.exports;
 
-/* TODO: de-bogosify */
+VNC.primaryKey = {
+    name: "id"
+};
+
+/**
+ * Return all Blue Boxes asynchronously.
+ *
+ * @param done Called either as done(null, error) or like this:
+ *   done([
+ *   {name:"vnc1", ip:"192.168.10.10", port:"5900", vpn:"Foo", desc:"detail of my first vnc"},
+ *       // ...
+ *   ]);
+ */
 VNC.all = function(done) {
-    done([
-    {name:"vnc1", ip:"192.168.10.10", port:"5900", vpn:"Foo", desc:"detail of my first vnc", token:"jiy1Wiebo7fa6Taaweesh4nae"},
-    {name:"vnc2", ip:"192.168.20.20", port:"5900", vpn:"Bar", desc:"detail of my second vnc", token:"queexahnohyahch3AhceiwooR"},
-    {name:"vnc3", ip:"192.168.30.30", port:"5900", vpn:"Bax", desc:"detail of my third vnc", token:"Ahd7heeshoni8phanohB2Siey"},
-    {name:"vnc4", ip:"192.168.40.40", port:"5901", vpn:"Bay", desc:"detail of my fourth vnc", token:"saeMohkaec7ax1aichohdoo6u"},
-    {name:"vnc5", ip:"192.168.50.50", port:"5901", vpn:"Baz", desc:"detail of my fifth vnc", token:"ooJee6ohwaevooQuoSu3chahk"}
-]);
-}
+    json.asyncProcessVPNs(done, function(jsonTree) {
+        var returned = [];
+        Object.keys(jsonTree).forEach(function (k) {
+            var vpnDesc = jsonTree[k];
+            Object.keys(vpnDesc.vncs).forEach(function (k) {
+                var vncDesc = vpnDesc.vncs[k];
+                returned.push(vncDesc);
+                vncDesc.vpn = vpnDesc.name;
+            });
+        });
+        return returned;
+    });
+};
 
 VNC.validName = function (value) {
     if (! value.match(/^[A-Za-z_0-9]+$/)) {

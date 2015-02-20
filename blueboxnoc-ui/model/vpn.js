@@ -2,6 +2,15 @@ var json = require("./_json");
 
 var VPN = module.exports;
 
+VPN.primaryKey = {
+    name: "name",
+    validate: function (value) {
+        if (! value.match(/^[A-Za-z_0-9]+$/)) {
+            throw new Error("VPN names can only contain letters, underscores and digits");
+        };
+    }
+};
+
 /**
  * Return all VPNs asynchronously.
  *
@@ -24,8 +33,3 @@ VPN.all = function(done) {
     });
 };
 
-VPN.validName = function (value) {
-    if (! value.match(/^[A-Za-z_0-9]+$/)) {
-        throw new Error("VPN names can only contain letters, underscores and digits");
-    };
-};

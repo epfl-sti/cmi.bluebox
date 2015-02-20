@@ -39,13 +39,26 @@ use Carp;
 
 use IO::All;
 
-# TODO: auto-generate ID in a race-proof way
+use Errno qw(EEXIST);
+
 sub _new {
   my ($class, $vpn_obj, $id) = @_;
-  bless {
+  my $self = bless {
     id => $id,
     vpn => $vpn_obj,
   }, $class;
+
+  if (! defined $self->{id}) {
+    $self->_vnc_dir($vpn_obj)->mkpath();
+    for($self->{id} = 0;;$self->{id} += 1) {
+      my $attempt_data_dir = $self->data_dir;
+      mkdir($attempt_data_dir) && return $self;
+      croak "Cannot create $attempt_data_dir: $!" unless
+        ($! == EEXIST);
+    }
+  }
+
+  return $self;
 }
 
 sub all {
@@ -57,7 +70,7 @@ sub TO_JSON {
   my ($self) = @_;
   # The id is denormalized for the view's comfort and also for
   # ->all_json to make sense.
-  return { id => $self->{id}, desc => $self->{desc},
+  return { id => $self->{id}, name => $self->{name}, desc => $self->{desc},
            ip => $self->{ip}, port => $self->{port} };
 }
 
@@ -71,7 +84,7 @@ sub data_dir {
   return $self->_vnc_dir($self->{vpn})->dir($self->{id});
 }
 
-__PACKAGE__->mk_accessors(qw(desc ip port));
+__PACKAGE__->mk_accessors(qw(name desc ip port));
 
 require My::Tests::Below unless caller();
 
