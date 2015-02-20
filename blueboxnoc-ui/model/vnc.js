@@ -16,7 +16,7 @@ VNC.primaryKey = {
  *   ]);
  */
 VNC.all = function(done) {
-    json.asyncProcessVPNs(done, function(jsonTree) {
+    json.asyncProcessAllVPNs(done, function(jsonTree) {
         var returned = [];
         Object.keys(jsonTree).forEach(function (k) {
             var vpnDesc = jsonTree[k];

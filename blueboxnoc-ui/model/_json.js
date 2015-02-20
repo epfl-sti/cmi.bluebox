@@ -40,7 +40,7 @@ module.exports.loadAllConfigs = function(dir, done) {
         });
 };
 
-module.exports.asyncProcessVPNs = function(done, result_cb) {
+module.exports.asyncProcessAllVPNs = function(done, result_cb) {
     module.exports.loadAllConfigs(path.join(runtime.srvDir(), "vpn"), function(jsonTree, err) {
         if (err) {
             done(null, err);
