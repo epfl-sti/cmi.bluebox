@@ -71,6 +71,19 @@ sub TO_JSON {
 
 sub data_dir { io->catdir(DATA_DIR, shift->{name}) }
 
+=head1 CONTROLLER METHODS
+
+=head2 post_from_stdin
+
+Read new VPN object in JSON form from standard input; print the JSON
+representation of { id => "NewName" } to standard output.
+
+=cut
+
+sub post_from_stdin {
+  print STDOUT '{ "id": "Foo" }';
+}
+
 __PACKAGE__->mk_accessors(qw(desc));
 
 require My::Tests::Below unless caller();

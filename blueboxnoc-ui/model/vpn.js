@@ -7,9 +7,11 @@ VPN.primaryKey = {
     validate: function (value) {
         if (! value.match(/^[A-Za-z_0-9]+$/)) {
             throw new Error("VPN names can only contain letters, underscores and digits");
-        };
+        }
     }
 };
+
+VPN.perlControllerPackage = "EPFLSTI::BlueBox::VPN";
 
 /**
  * Return all VPNs asynchronously.

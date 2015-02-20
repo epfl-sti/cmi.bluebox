@@ -2,10 +2,9 @@
  * Routes for the RESTful API
  */
 // @todo: check the http://expressjs.com/api.html#app.param to regexp the route without validator
-var express = require('express');
-var router = express.Router();
-
-var Model = require("../model");
+var router = require('express').Router(),
+    Model = require("../model"),
+    perl = require("../lib/perl");
 
 /**
  * Configure the router object to serve the API for a model class.
@@ -48,6 +47,22 @@ function configure_API_subdir(router, api_path, model) {
             }
         });
     });
+
+    if (model.perlControllerPackage) {
+        router.post(api_path, function(req, res, next) {
+            perl.talkJSONToPerl(
+                "use " + model.perlControllerPackage + "; "
+                    + model.perlControllerPackage + " ->post_from_stdin;",
+                req.body,
+                function (result, err) {
+                    if (err) {
+                        return next(err);
+                    }
+                    res.json(result);
+                }
+            )
+        });
+    }
 }
 
 configure_API_subdir(router, "/vpn", Model.VPN);
