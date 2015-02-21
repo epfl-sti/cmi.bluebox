@@ -62,10 +62,8 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
             self.driver.quit();
         });
 
-        // Not the most elegant (as compared to say, running suiteBody inside
-        // vm.runInNewContext), but gets the job done:
         var itOrig = global.it;
-        global.it = function(description, testBody) {
+        function it(description, testBody) {
             if (! testBody) {
                 return itOrig(description);
             }
@@ -74,12 +72,15 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
                 this.app = self.app;
                 testBody.call(this);
             });
-        };
+        }
+
+        // Not the most elegant (as compared to say, running suiteBody inside
+        // vm.runInNewContext), but gets the job done:
         try {
+            global.it = it;
             return suiteBody.call(self);
         } finally {
             global.it = itOrig;
         }
     });
 };
-
