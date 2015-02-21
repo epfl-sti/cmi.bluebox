@@ -35,8 +35,10 @@ module.exports.WebdriverTest = {};
  * WebDriver object (see examples in
  * https://code.google.com/p/selenium/wiki/WebDriverJs).
  * this.server is an http.Server instance running the app.
- * Additionally, navigating to relative URLs (e.g. "/") is
- * supported.
+ *
+ * Additionally:
+ *   + navigating to relative URLs (e.g. "/") is supported
+ *   + driver.wait() has a sane default value for the delay parameter
  *
  * @param description Like Mocha's first parameter to describe()
  * @param suiteBody Like Mocha's second parameter to describe()
@@ -130,7 +132,12 @@ function decorateDriver(driverObj, baseUrl) {
                 url = URL.resolve(baseUrl, url);
             }
             return toOrig.call(navigator, url);
-        }
+        };
         return navigator;
     }).bind(driverObj);
+    var waitOrig = driverObj.wait;
+    driverObj.wait = function (cb, opt_delay) {
+        if (! opt_delay) opt_delay = 2000;
+        waitOrig.call(driverObj, cb, opt_delay);
+    };
 }

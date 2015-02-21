@@ -21,6 +21,6 @@ testlib.WebdriverTest.describe('Read-only navigation', function() {
         driver.get("/");
         driver.wait(function () {
             return driver.isElementPresent(webdriver.By.linkText("BlueBoxNOC_Admins"));
-        }, 2000);
+        });
     });
 });
