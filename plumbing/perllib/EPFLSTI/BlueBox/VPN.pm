@@ -71,7 +71,7 @@ sub TO_JSON {
 
 sub data_dir { io->catdir(DATA_DIR, shift->{name}) }
 
-=head1 CONTROLLER METHODS
+=head1 CONTROLLER CLASS METHODS
 
 =head2 post_from_stdin
 
@@ -82,6 +82,12 @@ representation of { id => "NewName" } to standard output.
 
 sub post_from_stdin {
   print STDOUT '{ "id": "Foo" }';
+}
+
+sub put_from_stdin {
+}
+
+sub delete_from_stdin {
 }
 
 __PACKAGE__->mk_accessors(qw(desc));

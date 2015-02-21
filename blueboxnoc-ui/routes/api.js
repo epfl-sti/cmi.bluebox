@@ -23,7 +23,7 @@ function configure_API_subdir(router, api_path, model) {
         });
     });
 
-    /* Serve e.g. /vpn/* */
+    /* Serve e.g. /vpn/foo */
     router.get(api_path + '/*', function(req, res, next) {
         var urlparts = req.url.split("/");
         var stem = urlparts.pop();
@@ -52,7 +52,20 @@ function configure_API_subdir(router, api_path, model) {
         router.post(api_path, function(req, res, next) {
             perl.talkJSONToPerl(
                 "use " + model.perlControllerPackage + "; "
-                    + model.perlControllerPackage + " ->post_from_stdin;",
+                    + model.perlControllerPackage + "->post_from_stdin;",
+                req.body,
+                function (result, err) {
+                    if (err) {
+                        return next(err);
+                    }
+                    res.json(result);
+                }
+            )
+        });
+        router.delete(api_path, function(req, res, next) {
+            perl.talkJSONToPerl(
+                "use " + model.perlControllerPackage + "; "
+                + model.perlControllerPackage + "->post_from_stdin;",
                 req.body,
                 function (result, err) {
                     if (err) {
