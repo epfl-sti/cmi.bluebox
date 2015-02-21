@@ -5,7 +5,8 @@ var assert = require('assert'),
     testlib = require('./testlib'),
     webdriver = require('selenium-webdriver');
 
-testlib.WebdriverTest.describe('UI Appearance tests', function() {
+testlib.WebdriverTest.describe('Read-only navigation', function() {
+
     it('serves a homepage', function() {
         this.driver.get(server.baseUrl);
         var logo = this.driver.findElement(webdriver.By.className('logo'));
@@ -14,4 +15,5 @@ testlib.WebdriverTest.describe('UI Appearance tests', function() {
                 assert.fail(src, "should contain /images/", "unexpected logo URL", "match");
         });
     });
+    it('shows the default data on the dashboard');
 });
