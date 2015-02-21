@@ -104,6 +104,45 @@ module.exports.WebdriverTest.setUpFakeData = function() {
     });
 };
 
+/**
+ * Get the XPath from the document root to this element.
+ *
+ * @return {!webdriver.promise.Promise.<string>} A promise that will be
+ *     resolved with the element's pseudo-XPath.
+ */
+module.exports.WebdriverTest.getXPath = function(elem) {
+    return elem.driver_.executeScript(
+        // Adapted from https://stackoverflow.com/questions/4176560
+        // This is mobile code, it gets stringified and sent into the
+        // browser, yow!
+        function getXPath(node) {
+            if (node.id !== '') {
+                return '//' + node.tagName.toLowerCase() + '[@id="' + node.id + '"]';
+            }
+            if (node === document.body) {
+                return node.tagName.toLowerCase();
+            }
+            var nodeCount = 0;
+            var childNodes = node.parentNode.childNodes;
+
+            for (var i = 0; i < childNodes.length; i++) {
+                var currentNode = childNodes[i];
+
+                if (currentNode === node) {
+                    return getXPath(node.parentNode) +
+                        '/' + node.tagName.toLowerCase() +
+                        '[' + (nodeCount + 1) + ']';
+                }
+
+                if (currentNode.nodeType === 1 &&
+                    currentNode.tagName.toLowerCase() === node.tagName.toLowerCase()) {
+                    nodeCount++;
+                }
+            }
+        }, elem);
+};
+
+
 function decorateIt(itOrig, self, itFromWdtesting) {
     var it = function(description, testBody) {
         if (!testBody) {
