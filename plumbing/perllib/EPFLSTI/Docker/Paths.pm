@@ -41,13 +41,17 @@ sub srv_dir {
   require File::Basename;
   my $scriptdir = File::Spec->rel2abs(File::Basename::dirname($0));
   chomp(my $checkoutdir = `set +x; cd "$scriptdir"; git rev-parse --show-toplevel`);
-  if ($checkoutdir) {
+  if ($ENV{DOCKER_SRVDIR_FOR_TESTS}) {
+    $_srv_dir = "$ENV{DOCKER_SRVDIR_FOR_TESTS}";
+    warn "Substituting /srv with $_srv_dir for tests\n";
+  } elsif ($checkoutdir) {
     $_srv_dir = "$checkoutdir/var";
+    warn "Substituting /srv with $_srv_dir for development\n";
   } else {
     require File::Temp;
-    $_srv_dir = File::Temp::tempdir("EPFL-Docker-Log-XXXXXX", TMPDIR => 1 );
+    $_srv_dir = File::Temp::tempdir("EPFL-Docker-Log-XXXXXX", TMPDIR => 1);
+    warn "Substituting /srv with $_srv_dir for development\n";
   }
-  warn "Substituting /srv with $_srv_dir for development\n";
   return $_srv_dir;
 }
 

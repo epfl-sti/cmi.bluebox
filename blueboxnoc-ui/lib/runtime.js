@@ -22,8 +22,11 @@ module.exports.srcDir = function() {
 };
 
 var srvDir;
-module.exports.srvDir = function () {
-    if (! srvDir) {
+module.exports.srvDir = function (opt_set) {
+    if (opt_set) {
+        // Let Perl know through an environment variable.
+        srvDir = process.env.DOCKER_SRVDIR_FOR_TESTS = opt_set;
+    } else if (! srvDir) {
         if (module.exports.isDocker()) {
             srvDir = "/srv";
         } else {

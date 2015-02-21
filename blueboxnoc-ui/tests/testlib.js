@@ -1,4 +1,7 @@
-var http = require('http');
+var http = require('http'),
+    path = require('path'),
+    temp = require('temp'),
+    runtime = require("../lib/runtime");
 
     /**
  * Start a Web server on a random port then call done().
@@ -45,6 +48,7 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
     return wdtesting.describe(description, function () {
         var self = this;
         this.timeout(10000);  // Pump up default value
+        this.setUpFakeData = module.exports.WebdriverTest.setUpFakeData;
 
         // For some reason wdtesting.before won't wait for the callback:
         mochaBefore(function(done) {
@@ -82,5 +86,24 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
         } finally {
             global.it = itOrig;
         }
+    });
+};
+
+module.exports.WebdriverTest.setUpFakeData = function() {
+    runtime.srvDir(temp.mkdirSync("BlueBoxNocFakeData"));
+    var mochaBefore = before;
+    var perl = require('../lib/perl');
+    mochaBefore(function (done) {
+        perl.runPerl(
+            [path.resolve(runtime.srcDir(), "devsupport/make-fake-data.pl")],
+            "",
+            function (perlOut, perlExitCode, perlErr) {
+                if (perlExitCode) {
+                    done(perlErr);
+                } else {
+                    done();
+                }
+            }
+        );
     });
 };
