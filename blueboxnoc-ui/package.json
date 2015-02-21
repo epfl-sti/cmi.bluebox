@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "mocha": "^2.1.0",
+    "selenium-webdriver": "^2.44.0",
     "temp": "^0.8.1"
   }
 }
