@@ -1,6 +1,7 @@
 var http = require('http'),
     path = require('path'),
     temp = require('temp'),
+    URL = require('url'),
     runtime = require("../lib/runtime");
 
     /**
@@ -33,6 +34,8 @@ module.exports.WebdriverTest = {};
  * WebDriver object (see examples in
  * https://code.google.com/p/selenium/wiki/WebDriverJs).
  * this.server is an http.Server instance running the app.
+ * Additionally, navigating to relative URLs (e.g. "/") is
+ * supported.
  *
  * @param description Like Mocha's first parameter to describe()
  * @param suiteBody Like Mocha's second parameter to describe()
@@ -61,6 +64,7 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
         wdtesting.before(function () {
             self.driver = new webdriver.Builder().
                 withCapabilities(webdriver.Capabilities.chrome()).build();
+            decorateDriver(self.driver, self.server.baseUrl);
         });
         wdtesting.after(function() {
             self.driver.quit();
@@ -107,3 +111,18 @@ module.exports.WebdriverTest.setUpFakeData = function() {
         );
     });
 };
+
+function decorateDriver(driverObj, baseUrl) {
+    var navigateOrig = driverObj.navigate;
+    driverObj.navigate = (function () {
+        var navigator = navigateOrig.call(driverObj);
+        var toOrig = navigator.to;
+        navigator.to = function (url) {
+            if (! URL.parse(url).host) {
+                url = URL.resolve(baseUrl, url);
+            }
+            return toOrig.call(navigator, url);
+        }
+        return navigator;
+    }).bind(driverObj);
+}
