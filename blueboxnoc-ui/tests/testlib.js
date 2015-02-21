@@ -1,4 +1,5 @@
-var http = require('http'),
+var debug = require('debug')('testlib'),
+    http = require('http'),
     path = require('path'),
     temp = require('temp'),
     URL = require('url'),
@@ -70,22 +71,11 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
             self.driver.quit();
         });
 
-        var itOrig = global.it;
-        function it(description, testBody) {
-            if (! testBody) {
-                return itOrig(description);
-            }
-            return wdtesting.it(description, function () {
-                this.driver = self.driver;
-                this.app = self.app;
-                testBody.call(this);
-            });
-        }
-
         // Not the most elegant (as compared to say, running suiteBody inside
         // vm.runInNewContext), but gets the job done:
+        var itOrig = global.it;
         try {
-            global.it = it;
+            global.it = decorateIt(itOrig, self, wdtesting.it);
             return suiteBody.call(self);
         } finally {
             global.it = itOrig;
@@ -111,6 +101,24 @@ module.exports.WebdriverTest.setUpFakeData = function() {
         );
     });
 };
+
+function decorateIt(itOrig, self, itFromWdtesting) {
+    var it = function(description, testBody) {
+        if (!testBody) {
+            return itOrig(description);
+        }
+        return itFromWdtesting(description, function () {
+            this.driver = self.driver;
+            this.app = self.app;
+            testBody.call(this);
+        });
+    };
+    // The more you know: selenium-webdriver's it.only is implemented
+    // in terms of it, and looks it up from the context (a.k.a. global
+    // object) at run time. We don't want to wrap it twice.
+    it.only = itOrig.only;
+    return it;
+}
 
 function decorateDriver(driverObj, baseUrl) {
     var navigateOrig = driverObj.navigate;
