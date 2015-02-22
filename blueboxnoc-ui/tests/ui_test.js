@@ -20,24 +20,29 @@ debug.printXPath = function (opt_text, elem) {
         });
 };
 
-function findLinkByText(driverOrElement, text) {
-    return driverOrElement.findElement(webdriver.By.linkText(text));
+function findBy(driverOrElement, webdriverLocator, opt_options) {
+    if (! opt_options) opt_options = {};
+    if (opt_options.wait) {
+        var driver = driverOrElement.driver_ || driverOrElement;
+        driver.wait(function () {
+            return driverOrElement.isElementPresent(webdriverLocator);
+        });
+    }
+    return driverOrElement.findElement(webdriverLocator);
 }
 
-function findText(driverOrElement, text) {
-    return driverOrElement.findElement(webdriver.By.xpath(
-        '*[contains(., "' + text + '")]'));
+function findLinkByText(driverOrElement, text, opt_options) {
+    return findBy(driverOrElement, webdriver.By.linkText(text), opt_options);
 }
 
-function waitFindLinkByText(driver, text) {
-    driver.wait(function () {
-        return driver.isElementPresent(webdriver.By.linkText(text));
-    });
-    return findLinkByText(driver, text);
+function findText(driverOrElement, text, opt_options) {
+    return findBy(driverOrElement,
+        webdriver.By.xpath('*[contains(., "' + text + '")]'),
+        opt_options);
 }
 
-function findDashboardWidget(driver, title) {
-    return waitFindLinkByText(driver, title)
+function findDashboardWidget(driver, title, opt_options) {
+    return findLinkByText(driver, title, opt_options)
         .then(function (elem) {
             debug.printXPath(
                 "XPath to link containing '" + title + "': ", elem);
@@ -59,14 +64,14 @@ testlib.WebdriverTest.describe('Read-only navigation', function() {
     });
     it('has fake data', function () {
         driver.get("/");
-        waitFindLinkByText(driver, "BlueBoxNOC_Admins");
+        findLinkByText(driver, "BlueBoxNOC_Admins", {wait: true});
     });
 
     it('shows a complete dashboard', function () {
         driver.get("/");
 
         function findInDashboardWidget(dashboardTitle, opts) {
-            findDashboardWidget(driver, dashboardTitle)
+            findDashboardWidget(driver, dashboardTitle, opts)
                 .then(function (widgetElem) {
                     var linkTexts = opts.linkTexts || [];
                     linkTexts.forEach(function (linkText) {
@@ -83,7 +88,8 @@ testlib.WebdriverTest.describe('Read-only navigation', function() {
         findInDashboardWidget("VPNs List",
             {
                 linkTexts: ["VPN", "Description", "Bax"],
-                texts: ["Foobar"]
+                texts: ["Foobar"],
+                wait: true
             });
         findInDashboardWidget("BlueBoxes List",
             {
@@ -95,5 +101,14 @@ testlib.WebdriverTest.describe('Read-only navigation', function() {
                 linkTexts: ["VNC", "Description", "VPN", "vnc2"],
                 texts: ["detail of my second vnc"]
             });
+    });
+
+    it('shows VPN list and details', function () {
+        driver.get("/");
+        findLinkByText(driver, "VPNs List", {wait: true})
+            .then(function (elem) {
+            elem.click();
+        });
+        findText(driver, "All VPNs", {wait: true});
     });
 });
