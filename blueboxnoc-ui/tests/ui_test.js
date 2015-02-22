@@ -29,11 +29,15 @@ function findText(driverOrElement, text) {
         '*[contains(., "' + text + '")]'));
 }
 
-function findDashboardWidget(driverOrElement, title) {
-    driverOrElement.wait(function () {
-        return driverOrElement.isElementPresent(webdriver.By.linkText(title));
+function waitFindLinkByText(driver, text) {
+    driver.wait(function () {
+        return driver.isElementPresent(webdriver.By.linkText(text));
     });
-    return findLinkByText(driverOrElement, title)
+    return findLinkByText(driver, text);
+}
+
+function findDashboardWidget(driver, title) {
+    return waitFindLinkByText(driver, title)
         .then(function (elem) {
             debug.printXPath(
                 "XPath to link containing '" + title + "': ", elem);
@@ -55,9 +59,7 @@ testlib.WebdriverTest.describe('Read-only navigation', function() {
     it('has fake data', function () {
         var driver = this.driver;
         driver.get("/");
-        driver.wait(function () {
-            return driver.isElementPresent(webdriver.By.linkText("BlueBoxNOC_Admins"));
-        });
+        waitFindLinkByText(driver, "BlueBoxNOC_Admins");
     });
 
     it('shows a complete dashboard', function () {
