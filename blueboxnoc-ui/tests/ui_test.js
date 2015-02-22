@@ -46,9 +46,10 @@ function findDashboardWidget(driver, title) {
 }
 
 testlib.WebdriverTest.describe('Read-only navigation', function() {
+    var driver = this.driver;
     this.setUpFakeData();
+
     it('serves a homepage', function() {
-        var driver = this.driver;
         driver.get("/");
         var logo = driver.findElement(webdriver.By.className('logo'));
         logo.getAttribute('src').then(function(src) {
@@ -57,13 +58,11 @@ testlib.WebdriverTest.describe('Read-only navigation', function() {
         });
     });
     it('has fake data', function () {
-        var driver = this.driver;
         driver.get("/");
         waitFindLinkByText(driver, "BlueBoxNOC_Admins");
     });
 
     it('shows a complete dashboard', function () {
-        var driver = this.driver;
         driver.get("/");
 
         function findInDashboardWidget(dashboardTitle, opts) {

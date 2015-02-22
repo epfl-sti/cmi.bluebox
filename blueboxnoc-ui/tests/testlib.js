@@ -64,9 +64,9 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
             self.server = module.exports.startServer(self.app, done);
         });
 
+        self.driver = new webdriver.Builder().
+            withCapabilities(webdriver.Capabilities.chrome()).build();
         wdtesting.before(function () {
-            self.driver = new webdriver.Builder().
-                withCapabilities(webdriver.Capabilities.chrome()).build();
             decorateDriver(self.driver, self.server.baseUrl);
         });
         wdtesting.after(function() {
