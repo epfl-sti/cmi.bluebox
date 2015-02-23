@@ -95,8 +95,20 @@ testlib.WebdriverTest.describe('UI tests', function() {
             findText(driver, "All VPNs", {wait: true});
             findText(driver, "Foobar").then(function (elem) {
                 debug.printXPath("Foobar found at: ", elem);
-                return;
-            });
+                return elem.findElement(webdriver.By.xpath('ancestor::tr'))
+            }).then(function (rowObject) {
+                // Inspect that row to find all the things.
+                // It's supposed to look like this:
+                // Name      |    Description  | Blue Boxes  | VNC
+                // <a>Bar</a>| Foobar          | []bboo2     | []vnc2
+                findLinkByText(rowObject, "Bar");
+                findText(rowObject, "bboo2");
+                findText(rowObject, "vnc2").then(function (vncElem) {
+                    return vncElem.getAttribute('class');
+                }).then(function (cssClasses) {
+                    assert(cssClasses.match(/label/));
+                });
+            })
         });
     });
 });
