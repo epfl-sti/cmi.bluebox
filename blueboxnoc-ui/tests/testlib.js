@@ -5,7 +5,7 @@ var debug = require('debug')('testlib'),
     URL = require('url'),
     runtime = require("../lib/runtime");
 
-    /**
+/**
  * Start a Web server on a random port then call done().
  * @param app An instance of express
  */
@@ -107,7 +107,7 @@ module.exports.WebdriverTest.setUpFakeData = function() {
 /**
  * Get the XPath from the document root to this element.
  *
- * @return {!webdriver.promise.Promise.<string>} A promise that will be
+ * @returns {!webdriver.promise.Promise.<string>} A promise that will be
  *     resolved with the element's pseudo-XPath.
  */
 module.exports.WebdriverTest.getXPath = function(elem) {
@@ -142,6 +142,68 @@ module.exports.WebdriverTest.getXPath = function(elem) {
         }, elem);
 };
 
+/**
+ * Easier alternative to selenium-webdriver's isElementPresent / findElement.
+ *
+ * @param driverOrElement A WebDriver driver or element object to
+ *        anchor the search at
+ * @param webdriverLocator A webdriver.By predicate
+ * @param opt_options Options dict
+ * @param opt_options.wait Whether to .wait() for the element to appear
+ * @returns  {!webdriver.promise.Promise.<string>} A promise that
+ *     will be resolved with the element that was looked up. Ignoring the
+ *     return value is fine, and simply asserts that the element exists.
+ */
+var findBy = module.exports.WebdriverTest.findBy =
+    function(driverOrElement, webdriverLocator, opt_options) {
+    if (! opt_options) opt_options = {};
+    if (opt_options.wait) {
+        var driver = driverOrElement.driver_ || driverOrElement;
+        driver.wait(function () {
+            return driverOrElement.isElementPresent(webdriverLocator);
+        });
+    }
+    return driverOrElement.findElement(webdriverLocator);
+};
+
+/**
+ * Find regular text (not necessarily within an &lt;a&gt; tag).
+ *
+ * @param driverOrElement A WebDriver driver or element object to
+ *        anchor the search at
+ * @param text The text to find
+ * @param opt_options Options dict
+ * @param opt_options.wait Wait a while for the text to appear
+ * @returns  {!webdriver.promise.Promise.<string>} A promise that will be
+ *     resolved with the text node's parent element (given that at least
+ *     WD + Chromedriver refuses to select text nodes directly)
+ */
+module.exports.WebdriverTest.findText = function(driverOrElement, text, opt_options) {
+    var webdriver = require('selenium-webdriver');
+    return findBy(driverOrElement,
+        webdriver.By.xpath('descendant::text()[contains(., "' + text + '")]' +
+            // (Under Chrome at least) .findElement refuses to select a text
+            // node, hence we've got to go up like so:
+        '/..'),
+        opt_options);
+};
+
+/**
+ * Find an &lt;a&gt; link by its text.
+ *
+ * @param driverOrElement A WebDriver driver or element object to
+ *        anchor the search at
+ * @param text The text to find
+ * @param opt_options Options dict
+ * @param opt_options.wait Wait a while for the text to appear
+ * @returns  {!webdriver.promise.Promise.<string>} A promise that
+ *     will be resolved with the an &lt;a&gt; link element
+ */
+module.exports.WebdriverTest.findLinkByText =
+    function(driverOrElement, text, opt_options) {
+        var webdriver = require('selenium-webdriver');
+        return findBy(driverOrElement, webdriver.By.linkText(text), opt_options);
+};
 
 function decorateIt(itOrig, self, itFromWdtesting) {
     var it = function(description, testBody) {
