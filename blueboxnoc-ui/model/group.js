@@ -5,11 +5,11 @@ var GROUP = module.exports = function() {
 // Groups data
 // Should be linked to groups on http://groups.epfl.ch and used for authentication purpose.
 /* TODO: de-bogosify */
-GROUP.all = function() {
-    return [
+GROUP.all = function(done) {
+    done([
         {name:"BlueBoxNOC_Admins", id:"73347", group_email:"BlueBoxNOC_Admins@groupes.epfl.ch", desc:"Admin group of BlueBoxNOC"},
         {name:"BlueBoxNOC_VNCers", id:"73348", group_email:"BlueBoxNOC_VNCers@groupes.epfl.ch", desc:"VNCers group of BlueBOxNOC"}
-    ];
+    ]);
 };
 
 GROUP.sort = function (array, sortField, sortDir) {
@@ -23,4 +23,8 @@ GROUP.sort = function (array, sortField, sortDir) {
             return A[sortField] < B[sortField];
         });
     }
+};
+
+GROUP.primaryKey = {
+    name: "name"
 };

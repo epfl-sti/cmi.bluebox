@@ -70,7 +70,8 @@ foreach my $params (@$fake_bbx_data) {
 
 foreach my $params (@$fake_vnc_data) {
   my $vpn = EPFLSTI::BlueBox::VPN->load($params->{vpn});
-  my $vnc_target = EPFLSTI::BlueBox::VNCTarget->new($vpn, $params->{name});
+  my $vnc_target = EPFLSTI::BlueBox::VNCTarget->new($vpn);
+  $vnc_target->set_name($params->{name});
   $vnc_target->set_desc($params->{desc});
   $vnc_target->set_ip($params->{ip});
   $vnc_target->set_port($params->{port});

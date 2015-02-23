@@ -21,11 +21,8 @@ don't want to hard-code them in order to facilitate development.
 
 =cut
 
-sub _is_prod {
-  if ($^O ne "linux") { return 0; }
-  if ($0 =~ m|/Users/| or $0 =~ m|/home/|) { return 0; }
-  if ($0 =~ m|^/opt|) { return 1; }
-  return undef;
+sub _running_within_docker {
+  -f "/this_is_docker";
 }
 
 our $_srv_dir;
@@ -37,20 +34,24 @@ sub srv_dir {
   } elsif ($_srv_dir) {
     return $_srv_dir;
   }
-  elsif  (_is_prod) {
+  elsif  (_running_within_docker) {
     return ($_srv_dir = "/srv");
   }
 
   require File::Basename;
   my $scriptdir = File::Spec->rel2abs(File::Basename::dirname($0));
   chomp(my $checkoutdir = `set +x; cd "$scriptdir"; git rev-parse --show-toplevel`);
-  if ($checkoutdir) {
+  if ($ENV{DOCKER_SRVDIR_FOR_TESTS}) {
+    $_srv_dir = "$ENV{DOCKER_SRVDIR_FOR_TESTS}";
+    warn "Substituting /srv with $_srv_dir for tests\n";
+  } elsif ($checkoutdir) {
     $_srv_dir = "$checkoutdir/var";
+    warn "Substituting /srv with $_srv_dir for development\n";
   } else {
     require File::Temp;
-    $_srv_dir = File::Temp::tempdir("EPFL-Docker-Log-XXXXXX", TMPDIR => 1 );
+    $_srv_dir = File::Temp::tempdir("EPFL-Docker-Log-XXXXXX", TMPDIR => 1);
+    warn "Substituting /srv with $_srv_dir for development\n";
   }
-  warn "Substituting /srv with $_srv_dir for development\n";
   return $_srv_dir;
 }
 
