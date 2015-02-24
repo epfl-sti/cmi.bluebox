@@ -88,12 +88,14 @@ testlib.WebdriverTest.describe('UI tests', function() {
 
         function checkListView(title, opts) {
             var titlePlural = opts.titlePlural || (title + "s");
+            var dashboardTitle = opts.dashboardTitle || (titlePlural + " List");
+            var listViewTitle = opts.listViewTitle || ("All " + titlePlural);
             driver.get("/");
-            findLinkByText(driver, titlePlural + " List", {wait: true})
+            findLinkByText(driver, dashboardTitle, {wait: true})
                 .then(function (elem) {
                     elem.click();
                 });
-            findText(driver, "All " + titlePlural, {wait: true});
+            findText(driver, listViewTitle, {wait: true});
             findText(driver, opts.example.description).then(function (elem) {
                 debug.printXPath(opts.example.description + " found at: ", elem);
                 return elem.findElement(webdriver.By.xpath('ancestor::tr'))
@@ -162,6 +164,24 @@ testlib.WebdriverTest.describe('UI tests', function() {
             });
         });
 
-        it('does likewise for Blue Boxes');
+        it('does likewise for Blue Boxes', function () {
+            checkListView("BlueBox", {
+                titlePlural: "BlueBoxes",
+                listViewTitle: "All Blue Boxes",
+                example: {
+                    linkName: "bboo2",
+                    description: "Booboo2"
+                },
+                moreRowChecks: function (rowObject) {
+                    // TODO: check status display bug here!
+                }
+            });
+            checkEditView("BlueBox", {
+                titlePlural: "BlueBoxes",
+                example: {
+                    linkName: "bbay"
+                }
+            });
+        });
     });
 });
