@@ -98,7 +98,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 debug.printXPath(opts.example.description + " found at: ", elem);
                 return elem.findElement(webdriver.By.xpath('ancestor::tr'))
             }).then(function (rowObject) {
-                findLinkByText(rowObject, "Bar");
+                findLinkByText(rowObject, opts.example.linkName);
                 if (opts.moreRowChecks) {
                     opts.moreRowChecks(rowObject);
                 }
@@ -142,5 +142,26 @@ testlib.WebdriverTest.describe('UI tests', function() {
             checkEditView("VPN", {example: {linkName: "Foo"}});
             findText(driver, "Blue Boxes");
         });
+
+        it('does likewise for VNCs', function () {
+            checkListView("VNC", {
+                example: {
+                    linkName: "vnc3", 
+                    description: "detail of my third vnc"
+                },
+                moreRowChecks: function (rowObject) {
+                    findText(rowObject, "192.168.30.30");  // IP
+                    findLinkByText(rowObject, "Bax");      // VPN
+                    findText(rowObject, "Open vnc3 in a new window");
+                }
+            });
+            checkEditView("VNC", {
+                example: {
+                    linkName: "vnc2"
+                }
+            });
+        });
+
+        it('does likewise for Blue Boxes');
     });
 });

@@ -212,7 +212,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             new Field('Open VNC', 'template')
                 .type('template')
                 .editable(false)
-                .template('Open {{entry.values.title}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>')
+                .template('Open {{entry.values.name}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>')
         ]);
     vnc.listView()
         .title("All VNCs")
