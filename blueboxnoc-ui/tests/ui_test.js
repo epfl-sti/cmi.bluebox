@@ -86,29 +86,102 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 });
         });
 
-        it('shows a VPN list with full details', function () {
+        function checkListView(title, opts) {
+            var titlePlural = opts.titlePlural || (title + "s");
+            var dashboardTitle = opts.dashboardTitle || (titlePlural + " List");
+            var listViewTitle = opts.listViewTitle || ("All " + titlePlural);
             driver.get("/");
-            findLinkByText(driver, "VPNs List", {wait: true})
+            findLinkByText(driver, dashboardTitle, {wait: true})
                 .then(function (elem) {
                     elem.click();
                 });
-            findText(driver, "All VPNs", {wait: true});
-            findText(driver, "Foobar").then(function (elem) {
-                debug.printXPath("Foobar found at: ", elem);
+            findText(driver, listViewTitle, {wait: true});
+            findText(driver, opts.example.description).then(function (elem) {
+                debug.printXPath(opts.example.description + " found at: ", elem);
                 return elem.findElement(webdriver.By.xpath('ancestor::tr'))
             }).then(function (rowObject) {
-                // Inspect that row to find all the things.
-                // It's supposed to look like this:
-                // Name      |    Description  | Blue Boxes  | VNC
-                // <a>Bar</a>| Foobar          | []bboo2     | []vnc2
-                findLinkByText(rowObject, "Bar");
-                findText(rowObject, "bboo2");
-                findText(rowObject, "vnc2").then(function (vncElem) {
-                    return vncElem.getAttribute('class');
-                }).then(function (cssClasses) {
-                    assert(cssClasses.match(/label/));
+                findLinkByText(rowObject, opts.example.linkName);
+                if (opts.moreRowChecks) {
+                    opts.moreRowChecks(rowObject);
+                }
+            });
+        }
+
+        it('shows a VPN list with full details', function () {
+            checkListView("VPN", {
+                example: {linkName: "Bar", description: "Foobar"},
+                moreRowChecks: function(rowObject) {
+                    // Inspect that row to find all the things.
+                    // It's supposed to look like this:
+                    // Name      |    Description  | Blue Boxes  | VNC
+                    // <a>Bar</a>| Foobar          | []bboo2     | []vnc2
+                    findText(rowObject, "bboo2");
+                    findText(rowObject, "vnc2").then(function (vncElem) {
+                        return vncElem.getAttribute('class');
+                    }).then(function (cssClasses) {
+                        assert(cssClasses.match(/label/));
+                    });
+
+                }
+            });
+        });
+
+        function checkEditView(title, opts) {
+            var titlePlural = opts.titlePlural || (title + "s");
+            driver.get("/");
+            [titlePlural + " List", opts.example.linkName]
+                .forEach(function (linkToClick) {
+                    findLinkByText(driver, linkToClick, {wait: true})
+                        .then(function (elem) {
+                            elem.click();
+                        });
                 });
-            })
+            findText(driver, "Name", {wait: true});
+            findText(driver, "Description");
+        }
+
+        it('shows a VPN edit page', function () {
+            checkEditView("VPN", {example: {linkName: "Foo"}});
+            findText(driver, "Blue Boxes");
+        });
+
+        it('does likewise for VNCs', function () {
+            checkListView("VNC", {
+                example: {
+                    linkName: "vnc3", 
+                    description: "detail of my third vnc"
+                },
+                moreRowChecks: function (rowObject) {
+                    findText(rowObject, "192.168.30.30");  // IP
+                    findLinkByText(rowObject, "Bax");      // VPN
+                    findText(rowObject, "Open vnc3 in a new window");
+                }
+            });
+            checkEditView("VNC", {
+                example: {
+                    linkName: "vnc2"
+                }
+            });
+        });
+
+        it('does likewise for Blue Boxes', function () {
+            checkListView("BlueBox", {
+                titlePlural: "BlueBoxes",
+                listViewTitle: "All Blue Boxes",
+                example: {
+                    linkName: "bboo2",
+                    description: "Booboo2"
+                },
+                moreRowChecks: function (rowObject) {
+                    // TODO: check status display bug here!
+                }
+            });
+            checkEditView("BlueBox", {
+                titlePlural: "BlueBoxes",
+                example: {
+                    linkName: "bbay"
+                }
+            });
         });
     });
 });
