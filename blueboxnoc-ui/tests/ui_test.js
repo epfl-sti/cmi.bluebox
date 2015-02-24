@@ -86,43 +86,61 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 });
         });
 
-        it('shows a VPN list with full details', function () {
+        function checkListView(title, opts) {
+            var titlePlural = opts.titlePlural || (title + "s");
             driver.get("/");
-            findLinkByText(driver, "VPNs List", {wait: true})
+            findLinkByText(driver, titlePlural + " List", {wait: true})
                 .then(function (elem) {
                     elem.click();
                 });
-            findText(driver, "All VPNs", {wait: true});
-            findText(driver, "Foobar").then(function (elem) {
-                debug.printXPath("Foobar found at: ", elem);
+            findText(driver, "All " + titlePlural, {wait: true});
+            findText(driver, opts.example.description).then(function (elem) {
+                debug.printXPath(opts.example.description + " found at: ", elem);
                 return elem.findElement(webdriver.By.xpath('ancestor::tr'))
             }).then(function (rowObject) {
-                // Inspect that row to find all the things.
-                // It's supposed to look like this:
-                // Name      |    Description  | Blue Boxes  | VNC
-                // <a>Bar</a>| Foobar          | []bboo2     | []vnc2
                 findLinkByText(rowObject, "Bar");
-                findText(rowObject, "bboo2");
-                findText(rowObject, "vnc2").then(function (vncElem) {
-                    return vncElem.getAttribute('class');
-                }).then(function (cssClasses) {
-                    assert(cssClasses.match(/label/));
-                });
-            })
-        });
-        it('shows a VPN edit page', function () {
-            driver.get("/");
-            ["VPNs List", "Foo"].forEach(function (linkToClick) {
-                findLinkByText(driver, linkToClick, {wait: true})
-                    .then(function (elem) {
-                        elem.click();
-                    });
+                if (opts.moreRowChecks) {
+                    opts.moreRowChecks(rowObject);
+                }
             });
-            findText(driver, "Edit VPN: Foo", {wait: true});
-            ["Name", "Description", "Blue Boxes"]
-                .forEach(function (textToFind) {
-                    findText(driver, textToFind);
+        }
+
+        it('shows a VPN list with full details', function () {
+            checkListView("VPN", {
+                example: {linkName: "Bar", description: "Foobar"},
+                moreRowChecks: function(rowObject) {
+                    // Inspect that row to find all the things.
+                    // It's supposed to look like this:
+                    // Name      |    Description  | Blue Boxes  | VNC
+                    // <a>Bar</a>| Foobar          | []bboo2     | []vnc2
+                    findText(rowObject, "bboo2");
+                    findText(rowObject, "vnc2").then(function (vncElem) {
+                        return vncElem.getAttribute('class');
+                    }).then(function (cssClasses) {
+                        assert(cssClasses.match(/label/));
+                    });
+
+                }
+            });
+        });
+
+        function checkEditView(title, opts) {
+            var titlePlural = opts.titlePlural || (title + "s");
+            driver.get("/");
+            [titlePlural + " List", opts.example.linkName]
+                .forEach(function (linkToClick) {
+                    findLinkByText(driver, linkToClick, {wait: true})
+                        .then(function (elem) {
+                            elem.click();
+                        });
                 });
+            findText(driver, "Name", {wait: true});
+            findText(driver, "Description");
+        }
+
+        it('shows a VPN edit page', function () {
+            checkEditView("VPN", {example: {linkName: "Foo"}});
+            findText(driver, "Blue Boxes");
         });
     });
 });
