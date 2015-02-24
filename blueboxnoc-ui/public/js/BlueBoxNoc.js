@@ -28,7 +28,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     // define all entities at the top to allow references between them
     var vpn = new Entity('vpn')
         .label("VPNs")
-        .identifier(new Field('id'));
+        .identifier(nameField());
     var bbx = new Entity('bbx')
         .label("Blue Boxes")
         .identifier(nameField());
@@ -147,7 +147,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
             descField()
         ]);
     vpn.editionView()
-        .title("Edit VPN : {{entry.values.name}}")
+        .title("Edit VPN: {{entry.values.name}}")
         .actions(["list", "show", "delete"])
         .fields([
             readOnlyNameField(),

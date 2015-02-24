@@ -110,5 +110,19 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 });
             })
         });
+        it('shows a VPN edit page', function () {
+            driver.get("/");
+            ["VPNs List", "Foo"].forEach(function (linkToClick) {
+                findLinkByText(driver, linkToClick, {wait: true})
+                    .then(function (elem) {
+                        elem.click();
+                    });
+            });
+            findText(driver, "Edit VPN: Foo", {wait: true});
+            ["Name", "Description", "Blue Boxes"]
+                .forEach(function (textToFind) {
+                    findText(driver, textToFind);
+                });
+        });
     });
 });
