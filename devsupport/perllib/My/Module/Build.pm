@@ -303,6 +303,16 @@ under the Emacs debugger.
 
 our $running_under_emacs_debugger;
 
+=head3 $initial_cwd
+
+The cwd when My::Module::Build was loaded.
+
+=cut
+
+# Set by the _startperl trampoline when running from Build (not set in
+# Build.PL)
+our $initial_cwd;
+
 =head2 Constants
 
 =head3 is_win32
@@ -995,18 +1005,24 @@ sub ACTION_test {
     # use_blib feature, part 1:
     $self->depends_on("buildXS") if $self->use_blib;
 
-    my @files_to_test = map {
-        our $initial_cwd; # Set at BEGIN time, see L<_startperl>
-        File::Spec->rel2abs($_, $initial_cwd)
-    } (@{$self->{args}->{ARGV} || []});
+    my $want_debug = $running_under_emacs_debugger;
 
-    if ($running_under_emacs_debugger && @files_to_test == 1) {
-        # We want to run this script under a slave_editor debugger, so
-        # as to implement the documented trick. The simplest way
-        # (although inelegant) is to bypass Module::Build and
-        # Test::Harness entirely, and run the child Perl
-        # ourselves. Most of the code below was therefore cobbled
-        # together from the real T::H version 2.40 and M::B 0.26
+    my @files_to_test;
+    foreach my $arg (@{$self->{args}->{ARGV} || []}) {
+      if ($arg eq '-d') {
+        $want_debug = 1;
+      } else {
+        # $initial_cwd was set at BEGIN time, see L<_startperl>
+        push @files_to_test, File::Spec->rel2abs($arg, $initial_cwd);
+      }
+    }
+
+    if ($want_debug && @files_to_test == 1) {
+        # We want to run this script under a debugger. The simplest
+        # way (although inelegant) is to bypass Module::Build and
+        # Test::Harness entirely, and run the child Perl ourselves.
+        # Most of the code below was therefore cobbled together from
+        # the real T::H version 2.40 and M::B 0.26
         $self->depends_on('code'); # As in original ACTION_test
 
         # Compute adequate @INC for sub-perl:
@@ -1030,7 +1046,8 @@ sub ACTION_test {
         system($perl, "-d",
                ($taint ? ("-T") : ()),
                (map { ("-I" => $_) } @inc),
-               $files_to_test[0], "-emacs");
+               $files_to_test[0],
+               ($running_under_emacs_debugger ? "-emacs": ()));
         return;
     }
 
