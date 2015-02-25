@@ -19,7 +19,8 @@ run_docker_test() {
 
 case "$1" in
     ""|test)
-        echo >&2 "Should run the test suite now"
+        run_docker_test \
+             /opt/blueboxnoc/devsupport/docker-tests/run_all_tests_from_docker.sh
         exit 2 ;;
     shell)
         run_docker_test /bin/bash
