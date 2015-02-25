@@ -208,7 +208,7 @@ use JSON;
 
 use IO::All;
 
-our $testdir = io->dir(My::Tests::Below->tempdir)->dir("myobj");
+our $testdir = io->dir(My::Tests::Below->tempdir)->catdir("myobj");
 
 {
   package My::JSONClass;

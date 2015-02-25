@@ -66,12 +66,12 @@ sub TO_JSON {
 
 sub _bbox_dir {
   my (undef, $vpn_obj) = @_;
-  return io->dir($vpn_obj->data_dir)->dir("bboxes")
+  return io->dir($vpn_obj->data_dir)->catdir("bboxes")
 }
 
 sub data_dir {
   my $self = shift;
-  return $self->_bbox_dir($self->{vpn})->dir($self->{name});
+  return $self->_bbox_dir($self->{vpn})->catdir($self->{name});
 }
 
 __PACKAGE__->mk_accessors(qw(desc));

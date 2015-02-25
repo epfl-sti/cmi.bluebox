@@ -153,10 +153,9 @@ test "all_json" => sub {
   EPFLSTI::BlueBox::VPN->new("My_First_VPN");
   EPFLSTI::BlueBox::VPN->new("My_Second_VPN");
   # Red herring:
-  io->dir(My::Tests::Below->tempdir)->dir("vpn")->dir("No_Third_VPN")
+  io->dir(My::Tests::Below->tempdir)->catdir("vpn")->catdir("No_Third_VPN")
     ->mkpath->file("config.bson") < '{"name" : "Red herring", }';
 
-  $DB::single = 1;
   ok ((my $results = JSON::decode_json(EPFLSTI::BlueBox::VPN->all_json())),
       "Tastes like JSON");
 

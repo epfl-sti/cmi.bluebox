@@ -76,12 +76,12 @@ sub TO_JSON {
 
 sub _vnc_dir {
   my (undef, $vpn_obj) = @_;
-  return io->dir($vpn_obj->data_dir)->dir("vncs")
+  return io->dir($vpn_obj->data_dir)->catdir("vncs")
 }
 
 sub data_dir {
   my $self = shift;
-  return $self->_vnc_dir($self->{vpn})->dir($self->{id});
+  return $self->_vnc_dir($self->{vpn})->catdir($self->{id});
 }
 
 __PACKAGE__->mk_accessors(qw(name desc ip port));
