@@ -75,7 +75,8 @@ if [ "$(os_name)" = "Darwin" ]; then
               "          docker ps" \
               "          docker images" \
               "          build.sh" \
-              "          start_stop.sh start shell"
+              "          start_stop.sh start shell" \
+              "          test.sh"
 else
     is_in_docker_group() {
         groups | grep docker >/dev/null
@@ -90,7 +91,8 @@ else
               "Try:      ${sudo_needed}docker ps" \
               "          ${sudo_needed}docker images" \
               "          ${sudo_needed}build.sh" \
-              "          start_stop.sh start shell"
+              "          start_stop.sh start shell" \
+              "          ${sudo_needed}test.sh"
 
     is_in_docker_group || bannermsg \
        "Consider adding yourself to group docker, so that sudo is not needed."

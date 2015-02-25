@@ -1,0 +1,37 @@
+---
+abstract: "EPFL's CMi Blue Box Network Operations Center"
+author:
+  - 'Dominique Quatravaux <dominique.quatravaux@epfl.ch>'
+build_requires:
+  Fatal: 0
+  File::Find: 0
+  File::Path: 0
+  File::Spec: 0
+  File::Spec::Functions: 0
+  File::Spec::Unix: 0
+  File::Temp: 0
+  FindBin: 0
+  IO::File: 0
+  Module::Build: 0
+  Module::Build::Compat: 0
+  Test::Group: 0.19
+  Test::More: 0.0
+dynamic_config: 0
+generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.133380'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: EPFLSTI-BlueBox
+requires:
+  Future: 0.30
+  IO::All: 0.0
+  IO::Async: 0.0
+  JSON: 0.0
+  Log::Message: 0.0
+  Set::Scalar: 0.0
+  Try::Tiny: 0.0
+  perl: v5.10.0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.01

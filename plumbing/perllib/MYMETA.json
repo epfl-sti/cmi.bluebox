@@ -1,0 +1,54 @@
+{
+   "abstract" : "EPFL's CMi Blue Box Network Operations Center",
+   "author" : [
+      "Dominique Quatravaux <dominique.quatravaux@epfl.ch>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.133380",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "EPFLSTI-BlueBox",
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Fatal" : "0",
+            "File::Find" : "0",
+            "File::Path" : "0",
+            "File::Spec" : "0",
+            "File::Spec::Functions" : "0",
+            "File::Spec::Unix" : "0",
+            "File::Temp" : "0",
+            "FindBin" : "0",
+            "IO::File" : "0",
+            "Module::Build" : "0",
+            "Module::Build::Compat" : "0",
+            "Test::Group" : "0.19",
+            "Test::More" : "0.0"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Future" : "0.30",
+            "IO::All" : "0.0",
+            "IO::Async" : "0.0",
+            "JSON" : "0.0",
+            "Log::Message" : "0.0",
+            "Set::Scalar" : "0.0",
+            "Try::Tiny" : "0.0",
+            "perl" : "v5.10.0"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ]
+   },
+   "version" : "0.01"
+}
