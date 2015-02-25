@@ -283,10 +283,11 @@ use base "Module::Build";
 
 use IO::File;
 use File::Path qw(mkpath);
-use File::Spec::Functions qw(catfile catdir splitpath splitdir);
+use File::Spec::Functions qw(catfile catdir splitpath splitdir rel2abs);
 use File::Basename qw(dirname);
 use File::Spec::Unix ();
 use File::Find;
+use FindBin qw($Bin);
 
 __PACKAGE__->add_property('test_files_in_directories');
 
@@ -453,6 +454,20 @@ sub maintainer_mode_enabled {
     return 0;
 }
 
+=item I<create_build_script ()>
+
+Overridden to remember where the Build.PL was.
+
+=cut
+
+sub create_build_script {
+  my ($self) = shift;
+  # Ensure called once, so that we persist the result for e.g.
+  # L</find_test_files_in_directories>:
+  $self->topdir;
+  return $self->SUPER::create_build_script();
+}
+
 =item I<check_maintainer_dependencies()>
 
 Checks that the modules required for B<modifying> the CPAN package are
@@ -534,10 +549,13 @@ Returns the directory in which C<Build.PL> resides.
 =cut
 
 sub topdir {
-    # TODO: probably not good enough in some cases.
-    require FindBin;
-    no warnings "once";
-    return $FindBin::Bin;
+    my ($self) = @_;
+    if (! $self->{properties}->{topdir}) {  # Persistent
+      require FindBin;
+      no warnings "once";
+      $self->{properties}->{topdir} = $FindBin::Bin;
+    }
+    return $self->{properties}->{topdir};
 }
 
 =item I<package2filename($packagename)>
@@ -1258,7 +1276,7 @@ sub find_test_files_predicate {
     return 1 if m/My.Tests.Below\.pm$/;
     return if m/\b[_.]svn\b/; # Subversion metadata
     return 1 if m/\.t$/;
-    my $module = catfile($self->base_dir, $_);
+    my $module = rel2abs($_, $self->topdir);
     local *MODULE;
     unless (open(MODULE, "<", $module)) {
         warn "Cannot open $module: $!";
@@ -1274,7 +1292,11 @@ sub find_test_files_in_directories {
     my ($self) = @_;
     my @search_dirs = @{$self->test_files_in_directories ||
                           ["lib", catdir("t", "lib"), "examples"]};
-    return grep { -d } @search_dirs;
+    my $topdir = $self->topdir;
+     return map {
+       my $dir = rel2abs($_, $topdir);
+       (-d $dir) ? ($dir) : ();
+     } @search_dirs;
 }
 
 =back
