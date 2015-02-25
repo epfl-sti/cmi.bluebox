@@ -76,12 +76,12 @@ sub TO_JSON {
 
 sub _vnc_dir {
   my (undef, $vpn_obj) = @_;
-  return io->dir($vpn_obj->data_dir)->dir("vncs")
+  return io->dir($vpn_obj->data_dir)->catdir("vncs")
 }
 
 sub data_dir {
   my $self = shift;
-  return $self->_vnc_dir($self->{vpn})->dir($self->{id});
+  return $self->_vnc_dir($self->{vpn})->catdir($self->{id});
 }
 
 __PACKAGE__->mk_accessors(qw(name desc ip port));
@@ -127,9 +127,12 @@ BEGIN_FOR_TESTS
 
   my $vpn = EPFLSTI::BlueBox::VPN->new("My_VPN");
   my $vnc1 = EPFLSTI::BlueBox::VNCTarget->new($vpn, 1);
+  $vnc1->{name} = "VNC 1";
   $vnc1->{desc} = "Hello.";
   $vnc1->save();
   my $vnc2 = EPFLSTI::BlueBox::VNCTarget->new($vpn, 2);
+  $vnc2->{name} = "VNC 2";
+  $vnc2->save();
 
   my $json = io->pipe($synopsis)->slurp;
   ok ((my $results = JSON::decode_json($json)),
@@ -137,7 +140,9 @@ BEGIN_FOR_TESTS
 
   my @results = sort { $a->{id} cmp $b->{id} } @$results;
 
-  is_deeply(\@results, [{id => 1, desc => "Hello."},
-                        {id => 2, desc => undef}]);
+  is_deeply(\@results, [{id => 1, name => "VNC 1", desc => "Hello.",
+                         ip => undef, port => undef},
+                        {id => 2, name => "VNC 2", desc => undef,
+                         ip => undef, port => undef}]);
 };
 

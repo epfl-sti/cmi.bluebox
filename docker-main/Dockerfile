@@ -1,11 +1,11 @@
-# Installation script for the Blue Box NOC
+# Docker image creation script for the Blue Box NOC
 #
 # To test out your changes:
 #   1. Install Docker as per the instructions at
 #      https://docs.docker.com/installation/, or just run the
 #      develop_noc.sh script and follow the instructions
-#   2. cd to the directory of this file
-#   3. docker build -t epflsti/blueboxnoc:dev .
+#   2. cd to the top-level of the source tree
+#   3. docker build -t epflsti/blueboxnoc:dev docker-main
 #      docker run -ti epflsti/blueboxnoc:dev /bin/bash
 #
 # To enact the changes, run build.sh again and restart the container
