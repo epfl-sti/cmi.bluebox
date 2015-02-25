@@ -573,7 +573,8 @@ BUGGY_MODULE_WITH_TEST_MORE
 
 $result = run_perl($fakemodule);
 is($?, 255 << 8, "Exited with return code 255\n");
-like($result, qr/Looks like your test died just after/, "Test died");
+like($result, qr/Looks like your test (exited|died).*just after/,
+     "Test died");
 
 ######## POD snippets
 
