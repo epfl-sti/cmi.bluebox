@@ -64,6 +64,12 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
             self.server = module.exports.startServer(self.app, done);
         });
 
+        var chrome = require('selenium-webdriver/chrome');
+        chrome.setDefaultService(new chrome.ServiceBuilder()
+            .setStdio('inherit')
+            .enableVerboseLogging()
+            .loggingTo('/tmp/chromedriver.log')
+            .build());
         self.driver = new webdriver.Builder().
             withCapabilities(webdriver.Capabilities.chrome()).build();
         wdtesting.before(function () {
