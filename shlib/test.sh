@@ -14,15 +14,15 @@ docker build -t "${BLUEBOXNOC_DOCKER_TESTS_NAME}" devsupport/docker-tests
 run_docker_test() {
   docker run -ti \
          -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
+         -p 5900:5900 \
          "${BLUEBOXNOC_DOCKER_TESTS_NAME}" "$@"
 }
 
+test_script=/opt/blueboxnoc/devsupport/docker-tests/run_all_tests_from_docker.sh
+
 case "$1" in
-    ""|test)
-        run_docker_test \
-             /opt/blueboxnoc/devsupport/docker-tests/run_all_tests_from_docker.sh
-        exit 2 ;;
     shell)
-        run_docker_test /bin/bash
-        ;;
+        run_docker_test /bin/bash ;;
+    *)
+        run_docker_test "$test_script" "$@" ;;
 esac
