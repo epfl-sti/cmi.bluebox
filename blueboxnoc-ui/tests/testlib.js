@@ -101,7 +101,7 @@ module.exports.WebdriverTest.setUpFakeData = function() {
             "",
             function (perlOut, perlExitCode, perlErr) {
                 if (perlExitCode) {
-                    done(perlErr);
+                    done(new Error(perlErr));
                 } else {
                     done();
                 }
