@@ -166,7 +166,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             });
         });
 
-        it.only('does likewise for Blue Boxes', function () {
+        it('does likewise for Blue Boxes', function () {
             checkListView("BlueBox", {
                 titlePlural: "BlueBoxes",
                 listViewTitle: "All Blue Boxes",
@@ -192,6 +192,20 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 example: {
                     linkName: "bbay"
                 }
+            });
+        });
+        it.only('has pagination', function () {
+            driver.get('/');
+            findLinkByText(driver, 'Blue Boxes').then(function (BbxLink) {
+                return BbxLink.click();
+            }).then(function () {
+                return findLinkByText(driver, 'Next »');
+            }).then(function (nxtBtn) {
+                return nxtBtn.click();
+            }).then(function () {
+                return findLinkByText(driver, '« Prev');
+            }).then(function (prvBtn) {
+                return prvBtn.click();
             });
         });
     });
