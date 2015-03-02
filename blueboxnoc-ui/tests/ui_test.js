@@ -107,6 +107,12 @@ testlib.WebdriverTest.describe('UI tests', function() {
         }
 
         it('shows a VPN list with full details', function () {
+            function thenAssertIsLabel(elem) {
+                return elem.getAttribute('class')
+                    .then(function (cssClasses) {
+                        assert(cssClasses.match(/label/));
+                    });
+            }
             checkListView("VPN", {
                 example: {linkName: "Bar", description: "Foobar"},
                 moreRowChecks: function(rowObject) {
@@ -115,13 +121,14 @@ testlib.WebdriverTest.describe('UI tests', function() {
                     // Name      |    Description  | Blue Boxes  | VNC
                     // <a>Bar</a>| Foobar          | []bboo2     | []vnc2
                     findText(rowObject, "bboo2");
-                    findText(rowObject, "vnc2").then(function (vncElem) {
-                        return vncElem.getAttribute('class');
-                    }).then(function (cssClasses) {
-                        assert(cssClasses.match(/label/));
-                    });
-                }
-            });
+                    findText(rowObject, "vnc2").then(thenAssertIsLabel);
+                }});
+            checkListView("VPN", {
+                example: {linkName: "Bay", description: "Foobay"},
+                moreRowChecks: function(rowObject) {
+                    findText(rowObject, "bbay");
+                    findText(rowObject, "vnc4").then(thenAssertIsLabel);
+                }});
         });
 
         function checkEditView(title, opts) {
