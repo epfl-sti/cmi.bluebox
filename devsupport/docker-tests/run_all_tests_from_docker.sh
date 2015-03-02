@@ -27,10 +27,10 @@ run_perl_tests() {
 }
 
 run_node_tests() {
-    Xvfb :0 &
+    Xvfb :0 > /tmp/Xvfb.log 2>&1 &
     export DISPLAY=:0
     while ! xlsclients; do sleep 1; done
-    x11vnc >/dev/null 2>&1 &
+    x11vnc >/tmp/x11vnc.log 2>&1 &
     cd /opt/blueboxnoc/blueboxnoc-ui
     mocha --recursive tests/ || fail 'node tests failed'
 }

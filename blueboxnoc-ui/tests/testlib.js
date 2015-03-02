@@ -73,9 +73,12 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
         wdtesting.before(function () {
             decorateDriver(self.driver, self.server.baseUrl);
         });
-        wdtesting.after(function() {
-            self.driver.quit();
-        });
+        if (! runtime.isDocker()) {
+            wdtesting.after(function() {
+                self.driver.quit();
+            });
+            // In Docker, leave browser lying around in case debug is needed.
+        }
 
         // Not the most elegant (as compared to say, running suiteBody inside
         // vm.runInNewContext), but gets the job done:
