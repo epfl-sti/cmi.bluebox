@@ -23,8 +23,8 @@ debug.printXPath = function (opt_text, elem) {
 var findText = testlib.WebdriverTest.findText,
     findLinkByText = testlib.WebdriverTest.findLinkByText;
 
-function findDashboardWidget(driver, title, opt_options) {
-    return findLinkByText(driver, title, opt_options)
+function findDashboardWidget(driver, title) {
+    return findLinkByText(driver, title)
         .then(function (elem) {
             debug.printXPath(
                 "XPath to link containing '" + title + "': ", elem);
@@ -47,7 +47,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
         });
         it('has fake data', function () {
             driver.get("/");
-            findLinkByText(driver, "BlueBoxNOC_Admins", {wait: true});
+            findLinkByText(driver, "BlueBoxNOC_Admins");
         });
 
         it('shows a complete dashboard', function () {
@@ -71,8 +71,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             findInDashboardWidget("VPNs List",
                 {
                     linkTexts: ["VPN", "Description", "Bax"],
-                    texts: ["Foobar"],
-                    wait: true
+                    texts: ["Foobar"]
                 });
             findInDashboardWidget("BlueBoxes List",
                 {
@@ -91,11 +90,11 @@ testlib.WebdriverTest.describe('UI tests', function() {
             var dashboardTitle = opts.dashboardTitle || (titlePlural + " List");
             var listViewTitle = opts.listViewTitle || ("All " + titlePlural);
             driver.get("/");
-            findLinkByText(driver, dashboardTitle, {wait: true})
+            findLinkByText(driver, dashboardTitle)
                 .then(function (elem) {
                     elem.click();
                 });
-            findText(driver, listViewTitle, {wait: true});
+            findText(driver, listViewTitle);
             findText(driver, opts.example.description).then(function (elem) {
                 debug.printXPath(opts.example.description + " found at: ", elem);
                 return elem.findElement(webdriver.By.xpath('ancestor::tr'))
@@ -128,15 +127,18 @@ testlib.WebdriverTest.describe('UI tests', function() {
 
         function checkEditView(title, opts) {
             var titlePlural = opts.titlePlural || (title + "s");
+            var dashboardTitle = opts.dashboardTitle ||
+                (titlePlural + " List");
+
             driver.get("/");
-            [titlePlural + " List", opts.example.linkName]
+            [dashboardTitle, opts.example.linkName]
                 .forEach(function (linkToClick) {
-                    findLinkByText(driver, linkToClick, {wait: true})
+                    findLinkByText(driver, linkToClick)
                         .then(function (elem) {
                             elem.click();
                         });
                 });
-            findText(driver, "Name", {wait: true});
+            findText(driver, "Name");
             findText(driver, "Description");
         }
 

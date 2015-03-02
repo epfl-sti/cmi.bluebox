@@ -36,9 +36,7 @@ module.exports.WebdriverTest = {};
  * https://code.google.com/p/selenium/wiki/WebDriverJs).
  * this.server is an http.Server instance running the app.
  *
- * Additionally:
- *   + navigating to relative URLs (e.g. "/") is supported
- *   + driver.wait() has a sane default value for the delay parameter
+ * Additionally, navigating to relative URLs (e.g. "/") is supported
  *
  * @param description Like Mocha's first parameter to describe()
  * @param suiteBody Like Mocha's second parameter to describe()
@@ -64,14 +62,23 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
             self.server = module.exports.startServer(self.app, done);
         });
 
+        var chrome = require('selenium-webdriver/chrome');
+        chrome.setDefaultService(new chrome.ServiceBuilder()
+            .setStdio('inherit')
+            .enableVerboseLogging()
+            .loggingTo('/tmp/chromedriver.log')
+            .build());
         self.driver = new webdriver.Builder().
             withCapabilities(webdriver.Capabilities.chrome()).build();
         wdtesting.before(function () {
             decorateDriver(self.driver, self.server.baseUrl);
         });
-        wdtesting.after(function() {
-            self.driver.quit();
-        });
+        if (! runtime.isDocker()) {
+            wdtesting.after(function() {
+                self.driver.quit();
+            });
+            // In Docker, leave browser lying around in case debug is needed.
+        }
 
         // Not the most elegant (as compared to say, running suiteBody inside
         // vm.runInNewContext), but gets the job done:
@@ -95,7 +102,7 @@ module.exports.WebdriverTest.setUpFakeData = function() {
             "",
             function (perlOut, perlExitCode, perlErr) {
                 if (perlExitCode) {
-                    done(perlErr);
+                    done(new Error(perlErr));
                 } else {
                     done();
                 }
@@ -143,27 +150,43 @@ module.exports.WebdriverTest.getXPath = function(elem) {
 };
 
 /**
- * Easier alternative to selenium-webdriver's isElementPresent / findElement.
+ * Easier alternative to selenium-webdriver's findElement.
+ *
+ * Waits for the AngularJS app to be quiet (assuming there is at most
+ * one on the page at the <body> element)
  *
  * @param driverOrElement A WebDriver driver or element object to
  *        anchor the search at
  * @param webdriverLocator A webdriver.By predicate
- * @param opt_options Options dict
- * @param opt_options.wait Whether to .wait() for the element to appear
  * @returns  {!webdriver.promise.Promise.<string>} A promise that
  *     will be resolved with the element that was looked up. Ignoring the
  *     return value is fine, and simply asserts that the element exists.
  */
 var findBy = module.exports.WebdriverTest.findBy =
-    function(driverOrElement, webdriverLocator, opt_options) {
-    if (! opt_options) opt_options = {};
-    if (opt_options.wait) {
+    function(driverOrElement, webdriverLocator) {
+        var webdriver = require('selenium-webdriver');
         var driver = driverOrElement.driver_ || driverOrElement;
-        driver.wait(function () {
-            return driverOrElement.isElementPresent(webdriverLocator);
+        driver.manage().timeouts().setScriptTimeout(10000);
+        driver.executeAsyncScript(function () {
+            // Mobile code! Executes in the browser!
+            var callback = arguments[arguments.length - 1];
+            try {
+                if (window.angular) {
+                    angular.getTestability(document.body).whenStable(callback);
+                } else {
+                    callback("No angular!");
+                }
+            } catch (err) {
+                callback(err.message);
+            }
+        }).then(function (opt_errorMsg) {
+            if (opt_errorMsg) {
+                return webdriver.promise.rejected(opt_errorMsg);
+            } else {
+                return webdriver.promise.fullyResolved();
+            }
         });
-    }
-    return driverOrElement.findElement(webdriverLocator);
+        return driverOrElement.findElement(webdriverLocator);
 };
 
 /**
@@ -172,20 +195,17 @@ var findBy = module.exports.WebdriverTest.findBy =
  * @param driverOrElement A WebDriver driver or element object to
  *        anchor the search at
  * @param text The text to find
- * @param opt_options Options dict
- * @param opt_options.wait Wait a while for the text to appear
  * @returns  {!webdriver.promise.Promise.<string>} A promise that will be
  *     resolved with the text node's parent element (given that at least
  *     WD + Chromedriver refuses to select text nodes directly)
  */
-module.exports.WebdriverTest.findText = function(driverOrElement, text, opt_options) {
+module.exports.WebdriverTest.findText = function(driverOrElement, text) {
     var webdriver = require('selenium-webdriver');
     return findBy(driverOrElement,
         webdriver.By.xpath('descendant::text()[contains(., "' + text + '")]' +
             // (Under Chrome at least) .findElement refuses to select a text
             // node, hence we've got to go up like so:
-        '/..'),
-        opt_options);
+        '/..'));
 };
 
 /**
@@ -194,15 +214,13 @@ module.exports.WebdriverTest.findText = function(driverOrElement, text, opt_opti
  * @param driverOrElement A WebDriver driver or element object to
  *        anchor the search at
  * @param text The text to find
- * @param opt_options Options dict
- * @param opt_options.wait Wait a while for the text to appear
  * @returns  {!webdriver.promise.Promise.<string>} A promise that
  *     will be resolved with the an &lt;a&gt; link element
  */
 module.exports.WebdriverTest.findLinkByText =
-    function(driverOrElement, text, opt_options) {
+    function(driverOrElement, text) {
         var webdriver = require('selenium-webdriver');
-        return findBy(driverOrElement, webdriver.By.linkText(text), opt_options);
+        return findBy(driverOrElement, webdriver.By.linkText(text));
 };
 
 function decorateIt(itOrig, self, itFromWdtesting) {
@@ -236,9 +254,4 @@ function decorateDriver(driverObj, baseUrl) {
         };
         return navigator;
     }).bind(driverObj);
-    var waitOrig = driverObj.wait;
-    driverObj.wait = function (cb, opt_delay) {
-        if (! opt_delay) opt_delay = 2000;
-        waitOrig.call(driverObj, cb, opt_delay);
-    };
 }
