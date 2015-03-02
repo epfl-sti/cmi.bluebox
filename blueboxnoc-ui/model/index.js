@@ -16,7 +16,7 @@ module.exports.Status = require("./status");
 module.exports.paginate = function (array, page, perPage) {
     offset = (page -1) * perPage ;
     //console.log(" - Pagination: length="+array.length+" page="+page+" perPage="+perPage+" offset="+offset);
-    return(array.slice(offset, offset+perPage));
+    return(array.slice(offset, offset+Number(perPage)));
 };
 
 /**
