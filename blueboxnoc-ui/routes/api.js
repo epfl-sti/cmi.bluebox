@@ -19,6 +19,9 @@ function configure_API_subdir(router, api_path, model) {
             if (error) {
                 return next(error);
             }
+            //console.log("Adding X-Total-Count to header: " + all.length);
+            res.header('X-Total-Count', all.length); // add the array.length value to header for pagination purpose
+            //res.json(Model.paginate(all, req.query._page, req.query._perPage));
             res.json(Model.sort(all, req.query._sortField, req.query._sortDir));
         });
     });
