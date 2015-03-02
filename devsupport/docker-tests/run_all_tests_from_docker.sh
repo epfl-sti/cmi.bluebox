@@ -4,9 +4,26 @@
 #
 # Ran from shlib/test.sh inside Docker
 
+usage() {
+    echo >&2 "Usage: $(basename $0) [--noperl] [--nonode] [--debug]"
+    echo >&2 "     --debug: drop to a shell in case of test failure."
+}
+
 debug_mode=
 noperl=
 nonode=
+
+while [ -n "$1" ]; do case "$1" in
+    --help) usage; exit 0 ;;
+    --debug) debug_mode=1; shift ;;
+    --noperl) noperl=1; shift ;;
+    --nonode) nonode=1; shift ;;
+    *)
+        echo >&2 "Unknown argument $1"
+        exit 2 ;;
+esac; done
+
+
 
 fail() {
     local exitcode_orig=$?
@@ -34,15 +51,6 @@ run_node_tests() {
     cd /opt/blueboxnoc/blueboxnoc-ui
     mocha --recursive tests/ || fail 'node tests failed'
 }
-
-while [ -n "$1" ]; do case "$1" in
-    --debug) debug_mode=1; shift ;;
-    --noperl) noperl=1; shift ;;
-    --nonode) nonode=1; shift ;;
-    *)
-        echo >&2 "Unknown argument $1"
-        exit 2 ;;
-esac; done
 
 set -e -x
 [ -z "$noperl" ] && run_perl_tests
