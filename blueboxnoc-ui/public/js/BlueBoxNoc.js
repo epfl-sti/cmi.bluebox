@@ -87,6 +87,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         ]);
     bbx.listView()
         .title("All Blue Boxes")
+        .perPage(5)
         .fields([
             readOnlyNameField(),
             descField(),
@@ -160,6 +161,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
         ]);
     vpn.listView()
         .title("All VPNs")
+        .perPage(5)
         .fields([
             vpn.editionView().fields(),
             // duplicated ReferenceMany field to get the class only on list view
@@ -216,6 +218,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
                 .template('Open {{entry.values.name}} in a new window: <br /><a href="http://localhost:6080/vnc_auto.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode auto</a><br /><a href="http://localhost:6080/vnc.html?host={{entry.values.ip}}&port={{entry.values.port}}&vpn={{entry.values.vpn}}&token={{entry.values.token}}" target="_blank">mode normal</a>')
         ]);
     vnc.listView()
+        .perPage(5)
         .title("All VNCs")
         .fields(vnc.editionView().fields());
     vnc.creationView().fields([
