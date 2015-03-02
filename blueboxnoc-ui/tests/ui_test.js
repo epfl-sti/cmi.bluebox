@@ -128,8 +128,11 @@ testlib.WebdriverTest.describe('UI tests', function() {
 
         function checkEditView(title, opts) {
             var titlePlural = opts.titlePlural || (title + "s");
+            var dashboardTitle = opts.dashboardTitle ||
+                (titlePlural + " List");
+
             driver.get("/");
-            [titlePlural + " List", opts.example.linkName]
+            [dashboardTitle, opts.example.linkName]
                 .forEach(function (linkToClick) {
                     findLinkByText(driver, linkToClick, {wait: true})
                         .then(function (elem) {
