@@ -12,6 +12,7 @@ usage() {
 debug_mode=
 noperl=
 nonode=
+exitcode=0
 
 while [ -n "$1" ]; do case "$1" in
     --help) usage; exit 0 ;;
@@ -33,7 +34,7 @@ fail() {
         echo >&2 "$1 - Inspect and type exit to proceed"
         bash
     fi
-    exit $exitcode_orig
+    exitcode=$exitcode_orig
 }
 
 run_perl_tests() {
@@ -55,4 +56,4 @@ run_node_tests() {
 set -e -x
 [ -z "$noperl" ] && run_perl_tests
 [ -z "$nonode" ] && run_node_tests
-exit 0
+exit $exitcode
