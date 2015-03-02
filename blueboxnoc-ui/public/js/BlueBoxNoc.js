@@ -4,7 +4,7 @@ BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity
     // Common field types
     function descField() { return new Field('desc').label('Description'); }
     function statusField() { return new Field('status').label('State'); }
-    function lastIPField() { return new Field('lastKnownIP').label('Last known IP').editable(false); }
+    function lastIPField() { return new Field('ip').label('Last known IP').editable(false); }
     function idField() { return new Field('id'); }
     // Names are used as primary keys for all classes except VNC targets
     function nameField() { return new Field('name'); }

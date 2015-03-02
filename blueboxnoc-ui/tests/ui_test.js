@@ -166,7 +166,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             });
         });
 
-        it('does likewise for Blue Boxes', function () {
+        it.only('does likewise for Blue Boxes', function () {
             checkListView("BlueBox", {
                 titlePlural: "BlueBoxes",
                 listViewTitle: "All Blue Boxes",
@@ -175,7 +175,16 @@ testlib.WebdriverTest.describe('UI tests', function() {
                     description: "Booboo2"
                 },
                 moreRowChecks: function (rowObject) {
-                    // TODO: check status display bug here!
+                    // Last known IP
+                    findText(rowObject, "192.168.10.1");
+                    // Status
+                    findText(rowObject, "INIT").then(function (buttonElem) {
+                        return buttonElem.findElement(webdriver.By.xpath('ancestor::a'));
+                    }).then(function (linkElem) {
+                        return linkElem.getAttribute('ng-click');
+                    }).then(function (ngClickValue) {
+                        assert(ngClickValue.match(/gotoDetail/));
+                    })
                 }
             });
             checkEditView("BlueBox", {

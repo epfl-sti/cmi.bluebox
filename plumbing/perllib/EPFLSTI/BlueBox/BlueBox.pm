@@ -61,7 +61,12 @@ sub TO_JSON {
   my ($self) = @_;
   # The name is denormalized for the view's comfort and also for
   # ->all_json to make sense.
-  return { name => $self->{name}, desc => $self->{desc} };
+  return {
+    name => $self->{name},
+    desc => $self->{desc},
+    ip => $self->{ip},
+    status => $self->{status},
+  };
 }
 
 sub _bbox_dir {
@@ -74,7 +79,7 @@ sub data_dir {
   return $self->_bbox_dir($self->{vpn})->catdir($self->{name});
 }
 
-__PACKAGE__->mk_accessors(qw(desc));
+__PACKAGE__->mk_accessors(qw(desc ip status));
 
 require My::Tests::Below unless caller();
 
@@ -127,7 +132,9 @@ BEGIN_FOR_TESTS
 
   my @results = sort { $a->{name} cmp $b->{name} } @$results;
 
-  is_deeply(\@results, [{name => "bbox1", desc => "Hello."},
-                        {name => "bbox2.epfl.ch", desc => undef}]);
+  is_deeply(\@results, [{name => "bbox1", desc => "Hello.",
+                         ip => undef, status => undef},
+                        {name => "bbox2.epfl.ch", desc => undef,
+                         ip => undef, status => undef}]);
 };
 

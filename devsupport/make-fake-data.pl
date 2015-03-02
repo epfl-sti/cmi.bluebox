@@ -39,12 +39,18 @@ my $fake_vpn_data =  [
 ];
 
 my $fake_bbx_data = [
-    {name => "bboo", vpn => "Foo", desc => "Booboo", status => "INIT"},
-    {name => "bboo2", vpn => "Bar", desc => "Booboo2", status => "INIT"},
-    {name => "bbar", vpn => "Foo", desc => "Boobar2", status => "DOWNLOADED"},
-    {name => "bbax", vpn => "Bax", desc => "Boobax", status => "NEEDS_UPDATE"},
-    {name => "bbay", vpn => "Bay", desc => "Boobay", status => "NEEDS_UPDATE"},
-    {name => "bbaz", vpn => "Baz", desc => "Boobaz", status => "ACTIVE"}
+    {name => "bboo", vpn => "Foo", desc => "Booboo",
+     ip => "192.168.0.1", status => "INIT"},
+    {name => "bboo2", vpn => "Bar", desc => "Booboo2",
+     ip => "192.168.10.1", status => "INIT"},
+    {name => "bbar", vpn => "Foo", desc => "Boobar2",
+     ip => "192.168.20.1", status => "DOWNLOADED"},
+    {name => "bbax", vpn => "Bax", desc => "Boobax",
+     ip => "192.168.30.1", status => "NEEDS_UPDATE"},
+    {name => "bbay", vpn => "Bay", desc => "Boobay",
+     ip => "192.168.40.1", status => "NEEDS_UPDATE"},
+    {name => "bbaz", vpn => "Baz", desc => "Boobaz",
+     ip => "192.168.50.1", status => "ACTIVE"}
 ];
 
 my $fake_vnc_data = [
@@ -65,6 +71,8 @@ foreach my $params (@$fake_bbx_data) {
   my $vpn = EPFLSTI::BlueBox::VPN->load($params->{vpn});
   my $bbox = EPFLSTI::BlueBox::BlueBox->new($vpn, $params->{name});
   $bbox->set_desc($params->{desc});
+  $bbox->set_ip($params->{ip});
+  $bbox->set_status($params->{status});
   $bbox->save();
 }
 
