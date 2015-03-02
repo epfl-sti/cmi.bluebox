@@ -120,7 +120,6 @@ testlib.WebdriverTest.describe('UI tests', function() {
                     }).then(function (cssClasses) {
                         assert(cssClasses.match(/label/));
                     });
-
                 }
             });
         });

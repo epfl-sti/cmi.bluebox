@@ -2,7 +2,7 @@
 #
 # Run the test suite.
 #
-# Ran from shlib/test.sh inside Docker
+# shlib/test.sh runs this script inside Docker
 
 usage() {
     echo >&2 "Usage: $(basename $0) [--noperl] [--nonode] [--debug]"
@@ -23,8 +23,6 @@ while [ -n "$1" ]; do case "$1" in
         echo >&2 "Unknown argument $1"
         exit 2 ;;
 esac; done
-
-
 
 fail() {
     local exitcode_orig=$?
