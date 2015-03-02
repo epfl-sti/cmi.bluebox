@@ -165,7 +165,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             });
         });
 
-        it.only('does likewise for Blue Boxes', function () {
+        it('does likewise for Blue Boxes', function () {
             checkListView("BlueBox", {
                 titlePlural: "BlueBoxes",
                 listViewTitle: "All Blue Boxes",
