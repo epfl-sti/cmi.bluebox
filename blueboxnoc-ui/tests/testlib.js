@@ -92,23 +92,20 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
     });
 };
 
-module.exports.WebdriverTest.setUpFakeData = function() {
+module.exports.WebdriverTest.setUpFakeData = function(done) {
     runtime.srvDir(temp.mkdirSync("BlueBoxNocFakeData"));
-    var mochaBefore = before;
     var perl = require('../lib/perl');
-    mochaBefore(function (done) {
-        perl.runPerl(
-            [path.resolve(runtime.srcDir(), "devsupport/make-fake-data.pl")],
-            "",
-            function (perlOut, perlExitCode, perlErr) {
-                if (perlExitCode) {
-                    done(new Error(perlErr));
-                } else {
-                    done();
-                }
+    perl.runPerl(
+        [path.resolve(runtime.srcDir(), "devsupport/make-fake-data.pl")],
+        "",
+        function (perlOut, perlExitCode, perlErr) {
+            if (perlExitCode) {
+                done(new Error(perlErr));
+            } else {
+                done();
             }
-        );
-    });
+        }
+    );
 };
 
 /**

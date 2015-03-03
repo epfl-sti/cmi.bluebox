@@ -34,7 +34,7 @@ function findDashboardWidget(driver, title) {
 
 testlib.WebdriverTest.describe('UI tests', function() {
     var driver = this.driver;
-    this.setUpFakeData();
+    before(testlib.WebdriverTest.setUpFakeData);
 
     describe('Read-only navigation', function () {
         it('serves a homepage', function() {
