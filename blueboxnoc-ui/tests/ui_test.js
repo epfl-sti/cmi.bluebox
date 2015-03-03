@@ -194,7 +194,8 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 }
             });
         });
-        it.only('has pagination', function () {
+
+        it('has pagination', function () {
             driver.get('/');
             findLinkByText(driver, 'Blue Boxes').then(function (BbxLink) {
                 return BbxLink.click();
@@ -207,6 +208,15 @@ testlib.WebdriverTest.describe('UI tests', function() {
             }).then(function (prvBtn) {
                 return prvBtn.click();
             });
+        });
+
+        it.only('has a status page', function () {
+            driver.get('#/status');
+            findText(driver, "INIT");
+            findText(driver, "DOWNLOADED");
+            findText(driver, "NEEDS_UPDATE");
+            findText(driver, "ACTIVE");
+            findText(driver, "FAILING");
         });
     });
 });
