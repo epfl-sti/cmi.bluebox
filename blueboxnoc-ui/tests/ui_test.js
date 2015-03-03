@@ -40,8 +40,8 @@ testlib.WebdriverTest.describe('UI tests', function() {
         it('serves a homepage', function() {
             driver.get("/");
             var logo = driver.findElement(webdriver.By.className('logo'));
-            logo.getAttribute('src').then(function(src) {
-                src.match(new RegExp('/images/')) ||
+            logo.getAttribute('src').thenAssert(function(src) {
+                new RegExp('/images/').test(src) ||
                 assert.fail(src, "should contain /images/", "unexpected logo URL", "match");
             });
         });
@@ -110,7 +110,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             function thenAssertIsLabel(elem) {
                 return elem.getAttribute('class')
                     .thenAssert(function (cssClasses) {
-                        assert(cssClasses.match(/label/));
+                        assert(/label/.test(cssClasses));
                     });
             }
             checkListView("VPN", {
@@ -189,7 +189,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
                     }).then(function (linkElem) {
                         return linkElem.getAttribute('ng-click');
                     }).thenAssert(function (ngClickValue) {
-                        assert(ngClickValue.match(/gotoDetail/));
+                        assert(/gotoDetail/.test(ngClickValue));
                     })
                 }
             });
