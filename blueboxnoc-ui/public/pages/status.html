@@ -1,0 +1,100 @@
+<div class="row list-header ng-scope">
+    <div class="col-lg-12">
+        <div class="page-header"><h1><span class="ng-scope">Status</span></h1></div>
+    </div>
+</div>
+<div class="row list-view ng-scope ng-admin-entity-bbx" ng-class="'ng-admin-entity-' + listController.entity.name()">
+    <div class="col-lg-12">
+
+
+        <li>
+            <a id="INIT"></a>
+            <button type="button" class="bbx-btn bbx-btn-INIT" aria-expanded="false">INIT</button><br />
+            <span class="glyphicon glyphicon-arrow-right"></span> the NOC UI has been told to enroll a new Blue Box, and a handful of security-irrelevant info
+            (pseudo-DNS name) but cannot securely communicate with the Blue Box. A .tar.gz has been made ready for
+            download, under an URL that contains a secret token.
+
+            <ul class="task-list">
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-DOWNLOADED bbx-btn-group-xs" aria-expanded="false" ng-click="scrollTo('DOWNLOADED')">DOWNLOADED</button>: the administrator downloads the .tar.gz</li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-DOWNLOADED bbx-btn-group-xs" aria-expanded="false" ng-click="scrollTo('DOWNLOADED')">DOWNLOADED</button>: the administrator has the Blue Box download the .tar.gz.</li>
+            </ul>
+            <br />
+        </li>
+        <li>
+            <a id="DOWNLOADED"></a>
+            <button type="button" class="bbx-btn bbx-btn-DOWNLOADED" aria-expanded="false">DOWNLOADED</button><br />
+            <span class="glyphicon glyphicon-arrow-right"></span> the .tar.gz has started download at least once, and is no longer accessible (e.g.
+            deleted from the file system). The NOC still doesn't know any cryptographically secure information about the
+            Blue Box.
+
+            <ul class="task-list">
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-xs bbx-btn-INIT bbx-btn-group-xs" aria-expanded="false" ng-click="scrollTo('INIT')">INIT</button>: using the web UI, the administrator regenerates the .tar.gz with a
+                    fresh HTTP-ping token inside; the new .tar.gz is available under a different URL that contains a
+                    distinct, also fresh token.
+                </li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-NEEDS_UPDATE" aria-expanded="false" ng-click="scrollTo('NEEDS_UPDATE')">NEEDS_UPDATE</button>: the NOC receives news of the HTTP ping / is directed by the
+                    administrator to attempt an enrollment, and successfully completes an SSH handshake (far enough to
+                    update the .ssh/known_hosts).
+                </li>
+            </ul>
+            <br />
+        </li>
+        <li>
+            <a id="NEEDS_UPDATE"></a>
+            <button type="button" class="bbx-btn bbx-btn-NEEDS_UPDATE" aria-expanded="false">NEEDS_UPDATE</button><br />
+            <span class="glyphicon glyphicon-arrow-right"></span> the NOC knows about the SSH identity of the Blue Box, but knows for a fact that its
+            configuration needs updating (e.g.: never synced successfully, set of public keys to accept has changed
+            etc). It may or may not know the Blue Box's tinc public key.
+
+            <ul class="task-list">
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-ACTIVE" aria-expanded="false" ng-click="scrollTo('ACTIVE')">ACTIVE</button>: the NOC completes a sync to the Blue Box.</li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-FAIL" aria-expanded="false" ng-click="scrollTo('FAILING')">FAILING</button>: the Blue Box stayed in NEEDS_UPDATE state for too long (say, more
+                    than a day)
+                </li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-FAIL" aria-expanded="false" ng-click="scrollTo('FAILING')">FAILING</button>: the NOC-initiated sync fails (ssh session proceeds to completion,
+                    but remote command fails)
+                </li>
+            </ul>
+            <br />
+        </li>
+        <li>
+            <a id="ACTIVE"></a>
+            <button type="button" class="bbx-btn bbx-btn-ACTIVE" aria-expanded="false">ACTIVE</button><br />
+            <span class="glyphicon glyphicon-arrow-right"></span> the NOC has successfully pushed the tinc keys, configuration etc. into the Blue Box, and
+            obtained the Blue Box's tinc key in return.
+
+            <ul class="task-list">
+                <li>Additional information, impacting the "hue" of the state (possibly literally in the UI): time since
+                    last successful communication as seen in tinc logs
+                </li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-NEEDS_UPDATE" aria-expanded="false" ng-click="scrollTo('NEEDS_UPDATE')">NEEDS_UPDATE</button>: a new Blue Box in the same VPN has transitioned from <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-DOWNLOADED bbx-btn-group-xs" aria-expanded="false">DOWNLOADED</button>
+                    to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-NEEDS_UPDATE" aria-expanded="false" ng-click="scrollTo('NEEDS_UPDATE')">NEEDS_UPDATE</button>
+                </li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-NEEDS_UPDATE" aria-expanded="false" ng-click="scrollTo('NEEDS_UPDATE')">NEEDS_UPDATE</button>: a Blue Box has been deleted from the VPN</li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-NEEDS_UPDATE" aria-expanded="false" ng-click="scrollTo('NEEDS_UPDATE')">NEEDS_UPDATE</button>: en masse upon backward-compatible software update on the NOC
+                </li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-FAIL" aria-expanded="false" ng-click="scrollTo('FAILING')">FAILING</button>: a routine sync fails (ssh session proceeds to completion, but remote
+                    command fails)
+                </li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-FAIL" aria-expanded="false" ng-click="scrollTo('FAILING')">FAILING</button>: the time since last successful communication in the tinc logs is too
+                    old (more than a few hours)
+                </li>
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-FAIL" aria-expanded="false" ng-click="scrollTo('FAILING')">FAILING</button>: en masse upon backward-incompatible software update on the NOC</li>
+            </ul>
+            <br />
+        </li>
+        <li>
+            <a id="FAILING"></a>
+            <button type="button" class="bbx-btn bbx-btn-FAIL" aria-expanded="false">FAILING</button><br />
+            <span class="glyphicon glyphicon-arrow-right"></span> correct operation of the Blue Box is no longer guaranteed (regardless of whether it shows
+            up successfully in the tinc logs)
+
+            <ul class="task-list">
+                <li>Transition to <button type="button" class="bbx-btn bbx-btn-xs bbx-btn-NEEDS_UPDATE" aria-expanded="false">NEEDS_UPDATE</button>: by operator intervention in the Web UI (meaning they attempted
+                    to correct the problem by some out-of-band means)
+                </li>
+            </ul>
+            <br />
+        </li>
+    </div>
+</div>

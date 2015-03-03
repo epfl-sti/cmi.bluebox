@@ -19,7 +19,12 @@ function configure_API_subdir(router, api_path, model) {
             if (error) {
                 return next(error);
             }
-            res.json(Model.sort(all, req.query._sortField, req.query._sortDir));
+            //console.log("Adding X-Total-Count to header: " + all.length);
+            res.header('X-Total-Count', all.length); // add the array.length value to header for pagination purpose
+            // first sort the whole list
+            all = Model.sort(all, req.query._sortField, req.query._sortDir);
+            // then return sliced array for pagination
+            res.json(Model.paginate(all, req.query._page, req.query._perPage)) ;
         });
     });
 

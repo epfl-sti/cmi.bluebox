@@ -209,6 +209,30 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 }
             });
         });
+
+        it('has pagination', function () {
+            driver.get('/');
+            findLinkByText(driver, 'Blue Boxes').then(function (BbxLink) {
+                return BbxLink.click();
+            }).then(function () {
+                return findLinkByText(driver, 'Next »');
+            }).then(function (nxtBtn) {
+                return nxtBtn.click();
+            }).then(function () {
+                return findLinkByText(driver, '« Prev');
+            }).then(function (prvBtn) {
+                return prvBtn.click();
+            });
+        });
+
+        it.only('has a status page', function () {
+            driver.get('#/status');
+            findText(driver, "INIT");
+            findText(driver, "DOWNLOADED");
+            findText(driver, "NEEDS_UPDATE");
+            findText(driver, "ACTIVE");
+            findText(driver, "FAILING");
+        });
     });
     describe('Create, Update, Delete operations', function () {
         beforeEach(testlib.WebdriverTest.setUpFakeData);
