@@ -57,18 +57,6 @@ sub all {
   return $class->_load_from_subdirs($class->_bbox_dir($vpn_obj), $vpn_obj);
 }
 
-sub TO_JSON {
-  my ($self) = @_;
-  # The name is denormalized for the view's comfort and also for
-  # ->all_json to make sense.
-  return {
-    name => $self->{name},
-    desc => $self->{desc},
-    ip => $self->{ip},
-    status => $self->{status},
-  };
-}
-
 sub _bbox_dir {
   my (undef, $vpn_obj) = @_;
   return io->dir($vpn_obj->data_dir)->catdir("bboxes")
@@ -79,7 +67,9 @@ sub data_dir {
   return $self->_bbox_dir($self->{vpn})->catdir($self->{name});
 }
 
-__PACKAGE__->mk_accessors(qw(desc ip status));
+# Denormalized for the view's comfort:
+__PACKAGE__->readonly_persistent_attribute('name');
+__PACKAGE__->persistent_attribute($_) for (qw(desc ip status));
 
 require My::Tests::Below unless caller();
 
@@ -132,9 +122,7 @@ BEGIN_FOR_TESTS
 
   my @results = sort { $a->{name} cmp $b->{name} } @$results;
 
-  is_deeply(\@results, [{name => "bbox1", desc => "Hello.",
-                         ip => undef, status => undef},
-                        {name => "bbox2.epfl.ch", desc => undef,
-                         ip => undef, status => undef}]);
+  is_deeply(\@results, [{name => "bbox1", desc => "Hello."},
+                        {name => "bbox2.epfl.ch"}]);
 };
 

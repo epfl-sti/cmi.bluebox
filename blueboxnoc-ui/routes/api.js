@@ -65,7 +65,7 @@ function configure_API_subdir(router, api_path, model) {
         router.delete(api_path, function(req, res, next) {
             perl.talkJSONToPerl(
                 "use " + model.perlControllerPackage + "; "
-                + model.perlControllerPackage + "->post_from_stdin;",
+                + model.perlControllerPackage + "->delete_from_stdin;",
                 req.body,
                 function (result, err) {
                     if (err) {

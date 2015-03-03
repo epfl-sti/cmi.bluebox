@@ -66,14 +66,6 @@ sub all {
   return $class->_load_from_subdirs($class->_vnc_dir($vpn_obj), $vpn_obj);
 }
 
-sub TO_JSON {
-  my ($self) = @_;
-  # The id is denormalized for the view's comfort and also for
-  # ->all_json to make sense.
-  return { id => $self->{id}, name => $self->{name}, desc => $self->{desc},
-           ip => $self->{ip}, port => $self->{port} };
-}
-
 sub _vnc_dir {
   my (undef, $vpn_obj) = @_;
   return io->dir($vpn_obj->data_dir)->catdir("vncs")
@@ -84,7 +76,9 @@ sub data_dir {
   return $self->_vnc_dir($self->{vpn})->catdir($self->{id});
 }
 
-__PACKAGE__->mk_accessors(qw(name desc ip port));
+# Denormalized for the view's comfort:
+__PACKAGE__->readonly_persistent_attribute('id');
+__PACKAGE__->persistent_attribute($_) for qw(name desc ip port);
 
 require My::Tests::Below unless caller();
 
@@ -140,9 +134,7 @@ BEGIN_FOR_TESTS
 
   my @results = sort { $a->{id} cmp $b->{id} } @$results;
 
-  is_deeply(\@results, [{id => 1, name => "VNC 1", desc => "Hello.",
-                         ip => undef, port => undef},
-                        {id => 2, name => "VNC 2", desc => undef,
-                         ip => undef, port => undef}]);
+  is_deeply(\@results, [{id => 1, name => "VNC 1", desc => "Hello."},
+                        {id => 2, name => "VNC 2"}]);
 };
 

@@ -35,9 +35,9 @@ one-liner.
 
 use base qw(EPFLSTI::Model::JSONConfigBase);
 
-use EPFLSTI::Model::LoadError;
-
 use IO::All;
+
+use EPFLSTI::Model::LoadError;
 
 # Constrained by OpwenWRT code; see also VPN.validName in the JS code.
 our $NAME_RE = qr/^[A-Za-z0-9_]+$/;
@@ -62,35 +62,32 @@ sub all {
   return $class->_load_from_subdirs(DATA_DIR);
 }
 
-sub TO_JSON {
-  my ($self) = @_;
-  # The name is denormalized for the view's comfort and also for
-  # ->all_json to make sense.
-  return { name => $self->{name}, desc => $self->{desc} };
-}
-
 sub data_dir { io->catdir(DATA_DIR, shift->{name}) }
 
 =head1 CONTROLLER CLASS METHODS
 
-=head2 post_from_stdin
+=head2 json_post ($properties_hashref)
 
-Read new VPN object in JSON form from standard input; print the JSON
-representation of { id => "NewName" } to standard output.
+Create a new object with these properties.
 
 =cut
 
-sub post_from_stdin {
-  print STDOUT '{ "id": "Foo" }';
+sub json_post {
+  my ($class, $details) = @_;
+  my $name = delete $details->{name};
+  my $self = $class->_new($name);
+  if ($self->json_file->exists) {
+    die {
+      XXX => "exists already"
+    };
+  }
+  $self->update($details);
+  $self->save();
 }
 
-sub put_from_stdin {
-}
-
-sub delete_from_stdin {
-}
-
-__PACKAGE__->mk_accessors(qw(desc));
+# Denormalized for the view's comfort:
+__PACKAGE__->readonly_persistent_attribute('name');
+__PACKAGE__->persistent_attribute('desc');
 
 require My::Tests::Below unless caller();
 

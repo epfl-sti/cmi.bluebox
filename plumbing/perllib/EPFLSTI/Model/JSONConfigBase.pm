@@ -73,24 +73,101 @@ sub all_json {
   return to_json([$class->all(@_)], { pretty => 1, convert_blessed => 1 });
 }
 
-=head2 mk_accessors (@names)
+=head2 readonly_persistent_attribute ($attr)
 
-L<Class::Accessor> style, with best practices, sans all the crud.
+Declare the C<< ->{$attr} >> of instances of this class to be
+read-only persistent. This has the following effects:
+
+=item *
+
+A L<Class::Accessor>-style get_foo accessor is generated
+
+=item *
+
+L</TO_JSON> will serialize this field
+
+=back
 
 =cut
 
-sub mk_accessors {
-  my $pkg = shift;
-  foreach my $field_name (@_) {
-    my $get = sub { shift->{$field_name} };
-    my $set = sub {
-      my $self = shift;
-      $self->{$field_name} = shift;
+sub readonly_persistent_attribute {
+  my ($pkg, $attr) = @_;
+  my $get = sub { shift->{$attr} };
+  no strict "refs";
+  *{"${pkg}::get_${attr}"} = $get;
+  no warnings "once";
+  push @{"${pkg}::TO_JSON_FIELDS"}, $attr;
+}
+
+=head2 persistent_attribute ($attr)
+
+Declare the C<< ->{$attr} >> of instances of this class to be
+persistent. This has the following effects:
+
+=over 4
+
+=item *
+
+L<Class::Accessor>-style set_foo and get_foo accessors are generated
+
+=item *
+
+L</TO_JSON> and L</update> will serialize resp. update these fields
+
+=back
+
+=cut
+
+sub persistent_attribute {
+  my ($pkg, $attr) = @_;
+  $pkg->readonly_persistent_attribute($attr);
+  my $set = sub {
+    my $self = shift;
+    $self->{$attr} = shift;
+  };
+  no strict "refs";
+  *{"${pkg}::set_${attr}"} = $set;
+  no warnings "once";
+  push @{"${pkg}::UPDATEABLE_FIELDS"}, $attr;
+}
+
+=head2 put_from_stdin
+
+=head2 post_from_stdin
+
+=head2 delete_from_stdin
+
+Read a JSON-encoded data structure from stdin; pass it to
+L</json_put>, L</json_post> and L</json_delete>
+respectively. Exit with 0 upon success, 4 upon orderly failure.
+
+=cut
+
+foreach my $stem (qw(put post delete)) {
+  my $json_marshalling_method = sub {
+    my ($class) = @_;
+    my $structin = decode_json(io->stdin->slurp);
+    if ($ENV{DEBUG} =~ m/perl/) {
+      require Data::Dumper;
+      warn Data::Dumper->Dump([$structin], ['$structin']);
+    }
+    try {
+      my $structout = $class->can("json_${stem}")->
+        ($class, $structin);
+      if ($ENV{DEBUG} =~ m/perl/) {
+        require Data::Dumper;
+        warn Data::Dumper->Dump([$structout], ['$structout']);
+      }
+      print STDOUT encode_json($structout);
+      exit 0;
+    } catch {
+      die $_ unless ref;
+      print encode_json($_);
+      exit 4;
     };
-    no strict "refs";
-    *{"${pkg}::get_${field_name}"} = $get;
-    *{"${pkg}::set_${field_name}"} = $set;
-  }
+  };
+  no strict "refs";
+  *{"${stem}_from_stdin"} = $json_marshalling_method;
 }
 
 =head1 METHODS
@@ -110,7 +187,7 @@ sub load {
   my $self = ref($self_or_class) ? $self_or_class:
     $self_or_class->_new(@_);
   throw EPFLSTI::Model::LoadError(
-    message => "Not a VPN directory",
+    message => "Object does not exist",
     dir => $self->data_dir) unless ($self->json_file->exists);
   my %data = %{from_json($self->json_file->slurp)};
   while(my ($key, $value) = each %data) {
@@ -159,6 +236,41 @@ Get the path to the JSON file that contains the state.
 
 sub json_file { shift->data_dir->catfile("config.json") }
 
+=head2 TO_JSON ()
+
+Return the subset of $self->{} attributes that are
+L</persistent_attribute> or L</readonly_persistent_attribute>, in an
+unblessed hash reference.
+
+=cut
+
+sub TO_JSON {
+  my ($self) = @_;
+  my $json = {};
+  foreach my $field (do { no strict "refs";
+                          @{ref($self) . "::TO_JSON_FIELDS"} }) {
+    $json->{$field} = $self->{$field} if exists $self->{$field};
+  }
+  return $json;
+}
+
+=head2 update ($hashref)
+
+Update all L</persistent_attribute>s from $hashref using the appropriate
+setters (i.e., overloading them in a subclass does what you want).
+
+=cut
+
+sub update {
+  my ($self, $hashref) = @_;
+  foreach my $field (do { no strict "refs";
+                          @{ref($self) . "::UPDATEABLE_FIELDS"} }) {
+    if (exists $hashref->{$field}) {
+      $self->can("set_$field")->($self, $hashref->{$field});
+    }
+  }
+}
+
 =head1 ABSTRACT CLASS METHODS
 
 To be defined by the subclasss.
@@ -170,6 +282,14 @@ select an instance only, so that @constructor_args can be passed as-is
 from L</new> or L</load>; mutations should be done by caller in
 another statement.
 
+=head2 json_post
+
+=head2 json_put
+
+=head2 json_delete
+
+Implement the Create, Update and Delete API operations respectively.
+
 =cut
 
 =head1 ABSTRACT METHODS
@@ -180,11 +300,6 @@ To be defined by the subclasss.
 
 Get the directory this object lives in, as an L<IO::All> directory
 handle.
-
-=head2 TO_JSON ()
-
-Return the subset of $self->{} attributes that are persistent, in an
-unblessed hash reference. L</load> will put them right back.
 
 =cut
 
@@ -226,7 +341,7 @@ our $testdir = io->dir(My::Tests::Below->tempdir)->catdir("myobj");
     return { foo => $self->{foo}, bar => $self->{bar} };
   }
 
-  My::JSONClass->mk_accessors(qw(zoinx));
+  My::JSONClass->persistent_attribute(qw(zoinx));
 }
 
 test "->new(), ->save() and ->load()" => sub {

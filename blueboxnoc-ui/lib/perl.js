@@ -87,6 +87,7 @@ module.exports.runPerl = function runPerl(perlFlags, stdin, done) {
         doneWaiting("perlExited");
     });
     perlProcess.stdin.write(stdin);
+    perlProcess.stdin.end();
 };
 
 /**
