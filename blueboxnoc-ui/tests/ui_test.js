@@ -22,7 +22,7 @@ debug.printXPath = function (opt_text, elem) {
 };
 
 webdriver.WebElementPromise.prototype.thenClickIt = function() {
-    this.then(function(elem) {
+    return this.then(function(elem) {
         return elem.click();
     });
 };
@@ -261,7 +261,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             findByLabel(driver, "Description")
                 .thenSendKeys("This is a description");
             findButton(driver, "Submit").thenClickIt().then(function () {
-                findText("already exists");
+                findText(driver, "already exists");
             });
         });
     });

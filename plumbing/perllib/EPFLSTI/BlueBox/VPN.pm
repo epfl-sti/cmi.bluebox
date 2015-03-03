@@ -78,7 +78,7 @@ sub json_post {
   my $self = $class->_new($name);
   if ($self->json_file->exists) {
     die {
-      XXX => "exists already"
+      error => "already exists"
     };
   }
   $self->update($details);

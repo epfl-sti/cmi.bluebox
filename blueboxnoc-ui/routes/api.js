@@ -60,10 +60,18 @@ function configure_API_subdir(router, api_path, model) {
                     + model.perlControllerPackage + "->post_from_stdin;",
                 req.body,
                 function (result, err) {
-                    if (err) {
+                    if (err && typeof err === "object") { // Not Exception, not a String
+                        // Orderly failure - TODO: is there a way to have
+                        // ng-admin pretty-print an error message?
+                        // (as-is, it shows an ugly red 'Oops')
+                        res.status(500);
+                        res.json(err);
+                    } else if (err) {
+                        // Disorderly failure
                         return next(err);
+                    } else {
+                        res.json(result);
                     }
-                    res.json(result);
                 }
             )
         });
