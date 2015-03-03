@@ -249,17 +249,3 @@ function decorateDriver(driverObj, baseUrl) {
         return navigator;
     }).bind(driverObj);
 }
-
-webdriver.promise.Promise.prototype.thenSync =
-    webdriver.promise.Promise.prototype.thenAssert =
-        function(callback) {
-            var self = this;
-            self.then(function () {
-                try {
-                    return webdriver.promise.fulfilled(
-                        callback.apply(self, arguments));
-                } catch (e) {
-                    return webdriver.promise.rejected(e);
-                }
-            });
-        };

@@ -3,6 +3,7 @@
  */
 var assert = require('assert'),
     debug = require('debug')('ui_test'),
+    when = require('when'),
     testlib = require('./testlib'),
     webdriver = require('selenium-webdriver');
 
@@ -46,10 +47,10 @@ testlib.WebdriverTest.describe('UI tests', function() {
         it('serves a homepage', function() {
             driver.get("/");
             var logo = driver.findElement(webdriver.By.className('logo'));
-            logo.getAttribute('src').thenAssert(function(src) {
+            logo.getAttribute('src').then(when.lift(function(src) {
                 new RegExp('/images/').test(src) ||
                 assert.fail(src, "should contain /images/", "unexpected logo URL", "match");
-            });
+            }));
         });
         it('has fake data', function () {
             driver.get("/");
@@ -112,9 +113,9 @@ testlib.WebdriverTest.describe('UI tests', function() {
         it('shows a VPN list with full details', function () {
             function thenAssertIsLabel(elem) {
                 return elem.getAttribute('class')
-                    .thenAssert(function (cssClasses) {
+                    .then(when.lift(function (cssClasses) {
                         assert(/label/.test(cssClasses));
-                    });
+                    }));
             }
             checkListView("VPN", {
                 example: {linkName: "Bar", description: "Foobar"},
@@ -188,9 +189,9 @@ testlib.WebdriverTest.describe('UI tests', function() {
                         return buttonElem.findElement(webdriver.By.xpath('ancestor::a'));
                     }).then(function (linkElem) {
                         return linkElem.getAttribute('ng-click');
-                    }).thenAssert(function (ngClickValue) {
+                    }).then(when.lift(function (ngClickValue) {
                         assert(/gotoDetail/.test(ngClickValue));
-                    })
+                    }));
                 }
             });
             checkEditView("BlueBox", {
