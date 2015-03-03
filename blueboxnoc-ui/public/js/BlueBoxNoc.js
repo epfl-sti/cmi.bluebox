@@ -4,7 +4,7 @@
 
     var BlueboxNocApp = angular.module("BlueboxNocApp", ["ng-admin"]);
 
-    BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany) {
+    BlueboxNocApp.config(function (NgAdminConfigurationProvider, Application, Entity, Field, Reference, ReferencedList, ReferenceMany, RestangularProvider, $stateProvider) {
 
         // Common field types
         function descField() { return new Field('desc').label('Description'); }
@@ -313,6 +313,18 @@
 
         status.dashboardView().disable();
 
+
+
+        // Create a new route for status page
+        $stateProvider
+            .state('status', {
+                parent: 'main',
+                url: '/status',
+                controller: 'StatusController',
+                controllerAs: 'listController',
+                templateUrl: 'pages/status.html'
+            });
+
         NgAdminConfigurationProvider.configure(app);
     });
 
@@ -325,4 +337,11 @@
         $scope.logs = "- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \netc...";
     });
 
+    BlueboxNocApp.controller('StatusController', function ($scope, $location) {
+        $scope.title = 'Status page';
+
+        $scope.goToDashboard = function () {
+            $location.path('dashboard');
+        };
+    });
 }());
