@@ -113,7 +113,7 @@
                 descField(),
                 lastIPField(),
                 new Field("vpn").editable(false),
-                new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button>'),
+                new Field("status").type("template").template('<button type="button" class="bbx-btn bbx-btn-{{entry.values.status}}" aria-expanded="false">{{entry.values.status}}</button> <button type="button" class="btn btn-xs btn-default" go-click="/status"> <span class="glyphicon glyphicon-play-circle"></span></button>'),
                 new Field("Logs").type("template").template('<div ng-controller="bbx_logs"><textarea style="width:100%; border-style: none; border-color: Transparent; overflow: auto; outline: none;textarea:focus">{{logs}}</textarea></div>'),
                 /* More smart way: http://www.grobmeier.de/bootstrap-tabs-with-angular-js-25112012.html#.VOXJ4eRMcUE */
                 //new Field("Logs").type("template").template(' <div class="panel panel-default"> <div class="panel-heading"> {{entry.values.name}}\'s logs </div> <!-- /.panel-heading --> <div class="panel-body"> <!-- Nav tabs --> <ul class="nav nav-tabs"> <li class=""><a aria-expanded="false" href="#home" data-toggle="tab">Home</a> </li> <li class=""><a aria-expanded="false" href="http://localhost:3000/#/edit/bbx/bboo#profile" data-toggle="tab">Profile</a> </li> <li class="active"><a aria-expanded="true" href="#messages" data-toggle="tab">Messages</a> </li> <li><a href="#settings" data-toggle="tab">Settings</a> </li> </ul> <!-- Tab panes --> <div class="tab-content"> <div class="tab-pane fade" id="home"> <h4>Home Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="profile"> <h4>Profile Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade active in" id="messages"> <h4>Messages Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> <div class="tab-pane fade" id="settings"> <h4>Settings Tab</h4> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> </div> </div> </div> <!-- /.panel-body --> </div> <!-- /.panel --> ')
@@ -337,11 +337,43 @@
         $scope.logs = "- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \n- 2015-01-10 10:10 BlueBox creation by XXX (#169411) \netc...";
     });
 
-    BlueboxNocApp.controller('StatusController', function ($scope, $location) {
+    BlueboxNocApp.controller('StatusController', function ($scope, $location, $anchorScroll) {
         $scope.title = 'Status page';
 
         $scope.goToDashboard = function () {
             $location.path('dashboard');
         };
+
+        // http://stackoverflow.com/questions/14712223/how-to-handle-anchor-hash-linking-in-angularjs
+        // <button ng-click="scrollTo('foo')">Click!</button>
+        $scope.scrollTo = function(id) {
+            var old = $location.hash();
+            $location.hash(id);
+            $anchorScroll();
+            //reset to old to keep any additional routing logic from kicking in
+            $location.hash(old);
+        };
     });
+
+
+    /* Generic directive to allow click on button
+           Usage: <button go-click="/go/to/page">Click!</button>
+           Info: http://stackoverflow.com/questions/15847726/is-there-a-simple-way-to-use-button-to-navigate-page-as-a-link-does-in-angularjs
+     */
+    BlueboxNocApp.directive( 'goClick', function ( $location ) {
+        return function ( scope, element, attrs ) {
+            var path;
+
+            attrs.$observe( 'goClick', function (val) {
+                path = val;
+            });
+
+            element.bind( 'click', function () {
+                scope.$apply( function () {
+                    $location.path( path );
+                });
+            });
+        };
+    });
+
 }());
