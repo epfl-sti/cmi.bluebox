@@ -230,4 +230,15 @@ testlib.WebdriverTest.describe('UI tests', function() {
             });
         });
     });
+    it('refuses to create two VPNs with the same name', function () {
+        driver.get("/");
+        findLinkByText(driver, "VPNs").thenClickIt();
+        findText(driver, "Create").thenClickIt();
+        findByLabel(driver, "Name").thenSendKeys("Foo");
+        findByLabel(driver, "Description")
+            .thenSendKeys("This is a description");
+        findButton(driver, "Submit").thenClickIt().then(function () {
+           findText("already exists");
+        });
+    });
 });
