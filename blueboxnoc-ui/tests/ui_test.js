@@ -20,6 +20,12 @@ debug.printXPath = function (opt_text, elem) {
         });
 };
 
+webdriver.WebElementPromise.prototype.thenClickIt = function() {
+    this.then(function(elem) {
+        return elem.click();
+    });
+};
+
 var findText = testlib.WebdriverTest.findText,
     findLinkByText = testlib.WebdriverTest.findLinkByText;
 
@@ -90,10 +96,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             var dashboardTitle = opts.dashboardTitle || (titlePlural + " List");
             var listViewTitle = opts.listViewTitle || ("All " + titlePlural);
             driver.get("/");
-            findLinkByText(driver, dashboardTitle)
-                .then(function (elem) {
-                    elem.click();
-                });
+            findLinkByText(driver, dashboardTitle).thenClickIt();
             findText(driver, listViewTitle);
             findText(driver, opts.example.description).then(function (elem) {
                 debug.printXPath(opts.example.description + " found at: ", elem);
@@ -139,10 +142,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             driver.get("/");
             [dashboardTitle, opts.example.linkName]
                 .forEach(function (linkToClick) {
-                    findLinkByText(driver, linkToClick)
-                        .then(function (elem) {
-                            elem.click();
-                        });
+                    findLinkByText(driver, linkToClick).thenClickIt();
                 });
             findText(driver, "Name");
             findText(driver, "Description");
