@@ -3,7 +3,8 @@ var debug = require('debug')('testlib'),
     path = require('path'),
     temp = require('temp'),
     URL = require('url'),
-    runtime = require("../lib/runtime");
+    webdriver = require('selenium-webdriver'),
+    runtime = require('../lib/runtime');
 
 /**
  * Start a Web server on a random port then call done().
@@ -45,8 +46,7 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
     if (! suiteBody) {
         return wdtesting.describe(description);
     }
-    var webdriver = require('selenium-webdriver'),
-        wdtesting = require('selenium-webdriver/testing');
+    var wdtesting = require('selenium-webdriver/testing');
 
     var mochaBefore = before;
     return wdtesting.describe(description, function () {
@@ -164,7 +164,6 @@ module.exports.WebdriverTest.getXPath = function(elem) {
  */
 var findBy = module.exports.WebdriverTest.findBy =
     function(driverOrElement, webdriverLocator) {
-        var webdriver = require('selenium-webdriver');
         var driver = driverOrElement.driver_ || driverOrElement;
         driver.manage().timeouts().setScriptTimeout(10000);
         driver.executeAsyncScript(function () {
@@ -200,7 +199,6 @@ var findBy = module.exports.WebdriverTest.findBy =
  *     WD + Chromedriver refuses to select text nodes directly)
  */
 module.exports.WebdriverTest.findText = function(driverOrElement, text) {
-    var webdriver = require('selenium-webdriver');
     return findBy(driverOrElement,
         webdriver.By.xpath('descendant::text()[contains(., "' + text + '")]' +
             // (Under Chrome at least) .findElement refuses to select a text
@@ -219,7 +217,6 @@ module.exports.WebdriverTest.findText = function(driverOrElement, text) {
  */
 module.exports.WebdriverTest.findLinkByText =
     function(driverOrElement, text) {
-        var webdriver = require('selenium-webdriver');
         return findBy(driverOrElement, webdriver.By.linkText(text));
 };
 
@@ -255,3 +252,17 @@ function decorateDriver(driverObj, baseUrl) {
         return navigator;
     }).bind(driverObj);
 }
+
+webdriver.promise.Promise.prototype.thenSync =
+    webdriver.promise.Promise.prototype.thenAssert =
+        function(callback) {
+            var self = this;
+            self.then(function () {
+                try {
+                    return webdriver.promise.fulfilled(
+                        callback.apply(self, arguments));
+                } catch (e) {
+                    return webdriver.promise.rejected(e);
+                }
+            });
+        };

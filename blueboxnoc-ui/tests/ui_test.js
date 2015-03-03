@@ -109,7 +109,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
         it('shows a VPN list with full details', function () {
             function thenAssertIsLabel(elem) {
                 return elem.getAttribute('class')
-                    .then(function (cssClasses) {
+                    .thenAssert(function (cssClasses) {
                         assert(cssClasses.match(/label/));
                     });
             }
@@ -188,7 +188,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
                         return buttonElem.findElement(webdriver.By.xpath('ancestor::a'));
                     }).then(function (linkElem) {
                         return linkElem.getAttribute('ng-click');
-                    }).then(function (ngClickValue) {
+                    }).thenAssert(function (ngClickValue) {
                         assert(ngClickValue.match(/gotoDetail/));
                     })
                 }
