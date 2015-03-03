@@ -25,7 +25,7 @@ BBX.all = function(done) {
         var returned = [];
         Object.keys(jsonTree).forEach(function (k) {
             var vpnDesc = jsonTree[k];
-            Object.keys(vpnDesc.bboxes).forEach(function (k) {
+            Object.keys(vpnDesc.bboxes || {}).forEach(function (k) {
                 var bboxDesc = vpnDesc.bboxes[k];
                 returned.push(bboxDesc);
                 bboxDesc.vpn = vpnDesc.name;

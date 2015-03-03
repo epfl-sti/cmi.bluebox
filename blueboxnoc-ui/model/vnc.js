@@ -20,7 +20,7 @@ VNC.all = function(done) {
         var returned = [];
         Object.keys(jsonTree).forEach(function (k) {
             var vpnDesc = jsonTree[k];
-            Object.keys(vpnDesc.vncs).forEach(function (k) {
+            Object.keys(vpnDesc.vncs || {}).forEach(function (k) {
                 var vncDesc = vpnDesc.vncs[k];
                 returned.push(vncDesc);
                 vncDesc.vpn = vpnDesc.name;

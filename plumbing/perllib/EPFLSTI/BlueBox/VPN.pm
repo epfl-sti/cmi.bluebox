@@ -83,6 +83,9 @@ sub json_post {
   }
   $self->update($details);
   $self->save();
+  return {
+    name => $name
+  };
 }
 
 # Denormalized for the view's comfort:

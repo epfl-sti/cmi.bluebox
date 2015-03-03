@@ -217,6 +217,45 @@ module.exports.WebdriverTest.findLinkByText =
         return findBy(driverOrElement, webdriver.By.linkText(text));
 };
 
+
+/**
+ * Find an &lt;button&gt; by its text.
+ *
+ * @param driverOrElement A WebDriver driver or element object to
+ *        anchor the search at
+ * @param text The text to find
+ * @returns  {!webdriver.promise.Promise.<string>} A promise that
+ *     will be resolved with the an &lt;button&gt;  element
+ */
+module.exports.WebdriverTest.findButton =
+    function(driverOrElement, text) {
+        return findBy(driverOrElement,
+            webdriver.By.xpath('.//button[contains(text(), "' + text + '")]'));
+    };
+
+/**
+ * Find an input field or button by its accompanying label.
+ *
+ * @param driverOrElement A WebDriver driver or element object to
+ *        anchor the search at
+ * @param text The text to find
+ * @returns  {!webdriver.promise.Promise.<string>} A promise that
+ *     will be resolved with the element pointed to by the "for"
+ *     attribute of the &lt;label&gt; element containing {@param text}
+ */
+module.exports.WebdriverTest.findByLabel =
+    function (driverOrElement, text) {
+        return findBy(driverOrElement,
+            webdriver.By.xpath('.//label[contains(text(), "' + text + '")]'))
+            .then(function (elem) {
+                return elem.getAttribute('for')
+            })
+            .then(function (forAttributeValue) {
+                return driverOrElement.findElement(
+                    webdriver.By.id(forAttributeValue));
+            });
+    };
+
 function decorateIt(itOrig, self, itFromWdtesting) {
     var it = function(description, testBody) {
         if (!testBody) {

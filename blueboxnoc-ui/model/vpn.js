@@ -28,8 +28,8 @@ VPN.all = function(done) {
         Object.keys(jsonTree).forEach(function (k) {
             var vpnDesc = jsonTree[k];
             returned.push(vpnDesc);
-            vpnDesc.bbxs = Object.keys(vpnDesc.bboxes);
-            vpnDesc.vncs = Object.keys(vpnDesc.vncs);
+            vpnDesc.bbxs = Object.keys(vpnDesc.bboxes || {});
+            vpnDesc.vncs = Object.keys(vpnDesc.vncs || {});
         });
         return returned;
     });

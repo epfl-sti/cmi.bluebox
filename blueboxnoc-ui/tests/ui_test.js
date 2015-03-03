@@ -27,8 +27,16 @@ webdriver.WebElementPromise.prototype.thenClickIt = function() {
     });
 };
 
+webdriver.promise.Promise.prototype.thenSendKeys = function(text) {
+    this.then(function(elem) {
+        return elem.sendKeys(text);
+    });
+};
+
 var findText = testlib.WebdriverTest.findText,
-    findLinkByText = testlib.WebdriverTest.findLinkByText;
+    findLinkByText = testlib.WebdriverTest.findLinkByText,
+    findByLabel = testlib.WebdriverTest.findByLabel,
+    findButton = testlib.WebdriverTest.findButton;
 
 function findDashboardWidget(driver, title) {
     return findLinkByText(driver, title)
@@ -41,9 +49,9 @@ function findDashboardWidget(driver, title) {
 
 testlib.WebdriverTest.describe('UI tests', function() {
     var driver = this.driver;
-    before(testlib.WebdriverTest.setUpFakeData);
-
     describe('Read-only navigation', function () {
+        before(testlib.WebdriverTest.setUpFakeData);
+
         it('serves a homepage', function() {
             driver.get("/");
             var logo = driver.findElement(webdriver.By.className('logo'));
@@ -199,6 +207,26 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 example: {
                     linkName: "bbay"
                 }
+            });
+        });
+    });
+    describe('Create, Update, Delete operations', function () {
+        beforeEach(testlib.WebdriverTest.setUpFakeData);
+        it('creates a VPN', function () {
+            driver.get("/");
+            findLinkByText(driver, "VPNs").thenClickIt();
+            findText(driver, "Create").thenClickIt();
+            findByLabel(driver, "Name").thenSendKeys("NewName");
+            findByLabel(driver, "Description")
+                .thenSendKeys("This is a description");
+            findButton(driver, "Submit").then(when.lift(function (btnElem) {
+                debug.printXPath("Submit button ", btnElem);
+                return btnElem;
+            })).then(function(elem) {
+                // TODO: this should be thenClickIt, somehow
+                return elem.click();
+            }).then(function () {
+                findText(driver, 'Edit VPN: NewName');
             });
         });
     });

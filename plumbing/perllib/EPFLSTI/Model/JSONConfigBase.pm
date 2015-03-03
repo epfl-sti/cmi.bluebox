@@ -143,25 +143,27 @@ respectively. Exit with 0 upon success, 4 upon orderly failure.
 
 =cut
 
+sub dump_if_debug {
+  return unless ($ENV{DEBUG} =~ m/perl/);
+  my ($name, $struct) = @_;
+  require Data::Dumper;
+  warn Data::Dumper->Dump([$struct], [$name]);
+}
+
 foreach my $stem (qw(put post delete)) {
   my $json_marshalling_method = sub {
     my ($class) = @_;
     my $structin = decode_json(io->stdin->slurp);
-    if ($ENV{DEBUG} =~ m/perl/) {
-      require Data::Dumper;
-      warn Data::Dumper->Dump([$structin], ['$structin']);
-    }
+    dump_if_debug('$structin', $structin);
     try {
       my $structout = $class->can("json_${stem}")->
         ($class, $structin);
-      if ($ENV{DEBUG} =~ m/perl/) {
-        require Data::Dumper;
-        warn Data::Dumper->Dump([$structout], ['$structout']);
-      }
+      dump_if_debug('$structout', $structout);
       print STDOUT encode_json($structout);
       exit 0;
     } catch {
       die $_ unless ref;
+      dump_if_debug('exception', $_);
       print encode_json($_);
       exit 4;
     };
