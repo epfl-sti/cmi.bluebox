@@ -225,7 +225,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             });
         });
 
-        it.only('has a status page', function () {
+        it('has a status page', function () {
             driver.get('#/status');
             findText(driver, "INIT");
             findText(driver, "DOWNLOADED");
@@ -253,16 +253,16 @@ testlib.WebdriverTest.describe('UI tests', function() {
                 findText(driver, 'Edit VPN: NewName');
             });
         });
-    });
-    it('refuses to create two VPNs with the same name', function () {
-        driver.get("/");
-        findLinkByText(driver, "VPNs").thenClickIt();
-        findText(driver, "Create").thenClickIt();
-        findByLabel(driver, "Name").thenSendKeys("Foo");
-        findByLabel(driver, "Description")
-            .thenSendKeys("This is a description");
-        findButton(driver, "Submit").thenClickIt().then(function () {
-           findText("already exists");
+        it('refuses to create two VPNs with the same name', function () {
+            driver.get("/");
+            findLinkByText(driver, "VPNs").thenClickIt();
+            findText(driver, "Create").thenClickIt();
+            findByLabel(driver, "Name").thenSendKeys("Foo");
+            findByLabel(driver, "Description")
+                .thenSendKeys("This is a description");
+            findButton(driver, "Submit").thenClickIt().then(function () {
+                findText("already exists");
+            });
         });
     });
 });
