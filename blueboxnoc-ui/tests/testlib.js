@@ -182,7 +182,7 @@ var findBy = module.exports.WebdriverTest.findBy =
             if (opt_errorMsg) {
                 return webdriver.promise.rejected(opt_errorMsg);
             } else {
-                return webdriver.promise.fullyResolved();
+                return webdriver.promise.fulfilled();
             }
         });
         return driverOrElement.findElement(webdriverLocator);
