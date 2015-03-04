@@ -144,7 +144,7 @@ respectively. Exit with 0 upon success, 4 upon orderly failure.
 =cut
 
 sub dump_if_debug {
-  return unless ($ENV{DEBUG} =~ m/perl/);
+  return unless ($ENV{DEBUG} && $ENV{DEBUG} =~ m/perl/);
   my ($name, $struct) = @_;
   require Data::Dumper;
   warn Data::Dumper->Dump([$struct], [$name]);
