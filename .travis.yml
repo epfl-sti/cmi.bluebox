@@ -10,4 +10,4 @@ install:
   
 script:
   - ./linux quiet mem=2G rootfstype=hostfs rw eth0=slirp,,/usr/bin/slirp-fullbolt init=$(pwd)/travis/uml.sh WORKDIR=$(pwd) HOME=$HOME
-
+  - test -f /success

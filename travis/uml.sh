@@ -44,6 +44,7 @@ cgroups-mount
 mount -t tmpfs none /var/lib/docker
 
 # mount /var/lib/docker with a tmpfs
+mkdir -p /etc/docker
 mount -t tmpfs none /etc/docker
 
 # enable ipv4 forwarding for docker
@@ -74,3 +75,4 @@ docker pull "${BLUEBOXNOC_DOCKER_TESTS_NAME}"
 docker run -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
          "${BLUEBOXNOC_DOCKER_TESTS_NAME}" "/opt/blueboxnoc/devsupport/docker-tests/run_all_tests_from_docker.sh"
 
+touch /success
