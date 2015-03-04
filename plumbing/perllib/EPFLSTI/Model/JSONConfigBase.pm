@@ -197,6 +197,14 @@ sub json_post {
   return $self->TO_JSON();
 }
 
+sub json_delete {
+  my ($class, $details) = @_;
+  $class->_new_from_json($details)->delete;
+  return {
+    status => "success"
+  };
+}
+
 =head1 METHODS
 
 =head2 load ()                    # Instance method
@@ -262,6 +270,14 @@ Get the path to the JSON file that contains the state.
 =cut
 
 sub json_file { shift->data_dir->catfile("config.json") }
+
+=head2 delete
+
+Delete the underlying JSON file.
+
+=cut
+
+sub delete { shift->json_file->unlink }
 
 =head2 TO_JSON ()
 

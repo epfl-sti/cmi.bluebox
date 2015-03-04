@@ -53,11 +53,11 @@ function configure_API_subdir(router, api_path, model) {
         });
     });
 
-    if (model.perlControllerPackage) {
-        router.post(api_path, function(req, res, next) {
+    function apiWriteHandler(method_name) {
+        return function(req, res, next) {
             perl.talkJSONToPerl(
                 "use " + model.perlControllerPackage + "; "
-                    + model.perlControllerPackage + "->post_from_stdin;",
+                + model.perlControllerPackage + "->" + method_name + "_from_stdin;",
                 req.body,
                 function (result, err) {
                     if (err && typeof err === "object") { // Not Exception, not a String
@@ -74,19 +74,14 @@ function configure_API_subdir(router, api_path, model) {
                     }
                 }
             )
-        });
-        router.delete(api_path, function(req, res, next) {
-            perl.talkJSONToPerl(
-                "use " + model.perlControllerPackage + "; "
-                + model.perlControllerPackage + "->delete_from_stdin;",
-                req.body,
-                function (result, err) {
-                    if (err) {
-                        return next(err);
-                    }
-                    res.json(result);
-                }
-            )
+        }
+    }
+
+    if (model.perlControllerPackage) {
+        router.post(api_path, apiWriteHandler("post"));
+        router.delete(api_path + "/:id", function (req, res, next) {
+            req.body[model.primaryKey] = req.id;
+            apiWriteHandler("delete")(req, res, next);
         });
     }
 }
