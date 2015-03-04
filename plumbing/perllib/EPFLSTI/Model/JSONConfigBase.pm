@@ -172,6 +172,31 @@ foreach my $stem (qw(put post delete)) {
   *{"${stem}_from_stdin"} = $json_marshalling_method;
 }
 
+=head2 json_post ($properties_hashref)
+
+=head2 json_put
+
+=head2 json_delete
+
+Implement the Create, Update and Delete API operations respectively,
+using the protocol defined by perl.js in the Node.js code.
+
+=cut
+
+
+sub json_post {
+  my ($class, $details) = @_;
+  my $self = $class->_new_from_json($details);
+  if ($self->json_file->exists) {
+    die {
+      error => "already exists"
+    };
+  }
+  $self->update($details);
+  $self->save();
+  return $self->TO_JSON();
+}
+
 =head1 METHODS
 
 =head2 load ()                    # Instance method
@@ -279,20 +304,16 @@ To be defined by the subclasss.
 
 =head2 _new (@constructor_args)
 
-Construct an instance of the class. The arguments are supposed to
-select an instance only, so that @constructor_args can be passed as-is
-from L</new> or L</load>; mutations should be done by caller in
-another statement.
+Construct an instance of the class. The @constructor_args should be
+used to select an instance only, so that @constructor_args can be
+passed as-is from L</new> or L</load>; mutating the attributes should
+be done by caller in another statement.
 
-=head2 json_post
+=head2 _new_from_json($jsonstruct)
 
-=head2 json_put
-
-=head2 json_delete
-
-Implement the Create, Update and Delete API operations respectively.
-
-=cut
+Like L</_new>, different format of arguments. $jsonstruct is a JSON
+structure passed down from Node.js code, that contains the payload of
+an HTTP POST, PUT or DELETE request.
 
 =head1 ABSTRACT METHODS
 

@@ -57,36 +57,17 @@ sub _new {
   }, $class;
 }
 
+sub _new_from_json {
+  my ($class, $json) = @_;
+  return $class->_new(delete $json->{name});
+}
+
 sub all {
   my ($class) = @_;
   return $class->_load_from_subdirs(DATA_DIR);
 }
 
 sub data_dir { io->catdir(DATA_DIR, shift->{name}) }
-
-=head1 CONTROLLER CLASS METHODS
-
-=head2 json_post ($properties_hashref)
-
-Create a new object with these properties.
-
-=cut
-
-sub json_post {
-  my ($class, $details) = @_;
-  my $name = delete $details->{name};
-  my $self = $class->_new($name);
-  if ($self->json_file->exists) {
-    die {
-      error => "already exists"
-    };
-  }
-  $self->update($details);
-  $self->save();
-  return {
-    name => $name
-  };
-}
 
 # Denormalized for the view's comfort:
 __PACKAGE__->readonly_persistent_attribute('name');
