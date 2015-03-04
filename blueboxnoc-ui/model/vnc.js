@@ -6,6 +6,8 @@ VNC.primaryKey = {
     name: "id"
 };
 
+VNC.perlControllerPackage = "EPFLSTI::BlueBox::VNCTarget";
+
 /**
  * Return all Blue Boxes asynchronously.
  *

@@ -61,6 +61,14 @@ sub _new {
   return $self;
 }
 
+sub _new_from_json {
+  my ($class, $json) = @_;
+  require EPFLSTI::BlueBox::VPN;
+  my $vpn_obj = EPFLSTI::BlueBox::VPN->new(delete $json->{vpn});
+  # $json->{id} may or may not exist (PUT resp. POST)
+  return $class->_new($vpn_obj, delete $json->{id});
+}
+
 sub all {
   my ($class, $vpn_obj) = @_;
   return $class->_load_from_subdirs($class->_vnc_dir($vpn_obj), $vpn_obj);
