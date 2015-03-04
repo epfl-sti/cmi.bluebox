@@ -4,10 +4,7 @@ install:
   - sudo apt-get update || true
   - sudo mkdir -p /var/lib/docker
   - sudo cp /bin/true /sbin/start
-  - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
-  - sudo chmod +x /usr/sbin/policy-rc.d
-  - sudo apt-get install -y slirp lxc aufs-tools cgroup-lite
-  - sudo strace -f -F -s 2000 -e trace=process apt-get install -y lxc-docker
+  - sudo apt-get install -y slirp lxc lxc-docker aufs-tools cgroup-lite
   - curl -sLo linux https://github.com/jpetazzo/sekexe/raw/master/uml
   - chmod +x linux
   
