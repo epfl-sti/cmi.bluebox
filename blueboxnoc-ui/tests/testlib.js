@@ -73,11 +73,15 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
         wdtesting.before(function () {
             decorateDriver(self.driver, self.server.baseUrl);
         });
-        if (! runtime.isDocker()) {
+        if (runtime.isDocker()) {
+            // Keep browser open; closing the container takes care of it
+        } else if (process.env.DEBUG &&
+            process.env.DEBUG.search("browser") >= 0) {
+            // User requests brower be kept open
+        } else {
             wdtesting.after(function() {
                 self.driver.quit();
             });
-            // In Docker, leave browser lying around in case debug is needed.
         }
 
         // Not the most elegant (as compared to say, running suiteBody inside
