@@ -306,14 +306,17 @@ To be defined by the subclasss.
 
 Construct an instance of the class. The @constructor_args should be
 used to select an instance only, so that @constructor_args can be
-passed as-is from L</new> or L</load>; mutating the attributes should
-be done by caller in another statement.
+passed as-is from L</new> or L</load>. @constructor_args is not for
+setting attributes in new objects; that should be done by the caller
+in another statement.
 
 =head2 _new_from_json($jsonstruct)
 
 Like L</_new>, different format of arguments. $jsonstruct is a JSON
 structure passed down from Node.js code, that contains the payload of
-an HTTP POST, PUT or DELETE request.
+an HTTP POST, PUT or DELETE request. Like for L<_new>, _new_from_json
+should only extract the information that identifies the instance from
+$jsonstruct, not use it to set attributes.
 
 =head1 ABSTRACT METHODS
 

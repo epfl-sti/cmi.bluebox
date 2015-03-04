@@ -49,6 +49,7 @@ sub _new {
   bless {
     name => $name,
     vpn => $vpn_obj,
+    status => "INIT",
   }, $class;
 }
 
@@ -129,7 +130,8 @@ BEGIN_FOR_TESTS
 
   my @results = sort { $a->{name} cmp $b->{name} } @$results;
 
-  is_deeply(\@results, [{name => "bbox1", desc => "Hello."},
-                        {name => "bbox2.epfl.ch"}]);
+  is_deeply(\@results, [{name => "bbox1", desc => "Hello.",
+                         status => "INIT"},
+                        {name => "bbox2.epfl.ch", status => "INIT"}]);
 };
 
