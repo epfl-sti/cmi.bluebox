@@ -26,7 +26,7 @@ module.exports.startServer = function (app, done) {
     return server;
 };
 
-module.exports.WebdriverTest = {};
+var WebdriverTest = module.exports.WebdriverTest = {};
 
 /**
  * Wrapper around Mocha and Selenium for UI tests.
@@ -42,7 +42,7 @@ module.exports.WebdriverTest = {};
  * @param description Like Mocha's first parameter to describe()
  * @param suiteBody Like Mocha's second parameter to describe()
  */
-module.exports.WebdriverTest.describe = function (description, suiteBody) {
+WebdriverTest.describe = function (description, suiteBody) {
     if (! suiteBody) {
         return wdtesting.describe(description);
     }
@@ -96,7 +96,7 @@ module.exports.WebdriverTest.describe = function (description, suiteBody) {
     });
 };
 
-module.exports.WebdriverTest.setUpFakeData = function(done) {
+WebdriverTest.setUpFakeData = function(done) {
     runtime.srvDir(temp.mkdirSync("BlueBoxNocFakeData"));
     var perl = require('../lib/perl');
     perl.runPerl(
@@ -118,7 +118,7 @@ module.exports.WebdriverTest.setUpFakeData = function(done) {
  * @returns {!webdriver.promise.Promise.<string>} A promise that will be
  *     resolved with the element's pseudo-XPath.
  */
-module.exports.WebdriverTest.getXPath = function(elem) {
+WebdriverTest.getXPath = function(elem) {
     return elem.driver_.executeScript(
         // Adapted from https://stackoverflow.com/questions/4176560
         // This is mobile code, it gets stringified and sent into the
@@ -163,7 +163,7 @@ module.exports.WebdriverTest.getXPath = function(elem) {
  *     will be resolved with the element that was looked up. Ignoring the
  *     return value is fine, and simply asserts that the element exists.
  */
-var findBy = module.exports.WebdriverTest.findBy =
+var findBy = WebdriverTest.findBy =
     function(driverOrElement, webdriverLocator) {
         var driver = driverOrElement.driver_ || driverOrElement;
         driver.manage().timeouts().setScriptTimeout(10000);
@@ -199,7 +199,7 @@ var findBy = module.exports.WebdriverTest.findBy =
  *     resolved with the text node's parent element (given that at least
  *     WD + Chromedriver refuses to select text nodes directly)
  */
-module.exports.WebdriverTest.findText = function(driverOrElement, text) {
+WebdriverTest.findText = function(driverOrElement, text) {
     return findBy(driverOrElement,
         webdriver.By.xpath('descendant::text()[contains(., "' + text + '")]' +
             // (Under Chrome at least) .findElement refuses to select a text
@@ -216,8 +216,7 @@ module.exports.WebdriverTest.findText = function(driverOrElement, text) {
  * @returns  {!webdriver.promise.Promise.<string>} A promise that
  *     will be resolved with the an &lt;a&gt; link element
  */
-module.exports.WebdriverTest.findLinkByText =
-    function(driverOrElement, text) {
+WebdriverTest.findLinkByText = function(driverOrElement, text) {
         return findBy(driverOrElement, webdriver.By.linkText(text));
 };
 
@@ -231,8 +230,7 @@ module.exports.WebdriverTest.findLinkByText =
  * @returns  {!webdriver.promise.Promise.<string>} A promise that
  *     will be resolved with the an &lt;button&gt;  element
  */
-module.exports.WebdriverTest.findButton =
-    function(driverOrElement, text) {
+WebdriverTest.findButton = function(driverOrElement, text) {
         return findBy(driverOrElement,
             webdriver.By.xpath('.//button[contains(text(), "' + text + '")]'));
     };
@@ -247,8 +245,7 @@ module.exports.WebdriverTest.findButton =
  *     will be resolved with the element pointed to by the "for"
  *     attribute of the &lt;label&gt; element containing {@param text}
  */
-module.exports.WebdriverTest.findByLabel =
-    function (driverOrElement, text) {
+WebdriverTest.findByLabel = function (driverOrElement, text) {
         return findBy(driverOrElement,
             webdriver.By.xpath('.//label[contains(text(), "' + text + '")]'))
             .then(function (elem) {
@@ -259,6 +256,11 @@ module.exports.WebdriverTest.findByLabel =
                     webdriver.By.id(forAttributeValue));
             });
     };
+
+WebdriverTest.findAncestorNode = function(driverOrElement, parentTag) {
+    return driverOrElement.findElement(webdriver.By.xpath(
+        'ancestor::' + parentTag));
+};
 
 function decorateIt(itOrig, self, itFromWdtesting) {
     var it = function(description, testBody) {

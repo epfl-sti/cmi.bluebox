@@ -27,6 +27,15 @@ webdriver.WebElementPromise.prototype.thenClickIt = function() {
     });
 };
 
+webdriver.promise.Promise.prototype.thenSelect = function(selection) {
+    return this.then(function(selectElem) {
+        return selectElem.findElement(
+            webdriver.By.xpath('option[text() = "' + selection + '"]'))
+    }).then(function (optionElem) {
+        return optionElem.click();
+    });
+};
+
 webdriver.promise.Promise.prototype.thenSendKeys = function(text) {
     this.then(function(elem) {
         return elem.sendKeys(text);
@@ -36,7 +45,8 @@ webdriver.promise.Promise.prototype.thenSendKeys = function(text) {
 var findText = testlib.WebdriverTest.findText,
     findLinkByText = testlib.WebdriverTest.findLinkByText,
     findByLabel = testlib.WebdriverTest.findByLabel,
-    findButton = testlib.WebdriverTest.findButton;
+    findButton = testlib.WebdriverTest.findButton,
+    findAncestorNode = testlib.WebdriverTest.findAncestorNode;
 
 function findDashboardWidget(driver, title) {
     return findLinkByText(driver, title)
@@ -107,14 +117,17 @@ testlib.WebdriverTest.describe('UI tests', function() {
             driver.get("/");
             findLinkByText(driver, dashboardTitle).thenClickIt();
             findText(driver, listViewTitle);
-            findText(driver, opts.example.description).then(function (elem) {
-                debug.printXPath(opts.example.description + " found at: ", elem);
-                return elem.findElement(webdriver.By.xpath('ancestor::tr'))
-            }).then(function (rowObject) {
-                findLinkByText(rowObject, opts.example.linkName);
-                if (opts.moreRowChecks) {
-                    opts.moreRowChecks(rowObject);
-                }
+            findText(driver, opts.example.description)
+                .then(function (elem) {
+                    return findAncestorNode(elem, "tr");
+                })
+                .then(function (rowElem) {
+                    debug.printXPath(opts.example.description +
+                        " found in row: ", rowElem);
+                    findLinkByText(rowElem, opts.example.linkName);
+                    if (opts.moreRowChecks) {
+                        opts.moreRowChecks(rowElem);
+                    }
             });
         }
 
@@ -263,6 +276,25 @@ testlib.WebdriverTest.describe('UI tests', function() {
             findButton(driver, "Submit").thenClickIt().then(function () {
                 findText(driver, "already exists");
             });
+        });
+        it('creates Blue Boxes in the INIT state', function () {
+            driver.get("/");
+            findLinkByText(driver, "Blue Boxes").thenClickIt();
+            findText(driver, "Create").thenClickIt();
+            findByLabel(driver, "Name").thenSendKeys("aNewBox");
+            findByLabel(driver, "Description")
+                .thenSendKeys("This is a description");
+            findByLabel(driver, "VPN").thenSelect("Bar");
+            findButton(driver, "Submit").thenClickIt();
+            findLinkByText(driver, "Blue Boxes").thenClickIt();
+            // Note that we expect the named to be forced to lower case:
+            findLinkByText(driver, "anewbox")
+                .then(function (elem) {
+                    return findAncestorNode(elem, "tr");
+                })
+                .then(function (rowElem) {
+                    findText(rowElem, "INIT");
+                });
         });
     });
 });
