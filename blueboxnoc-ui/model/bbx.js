@@ -11,6 +11,8 @@ BBX.primaryKey = {
     }
 };
 
+BBX.perlControllerPackage = "EPFLSTI::BlueBox::BlueBox";
+
 /**
  * Return all Blue Boxes asynchronously.
  *
