@@ -44,7 +44,6 @@ cgroups-mount
 mount -t tmpfs none /var/lib/docker
 
 # mount /var/lib/docker with a tmpfs
-mkdir -p /etc/docker
 mount -t tmpfs none /etc/docker
 
 # enable ipv4 forwarding for docker
