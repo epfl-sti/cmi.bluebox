@@ -28,65 +28,48 @@ Top directory.
 View-side data for this VPN. The view can either enumerate the
 subdirectories of /srv/vpn/*/vncs that have a config.json file in
 them, or use one of the the L</all> or
-L<EPFLSTI::Model::JSONConfigBase/all_json> class methods in a
+L<EPFLSTI::Model::PersistentBase/all_json> class methods in a
 one-liner.
 
 =cut
 
-use base "EPFLSTI::Model::JSONConfigBase";
+use base "EPFLSTI::Model::PersistentBase";
+
+sub _class_moniker { "vncs" }
 
 use Carp;
+
+use List::Util qw(max);
 
 use IO::All;
 
 use Errno qw(EEXIST);
 
+my $_last_attributed_id;
 sub _new {
-  my ($class, $vpn_obj, $id) = @_;
-  my $self = bless {
-    id => $id,
-    vpn => $vpn_obj,
-  }, $class;
-
-  if (! defined $self->{id}) {
-    $self->_vnc_dir($vpn_obj)->mkpath();
-    for($self->{id} = 0;;$self->{id} += 1) {
-      my $attempt_data_dir = $self->data_dir;
-      mkdir($attempt_data_dir) && return $self;
-      croak "Cannot create $attempt_data_dir: $!" unless
-        ($! == EEXIST);
-    }
+  my ($class, $id) = @_;
+  if (! defined $id) {
+    $_last_attributed_id = $id =
+      1 + (max(($_last_attributed_id || 0),
+               map {$_->id} $class->all) || 0);
   }
 
-  return $self;
+  return bless {
+    id => $id,
+  }, $class;
 }
+
+sub _key { shift->{id} }
 
 sub _new_from_json {
   my ($class, $json) = @_;
-  require EPFLSTI::BlueBox::VPN;
-  my $vpn_obj = EPFLSTI::BlueBox::VPN->new(delete $json->{vpn});
-  # $json->{id} may or may not exist (PUT resp. POST)
-  return $class->_new($vpn_obj, delete $json->{id});
-}
-
-sub all {
-  my ($class, $vpn_obj) = @_;
-  return $class->_load_from_subdirs($class->_vnc_dir($vpn_obj), $vpn_obj);
-}
-
-sub _vnc_dir {
-  my (undef, $vpn_obj) = @_;
-  return io->dir($vpn_obj->data_dir)->catdir("vncs")
-}
-
-sub data_dir {
-  my $self = shift;
-  return $self->_vnc_dir($self->{vpn})->catdir($self->{id});
+  return $class->_new(delete $json->{id});
 }
 
 # Denormalized for the view's comfort:
 __PACKAGE__->readonly_persistent_attribute('id');
 __PACKAGE__->persistent_attribute($_) for qw(name desc ip port);
+__PACKAGE__->foreign_key("vpn", "EPFLSTI::BlueBox::VPN");
 
 require My::Tests::Below unless caller();
 
@@ -108,10 +91,17 @@ use IO::All;
 
 use EPFLSTI::Docker::Paths;
 
+use EPFLSTI::Model::Transaction qw(transaction);
 use EPFLSTI::BlueBox::VPN;
 
 EPFLSTI::Docker::Paths->srv_dir(My::Tests::Below->tempdir);
 
+sub reset_tests {
+  transaction (sub {});
+  io(EPFLSTI::Model::PersistentBase->FILE)->unlink;
+}
+
+skip_next_test;
 test "synopsis" => sub {
   my $synopsis = My::Tests::Below->pod_code_snippet("synopsis");
 
@@ -127,14 +117,16 @@ BEGIN_FOR_TESTS
 
   $synopsis =~ s/-e/-e 'BEGIN { $begin_for_tests }' -e/;  # Still no /g
 
-  my $vpn = EPFLSTI::BlueBox::VPN->new("My_VPN");
-  my $vnc1 = EPFLSTI::BlueBox::VNCTarget->new($vpn, 1);
-  $vnc1->{name} = "VNC 1";
-  $vnc1->{desc} = "Hello.";
-  $vnc1->save();
-  my $vnc2 = EPFLSTI::BlueBox::VNCTarget->new($vpn, 2);
-  $vnc2->{name} = "VNC 2";
-  $vnc2->save();
+  transaction {
+    my $vpn = EPFLSTI::BlueBox::VPN->new("My_VPN");
+    my $vnc1 = EPFLSTI::BlueBox::VNCTarget->new;
+    $vnc1->{vpn} = $vpn->{name};
+    $vnc1->{name} = "VNC 1";
+    $vnc1->{desc} = "Hello.";
+    my $vnc2 = EPFLSTI::BlueBox::VNCTarget->new;
+    $vnc2->{vpn} = $vpn->{name};
+    $vnc2->{name} = "VNC 2";
+  };
 
   my $json = io->pipe($synopsis)->slurp;
   ok ((my $results = JSON::decode_json($json)),
@@ -142,7 +134,27 @@ BEGIN_FOR_TESTS
 
   my @results = sort { $a->{id} cmp $b->{id} } @$results;
 
-  is_deeply(\@results, [{id => 1, name => "VNC 1", desc => "Hello."},
-                        {id => 2, name => "VNC 2"}]);
+  is_deeply(\@results, [{id => 1, name => "VNC 1", desc => "Hello.",
+                         vpn => "My_VPN"},
+                        {id => 2, name => "VNC 2", vpn => "My_VPN"}]);
 };
 
+test "all_json" => sub {
+  reset_tests;
+  transaction {
+    my $vpn = EPFLSTI::BlueBox::VPN->new("My_VPN");
+    my $vnc1 = EPFLSTI::BlueBox::VNCTarget->new;
+    $vnc1->{vpn} = $vpn->{name};
+    $vnc1->{name} = "VNC 1";
+    $vnc1->{desc} = "Hello.";
+    my $vnc2 = EPFLSTI::BlueBox::VNCTarget->new;
+    $vnc2->{vpn} = $vpn->{name};
+    $vnc2->{name} = "VNC 2";
+  };
+  my @results = sort { $a->{id} cmp $b->{id} }
+    @{JSON::decode_json(EPFLSTI::BlueBox::VNCTarget->all_json)};
+
+  is_deeply(\@results, [{id => 1, name => "VNC 1", desc => "Hello.",
+                         vpn => "My_VPN"},
+                        {id => 2, name => "VNC 2", vpn => "My_VPN"}]);
+};

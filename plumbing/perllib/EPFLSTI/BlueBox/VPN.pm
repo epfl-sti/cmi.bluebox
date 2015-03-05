@@ -17,23 +17,9 @@ EPFLSTI::BlueBox::VPN - Model for a Blue Box VPN.
 
 =for My::Tests::Below "synopsis" end
 
-=head1 DIRECTORY LAYOUT
-
-=item /srv/vpn/My_VPN_Name
-
-Top directory.
-
-=item /srv/vpn/My_VPN_Name/config.json
-
-View-side data for this VPN. The view can either enumerate the
-subdirectories of /srv/vpn that have a config.json file in them, or
-use one of the the L</all> or
-L<EPFLSTI::Model::JSONConfigBase/all_json> class methods in a
-one-liner.
-
 =cut
 
-use base qw(EPFLSTI::Model::JSONConfigBase);
+use base qw(EPFLSTI::Model::PersistentBase);
 
 use IO::All;
 
@@ -43,11 +29,6 @@ use EPFLSTI::Model::LoadError;
 our $NAME_RE = qr/^[A-Za-z0-9_]+$/;
 
 use EPFLSTI::Docker::Paths;
-
-BEGIN {
-  *DATA_DIR = EPFLSTI::Docker::Paths->settable_srv_subpath("vpn");
-  *TINC_DIR = EPFLSTI::Docker::Paths->settable_srv_subpath("etc/tinc");
-}
 
 sub _new {
   my ($class, $vpn_name) = @_;
@@ -61,13 +42,6 @@ sub _new_from_json {
   my ($class, $json) = @_;
   return $class->_new(delete $json->{name});
 }
-
-sub all {
-  my ($class) = @_;
-  return $class->_load_from_subdirs(DATA_DIR);
-}
-
-sub data_dir { io->catdir(DATA_DIR, shift->{name}) }
 
 # Denormalized for the view's comfort:
 __PACKAGE__->readonly_persistent_attribute('name');
@@ -94,13 +68,19 @@ use JSON;
 use IO::All;
 
 use EPFLSTI::Docker::Paths;
+use EPFLSTI::Model::Transaction qw(transaction);
 
 EPFLSTI::Docker::Paths->srv_dir(My::Tests::Below->tempdir);
 
 my $tempdir = io(My::Tests::Below->tempdir);
 
+sub reset_tests {
+  transaction (sub {});
+  io(EPFLSTI::Model::PersistentBase->FILE)->unlink;
+}
+
 test "synopsis" => sub {
-  $tempdir->rmtree;
+  reset_tests;
   my $synopsis = My::Tests::Below->pod_code_snippet("synopsis");
 
   my $perlformula = join(" ", $^X, map { "-I" . io($_)->absolute } @INC);
@@ -116,8 +96,10 @@ BEGIN_FOR_TESTS
 
   # While we're here, cover the creation code paths:
 
-  EPFLSTI::BlueBox::VPN->new("My_First_VPN");
-  EPFLSTI::BlueBox::VPN->new("My_Second_VPN");
+  transaction {
+    EPFLSTI::BlueBox::VPN->new("My_First_VPN");
+    EPFLSTI::BlueBox::VPN->new("My_Second_VPN");
+  };
 
   my $json = io->pipe($synopsis)->slurp;
   ok ((my $results = JSON::decode_json($json)),
@@ -130,12 +112,11 @@ BEGIN_FOR_TESTS
 
 test "all_json" => sub {
   # Basically same as above, sans snarfing the code from the POD.
-  $tempdir->rmtree;
-  EPFLSTI::BlueBox::VPN->new("My_First_VPN");
-  EPFLSTI::BlueBox::VPN->new("My_Second_VPN");
-  # Red herring:
-  io->dir(My::Tests::Below->tempdir)->catdir("vpn")->catdir("No_Third_VPN")
-    ->mkpath->file("config.bson") < '{"name" : "Red herring", }';
+  reset_tests;
+  transaction {
+    EPFLSTI::BlueBox::VPN->new("My_First_VPN");
+    EPFLSTI::BlueBox::VPN->new("My_Second_VPN");
+  };
 
   ok ((my $results = JSON::decode_json(EPFLSTI::BlueBox::VPN->all_json())),
       "Tastes like JSON");
@@ -148,10 +129,11 @@ test "all_json" => sub {
 };
 
 test "Accessors" => sub {
-  $tempdir->rmtree;
-  my $vpn = EPFLSTI::BlueBox::VPN->new("My_First_VPN");
-  $vpn->set_desc("This is my first VPN.");
-  $vpn->save();
+  reset_tests;
+  transaction {
+    my $vpn = EPFLSTI::BlueBox::VPN->new("My_First_VPN");
+    $vpn->set_desc("This is my first VPN.");
+  };
   is(EPFLSTI::BlueBox::VPN->load("My_First_VPN")->get_desc,
     "This is my first VPN.");
 };
