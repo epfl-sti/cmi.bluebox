@@ -60,9 +60,9 @@ sub _new {
 
 sub _key { shift->{id} }
 
-sub _new_from_json {
+sub _key_from_json {
   my ($class, $json) = @_;
-  return $class->_new(delete $json->{id});
+  return delete $json->{id};
 }
 
 sub all {

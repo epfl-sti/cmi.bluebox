@@ -19,10 +19,11 @@ work like that.
 
 =cut
 
+use IO::All;
 use JSON;
 use Try::Tiny;
 
-use EPFLSTI::Model::LoadError;
+use EPFLSTI::Model::ReferenceError;
 use EPFLSTI::Model::JSONStore;
 use EPFLSTI::Docker::Paths;
 
@@ -56,18 +57,32 @@ sub _mark_for_deletion {
 
 Load the object from the flat JSON file.
 
-If not possible, raise L<EPFLSTI::Model::LoadError>.
+If not possible, raise L<EPFLSTI::Model::ReferenceError>.
+
+=head2 create (@key)
+
+Assert that this object doesn't already exist.
+
+Otherwise, raise L<EPFLSTI::Model::ReferenceError>.
 
 =head2 new (@key)
 
-L</load> or create this object.
+L</load> or L</create> this object.
+
 
 =cut
 
 sub load {
   my $self = _get_unique_instance(@_);
   $self->_inflate_if_exists(_store) or
-    throw EPFLSTI::Model::LoadError(message => "Object does not exist");
+    throw EPFLSTI::Model::ReferenceError(message => "Object does not exist");
+  return $self;
+}
+
+sub create {
+  my $self = _get_unique_instance(@_);
+  $self->_exists_in_store() &&
+    throw EPFLSTI::Model::ReferenceError(message => "Object already exists");
   return $self;
 }
 
@@ -82,6 +97,11 @@ sub _get_unique_instance {
   my $self = $class->_new(@key);
   $self->{_PersistentBase__key} = [@key];
   return ($transaction->{objects}->{$self->_uniqueness_token} ||= $self);
+}
+
+sub _exists_in_store {
+  my ($self) = @_;
+  return !(! _store->get($self->_class_moniker, $self->_key_as_string));
 }
 
 sub _inflate_if_exists {
@@ -309,19 +329,27 @@ using the protocol defined by perl.js in the Node.js code.
 
 sub json_post {
   my ($class, $details) = @_;
-  my $self = $class->_new_from_json($details);
-  if ($self->json_file->exists) {
-    die {
-      error => "already exists"
-    };
-  }
+  begin_transaction();
+  my $self;
+  try {
+    $self = $class->create($class->_key_from_json($details));
+  } catch {
+    if (UNIVERSAL::isa($_, "EPFLSTI::Model::ReferenceError")) {
+      die({ message => "already exists" });
+    } else {
+      die $_;
+    }
+  };
   $self->update($details);
+  commit_transaction();
   return $self->TO_JSON();
 }
 
 sub json_delete {
   my ($class, $details) = @_;
-  $class->_new_from_json($details)->delete;
+  begin_transaction();
+  $class->load($class->_key_from_json($details))->delete;
+  commit_transaction();
   return {
     status => "success"
   };
@@ -575,7 +603,7 @@ test "Mutating objects loaded outside the transaction has no effect" => sub {
     load My::Class;
     fail("Should have thrown");
   } catch {
-    is(ref($_), "EPFLSTI::Model::LoadError");
+    is(ref($_), "EPFLSTI::Model::ReferenceError");
   }
 };
 

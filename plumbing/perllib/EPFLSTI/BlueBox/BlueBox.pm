@@ -52,9 +52,9 @@ sub _new {
   }, $class;
 }
 
-sub _new_from_json {
+sub _key_from_json {
   my ($class, $json) = @_;
-  return $class->_new(delete $json->{name});
+  return delete $json->{name};
 }
 
 sub all {

@@ -23,8 +23,6 @@ use base qw(EPFLSTI::Model::PersistentBase);
 
 use IO::All;
 
-use EPFLSTI::Model::LoadError;
-
 # Constrained by OpwenWRT code; see also VPN.validName in the JS code.
 our $NAME_RE = qr/^[A-Za-z0-9_]+$/;
 
@@ -38,9 +36,9 @@ sub _new {
   }, $class;
 }
 
-sub _new_from_json {
+sub _key_from_json {
   my ($class, $json) = @_;
-  return $class->_new(delete $json->{name});
+  return delete $json->{name};
 }
 
 # Denormalized for the view's comfort:

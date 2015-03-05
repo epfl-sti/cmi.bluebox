@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package EPFLSTI::Model::LoadError;
+package EPFLSTI::Model::ReferenceError;
 
 use strict;
 
@@ -10,7 +10,7 @@ require v5.10.0;  # Any version that supports die'ing with a ref, in fact
 
 =head1 NAME
 
-EPFLSTI::Model::LoadError - Raised when C<load()> fails.
+EPFLSTI::Model::ReferenceError - Raised upon referential integrity problems.
 
 =cut
 

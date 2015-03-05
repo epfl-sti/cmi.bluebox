@@ -218,7 +218,7 @@ testlib.WebdriverTest.describe('UI tests', function() {
             checkEditView("BlueBox", {
                 titlePlural: "BlueBoxes",
                 example: {
-                    linkName: "bbay"
+                    linkName: "bbax"
                 }
             });
         });
