@@ -56,7 +56,7 @@ sub everything {
     local $!;
     try {
       $self->{everything} = decode_json(
-        io->file($self->{filename})->slurp);
+        scalar io->file($self->{filename})->slurp);
     } catch {
       if ($! == Errno::ENOENT) { die $_; }
       $self->{everything} = {};
@@ -140,7 +140,7 @@ This does B<not> check that the object is L</locked>.
 sub save {
   my ($self) = @_;
   my $new_json_file = io->file($self->{filename} . '.new');
-  $new_json_file->print(encode_json($self->everything));
+  $new_json_file->print(JSON->new->utf8->pretty->encode($self->everything));
   $new_json_file->rename($self->{filename});
 }
 
