@@ -230,8 +230,28 @@ key into class $target_perl_package.
 =cut
 
 sub foreign_key {
-  my ($pkg, $attr) = @_;
-  $pkg->persistent_attribute($attr);
+  my ($pkg, $attr, $target_class) = @_;
+  no warnings "once";
+
+  my $get = sub {
+    my ($self) = @_;
+    return $target_class->load($self->{$attr});
+  };
+
+  my $set = sub {
+    my ($self, $newval) = @_;
+    if (UNIVERSAL::isa($newval, $target_class)) {
+      $newval = $newval->_key;
+    };
+    $self->{$attr} = $newval;
+  };
+
+  no strict "refs";
+  *{"${pkg}::get_${attr}"} = $get;
+  *{"${pkg}::set_${attr}"} = $set;
+  push @{"${pkg}::PERSISTENT_FIELDS"}, $attr;
+  push @{"${pkg}::UPDATEABLE_FIELDS"}, $attr;
+
 }
 
 =head2 put_from_stdin
@@ -318,7 +338,8 @@ sub _class_moniker {
 }
 
 sub _key {
-  return @{shift->{_PersistentBase__key}};
+  my @key = @{shift->{_PersistentBase__key}};
+  return wantarray ? @key : $key[0];
 }
 
 sub _key_as_string {
@@ -463,12 +484,7 @@ sub reset_tests {
 
   sub _new { bless {}, shift }
 
-  sub TO_JSON {
-    my $self = shift;
-    return { foo => $self->{foo}, bar => $self->{bar} };
-  }
-
-  My::Class->persistent_attribute(qw(zoinx));
+  My::Class->persistent_attribute($_) for (qw(foo bar zoinx));
 }
 
 test "->new() and ->load()" => sub {
@@ -593,3 +609,35 @@ test "Accessors" => sub {
   $obj->set_zoinx("Mew");
   is($obj->{zoinx}, "Mew");
 };
+
+My::Class->foreign_key(pointsto => "My::Other::Class");
+
+{
+  package My::Other::Class;
+  use base 'EPFLSTI::Model::PersistentBase';
+
+  sub _new { bless {}, shift }
+}
+
+test "Foreign key getter sets object's key" => sub {
+  reset_tests;
+
+  transaction {
+    my $obj1 = new My::Class("A");
+    $obj1->set_pointsto(new My::Other::Class("target"));
+    $DB::single = 1;
+    1;
+  };
+  is(My::Class->load("A")->{pointsto}, "target");
+};
+
+test "Foreign key getter returns a ->load()ed object" => sub {
+  reset_tests;
+
+  transaction {
+    my $obj1 = new My::Class("A");
+    $obj1->set_pointsto(new My::Other::Class("target"));
+  };
+  ok(My::Class->load("A")->get_pointsto->isa("My::Other::Class"));
+};
+

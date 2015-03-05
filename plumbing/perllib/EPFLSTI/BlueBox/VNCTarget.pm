@@ -45,13 +45,12 @@ use IO::All;
 
 use Errno qw(EEXIST);
 
-my $_last_attributed_id;
+our $_last_attributed_id = 0;
 sub _new {
   my ($class, $id) = @_;
   if (! defined $id) {
     $_last_attributed_id = $id =
-      1 + (max(($_last_attributed_id || 0),
-               map {$_->id} $class->all) || 0);
+      1 + (max($_last_attributed_id, map {$_->id} $class->all));
   }
 
   return bless {
@@ -66,10 +65,22 @@ sub _new_from_json {
   return $class->_new(delete $json->{id});
 }
 
+sub all {
+  my ($class, $vpn_obj) = @_;
+  my @really_all = $class->SUPER::all();
+  if (! defined $vpn_obj) {
+    return @really_all;
+  } else {
+    return map {
+      ($vpn_obj->get_name() eq $_->{vpn}) ? ($_) : ()
+    } @really_all;
+  }
+}
+
 # Denormalized for the view's comfort:
 __PACKAGE__->readonly_persistent_attribute('id');
 __PACKAGE__->persistent_attribute($_) for qw(name desc ip port);
-__PACKAGE__->foreign_key("vpn", "EPFLSTI::BlueBox::VPN");
+__PACKAGE__->foreign_key(vpn => "EPFLSTI::BlueBox::VPN");
 
 require My::Tests::Below unless caller();
 
@@ -99,9 +110,9 @@ EPFLSTI::Docker::Paths->srv_dir(My::Tests::Below->tempdir);
 sub reset_tests {
   transaction (sub {});
   io(EPFLSTI::Model::PersistentBase->FILE)->unlink;
+  $EPFLSTI::BlueBox::VNCTarget::_last_attributed_id = 0;
 }
 
-skip_next_test;
 test "synopsis" => sub {
   my $synopsis = My::Tests::Below->pod_code_snippet("synopsis");
 

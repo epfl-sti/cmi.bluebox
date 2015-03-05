@@ -64,7 +64,7 @@ sub all {
     return @really_all;
   } else {
     return map {
-      ($vpn_obj->get_name() eq $_->get_vpn) ? ($_) : ()
+      ($vpn_obj->get_name() eq $_->{vpn}) ? ($_) : ()
     } @really_all;
   }
 }
@@ -72,7 +72,7 @@ sub all {
 # Denormalized for the view's comfort:
 __PACKAGE__->readonly_persistent_attribute('name');
 __PACKAGE__->persistent_attribute($_) for (qw(desc ip status));
-__PACKAGE__->foreign_key("vpn", "EPFLSTI::BlueBox::VPN");
+__PACKAGE__->foreign_key(vpn => "EPFLSTI::BlueBox::VPN");
 
 require My::Tests::Below unless caller();
 
