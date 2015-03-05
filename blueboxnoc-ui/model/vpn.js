@@ -23,13 +23,25 @@ VPN.perlControllerPackage = "EPFLSTI::BlueBox::VPN";
  *   ]);
  */
 VPN.all = function(done) {
-    json.asyncProcessAllVPNs(done, function(jsonTree) {
+    json.asyncProcessData(done, function(jsonTree) {
         var returned = [];
-        Object.keys(jsonTree).forEach(function (k) {
-            var vpnDesc = jsonTree[k];
+        Object.keys(jsonTree.vpns).forEach(function (k) {
+            var vpnDesc = jsonTree.vpns[k];
             returned.push(vpnDesc);
-            vpnDesc.bbxs = Object.keys(vpnDesc.bboxes || {});
-            vpnDesc.vncs = Object.keys(vpnDesc.vncs || {});
+            vpnDesc.bbxs = [];
+            Object.keys(jsonTree.bboxes).forEach(function (j) {
+                var bboxDesc = jsonTree.bboxes[j];
+                if (bboxDesc.vpn == k) {
+                    vpnDesc.bbxs.push(bboxDesc.name);
+                }
+            });
+            vpnDesc.vncs = [];
+            Object.keys(jsonTree.vncs).forEach(function (j) {
+                var vncDesc = jsonTree.vncs[j];
+                if (vncDesc.vpn == k) {
+                    vpnDesc.vncs.push(vncDesc.id);
+                }
+            });
         });
         return returned;
     });

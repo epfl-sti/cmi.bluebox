@@ -23,15 +23,11 @@ BBX.perlControllerPackage = "EPFLSTI::BlueBox::BlueBox";
  *   ]);
  */
 BBX.all = function(done) {
-    json.asyncProcessAllVPNs(done, function(jsonTree) {
+    json.asyncProcessData(done, function(jsonTree) {
         var returned = [];
-        Object.keys(jsonTree).forEach(function (k) {
-            var vpnDesc = jsonTree[k];
-            Object.keys(vpnDesc.bboxes || {}).forEach(function (k) {
-                var bboxDesc = vpnDesc.bboxes[k];
-                returned.push(bboxDesc);
-                bboxDesc.vpn = vpnDesc.name;
-            });
+        Object.keys(jsonTree.bboxes).forEach(function (k) {
+            var bboxDesc = jsonTree.bboxes[k];
+            returned.push(bboxDesc);
         });
         return returned;
     });

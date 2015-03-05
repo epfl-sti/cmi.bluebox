@@ -21,6 +21,8 @@ BEGIN {
 
 use EPFLSTI::Docker::Paths;
 
+use EPFLSTI::Model::Transaction qw(transaction);
+
 use EPFLSTI::BlueBox::VPN;
 use EPFLSTI::BlueBox::BlueBox;
 use EPFLSTI::BlueBox::VNCTarget;
@@ -61,28 +63,30 @@ my @fake_vnc_data = (
     {name => "vnc5", ip => "192.168.50.50", port => "5901", vpn => "Baz", desc => "detail of my fifth vnc", token => "ooJee6ohwaevooQuoSu3chahk"}
 );
 
-foreach my $params (@$fake_vpn_data) {
-  my $vpn = EPFLSTI::BlueBox::VPN->new($params->{name});
-  $vpn->set_desc($params->{desc});
-  $vpn->save();
-}
+transaction {
+  foreach my $params (@$fake_vpn_data) {
+    EPFLSTI::BlueBox::VPN->new($params->{name})->set_desc($params->{desc});
+  }
+};
 
-foreach my $params (@$fake_bbx_data) {
-  my $vpn = EPFLSTI::BlueBox::VPN->load($params->{vpn});
-  my $bbox = EPFLSTI::BlueBox::BlueBox->new($vpn, $params->{name});
-  $bbox->set_desc($params->{desc});
-  $bbox->set_ip($params->{ip});
-  $bbox->set_status($params->{status});
-  $bbox->save();
-}
+transaction {
+  foreach my $params (@$fake_bbx_data) {
+    my $vpn = EPFLSTI::BlueBox::VPN->load($params->{vpn});
+    my $bbox = EPFLSTI::BlueBox::BlueBox->new($params->{name});
+    $bbox->set_vpn($vpn);
+    $bbox->set_desc($params->{desc});
+    $bbox->set_ip($params->{ip});
+    $bbox->set_status($params->{status});
+  }
 
-for(my $i = 0; $i < @fake_vnc_data; $i++) {
-  my $params = $fake_vnc_data[$i];
-  my $vpn = EPFLSTI::BlueBox::VPN->load($params->{vpn});
-  my $vnc_target = EPFLSTI::BlueBox::VNCTarget->new($vpn, $i);
-  $vnc_target->set_name($params->{name});
-  $vnc_target->set_desc($params->{desc});
-  $vnc_target->set_ip($params->{ip});
-  $vnc_target->set_port($params->{port});
-  $vnc_target->save();
-}
+  for(my $i = 0; $i < @fake_vnc_data; $i++) {
+    my $params = $fake_vnc_data[$i];
+    my $vpn = EPFLSTI::BlueBox::VPN->load($params->{vpn});
+    my $vnc_target = EPFLSTI::BlueBox::VNCTarget->new($i);
+    $vnc_target->set_vpn($vpn);
+    $vnc_target->set_name($params->{name});
+    $vnc_target->set_desc($params->{desc});
+    $vnc_target->set_ip($params->{ip});
+    $vnc_target->set_port($params->{port});
+  }
+};

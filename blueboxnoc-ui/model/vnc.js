@@ -18,15 +18,11 @@ VNC.perlControllerPackage = "EPFLSTI::BlueBox::VNCTarget";
  *   ]);
  */
 VNC.all = function(done) {
-    json.asyncProcessAllVPNs(done, function(jsonTree) {
+    json.asyncProcessData(done, function(jsonTree) {
         var returned = [];
-        Object.keys(jsonTree).forEach(function (k) {
-            var vpnDesc = jsonTree[k];
-            Object.keys(vpnDesc.vncs || {}).forEach(function (k) {
-                var vncDesc = vpnDesc.vncs[k];
-                returned.push(vncDesc);
-                vncDesc.vpn = vpnDesc.name;
-            });
+        Object.keys(jsonTree.vncs).forEach(function (k) {
+            var vncDesc = jsonTree.vncs[k];
+            returned.push(vncDesc);
         });
         return returned;
     });
