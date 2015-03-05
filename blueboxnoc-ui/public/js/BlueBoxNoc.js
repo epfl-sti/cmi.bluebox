@@ -228,7 +228,14 @@
             .fields(vnc.editionView().fields());
         vnc.creationView().fields([
             nameInputField(VNCNameValidator),
-            descField()]);
+            descField(),
+            new Field("ip"),
+            new Field("port"),
+            new Reference('vpn')
+                .label('VPN')
+                .targetEntity(vpn) // Select a target Entity
+                .targetField(nameField()), // Select a label Field
+            ]);
         vnc.showView().fields([
             readOnlyNameField(),
             descField(),
