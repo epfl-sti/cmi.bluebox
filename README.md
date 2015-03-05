@@ -9,6 +9,7 @@ security tasks.
 * Multi-tenant administration UI ([node.js](http://nodejs.org/) + [ng-admin](https://github.com/marmelab/ng-admin))
 * Plumbing with [Perl](http://www.perl.org/), Blue Box orchestration with ssh
 * Packaged with [Docker](http://www.docker.com/)
+* Continuous integration with [Travis](https://travis-ci.org) [![Build Status](https://travis-ci.org/epfl-sti/cmi.bluebox.svg?branch=master)](https://travis-ci.org/epfl-sti/cmi.bluebox)
 
 ![screenshot](doc/images/screenshot-dashboard.png?raw=true)
 

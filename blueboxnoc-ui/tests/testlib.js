@@ -166,7 +166,7 @@ WebdriverTest.getXPath = function(elem) {
 var findBy = WebdriverTest.findBy =
     function(driverOrElement, webdriverLocator) {
         var driver = driverOrElement.driver_ || driverOrElement;
-        driver.manage().timeouts().setScriptTimeout(10000);
+        driver.manage().timeouts().setScriptTimeout(30000);
         driver.executeAsyncScript(function () {
             // Mobile code! Executes in the browser!
             var callback = arguments[arguments.length - 1];
