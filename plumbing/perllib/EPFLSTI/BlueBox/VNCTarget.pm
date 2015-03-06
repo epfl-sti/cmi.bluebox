@@ -47,14 +47,15 @@ use Errno qw(EEXIST);
 
 our $_last_attributed_id = 0;
 sub _new {
-  my ($class, $id) = @_;
-  if (! defined $id) {
-    $_last_attributed_id = $id =
+  my ($class, $keyref) = @_;
+  if (! @$keyref) {
+    $_last_attributed_id =
       1 + (max($_last_attributed_id, map {$_->id} $class->all));
+    @$keyref = ($_last_attributed_id);
   }
 
   return bless {
-    id => $id,
+    id => $keyref->[0],
   }, $class;
 }
 
@@ -102,6 +103,7 @@ use IO::All;
 
 use EPFLSTI::Docker::Paths;
 
+use EPFLSTI::Model::JSONStore;
 use EPFLSTI::Model::Transaction qw(transaction);
 use EPFLSTI::BlueBox::VPN;
 
@@ -109,7 +111,7 @@ EPFLSTI::Docker::Paths->srv_dir(My::Tests::Below->tempdir);
 
 sub reset_tests {
   transaction (sub {});
-  io(EPFLSTI::Model::PersistentBase->FILE)->unlink;
+  io(EPFLSTI::Model::JSONStore->FILE)->unlink;
   $EPFLSTI::BlueBox::VNCTarget::_last_attributed_id = 0;
 }
 

@@ -30,14 +30,28 @@ use Try::Tiny;
 use IO::All;
 use JSON;
 
+use EPFLSTI::Docker::Paths;
+
+=head2 FILE
+
+Get (or set, in tests) the path to the flat JSON file containing
+everything.
+
+=cut
+
+BEGIN {
+  *FILE = EPFLSTI::Docker::Paths->settable_srv_subpath("fleet_state.json");
+}
+
 =head2 open ($filename)
 
-Open this JSON store for reading.
+Open this JSON store for reading (defaults to L</FILE>).
 
 =cut
 
 sub open {
   my ($class, $filename) = @_;
+  $filename ||= FILE;
 
   return bless {
     filename => $filename,

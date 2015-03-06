@@ -29,7 +29,9 @@ our $NAME_RE = qr/^[A-Za-z0-9_]+$/;
 use EPFLSTI::Docker::Paths;
 
 sub _new {
-  my ($class, $vpn_name) = @_;
+  my ($class, $keyref) = @_;
+  die "Need name as primary key" unless defined(
+    my $vpn_name = $keyref->[0]);
   die "Bad VPN name: $vpn_name" unless $vpn_name =~ $NAME_RE;
   bless {
     name => $vpn_name,
@@ -66,6 +68,7 @@ use JSON;
 use IO::All;
 
 use EPFLSTI::Docker::Paths;
+use EPFLSTI::Model::JSONStore;
 use EPFLSTI::Model::Transaction qw(transaction);
 
 EPFLSTI::Docker::Paths->srv_dir(My::Tests::Below->tempdir);
@@ -74,7 +77,7 @@ my $tempdir = io(My::Tests::Below->tempdir);
 
 sub reset_tests {
   transaction (sub {});
-  io(EPFLSTI::Model::PersistentBase->FILE)->unlink;
+  io(EPFLSTI::Model::JSONStore->FILE)->unlink;
 }
 
 test "synopsis" => sub {

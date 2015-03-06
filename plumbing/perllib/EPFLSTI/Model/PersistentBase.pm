@@ -24,30 +24,13 @@ use JSON;
 use Try::Tiny;
 
 use EPFLSTI::Model::ReferenceError;
-use EPFLSTI::Model::JSONStore;
-use EPFLSTI::Model::ObjectCache;
+use EPFLSTI::Model::Transaction qw(transaction);
 use EPFLSTI::Docker::Paths;
-
-=head2 FILE
-
-Get (or set, in tests) the path to the flat JSON file containing
-everything.
-
-=cut
-
-BEGIN {
-  *FILE = EPFLSTI::Docker::Paths->settable_srv_subpath("fleet_state.json");
-}
 
 my $transaction = {};
 
-sub _store {
-  return ($transaction->{store} ||= EPFLSTI::Model::JSONStore->open(FILE));
-}
-
-sub _cache {
-  return ($transaction->{cache} ||= EPFLSTI::Model::ObjectCache->new);
-}
+my $lifecycle = "EPFLSTI::Model::Transaction::ObjectLifecycle";
+my $read_access = "EPFLSTI::Model::Transaction::ReadData";
 
 =head2 load (@key)                # Class method
 
@@ -63,42 +46,54 @@ Otherwise, raise L<EPFLSTI::Model::ReferenceError>.
 
 =cut
 
+my $instantiate = sub {
+  my ($class, $keyref, $thenwhat) = @_;
+  my $moniker = $class->class_moniker;
+  my $self_already = $lifecycle->peek($moniker, @$keyref);
+  return $self_already if $self_already;
+
+  my $self = $class->_new($keyref);
+  # Note, that ->_new is in a position to modify $keyref!
+  $thenwhat->($self, $read_access->load_data($moniker, @$keyref));
+  $lifecycle->put($self, $moniker, @$keyref);
+  return $self;
+};
+
+my $inflate = sub {
+  my ($self, $deflated) = @_;
+  while(my ($key, $value) = each %$deflated) {
+    $self->{$key} = $value;
+    # Allow overloaded L</on_commit> methods to act smart:
+    $self->{"${key}_ORIG"} = $value;
+  }
+  return $self;
+};
+
 sub load {
   my ($class, @key) = @_;
-  my $self = $class->_new(@key);
-  $self->{_PersistentBase__key} = [@key];
-  if (defined(my $selfalready = _cache->has($self))) {
-    return $selfalready;
-  }
-
-  $self = _cache->get($self);  # Should actually return $self unchanged
-  my $deflated = _get_from_store(_store, $self);
-  if (! defined($deflated)) {
-    _cache->delete($self);
-    throw EPFLSTI::Model::ReferenceError(
-      message => "Object does not exist",
-      key => [@_]);
-  }
-  return $self->_inflate($deflated);
+  $instantiate->($class, \@key, sub {
+    my ($self, $data) = @_;
+    if (! defined $data) {
+      throw EPFLSTI::Model::ReferenceError(
+        message => "Object does not exist",
+        class => $class,
+        key => [@key]);
+    }
+    $inflate->($self, $data);
+  });
 }
 
 sub create {
   my ($class, @key) = @_;
-  my $self = $class->_new(@key);
-  $self->{_PersistentBase__key} = [@key];
-  if (my $selfalready  = _cache->has($self)) {
-    return $selfalready;
-  }
-
-  $self = _cache->get($self);
-  if (defined(_get_from_store(_store, $self))) {
-    _cache->delete($self);
-    _store->delete($object->class_moniker, join("::", $object->key));
+  $instantiate->($class, \@key, sub {
+    my ($self, $data) = @_;
+    if (defined $data) {
     throw EPFLSTI::Model::ReferenceError(
       message => "Object already exists",
-      key => [@_]);
-  }
-  return $self;
+      class => $class,
+      key => [@key]);
+    }
+  });
 }
 
 =head2 new (@key)
@@ -109,33 +104,12 @@ L</load> or L</create> this object.
 
 sub new {
   my ($class, @key) = @_;
-  my $self = $class->_new(@key);
-  $self->{_PersistentBase__key} = [@key];
-  if (my $selfalready = _cache->has($self)) {
-    return $selfalready;
-  }
-
-  $self = _cache->get($self);
-  my $deflated = _get_from_store(_store, $self);
-  if ($deflated) {
-    $self->_inflate($deflated);
-  }
-  return $self;
-}
-
-sub _get_from_store {
-  my ($store, $self) = @_;
-  return $store->get($self->class_moniker, join("::", $self->key));
-}
-
-sub _inflate {
-  my ($self, $deflated) = @_;
-  while(my ($key, $value) = each %$deflated) {
-    $self->{$key} = $value;
-    # Allow overloaded L</on_commit> methods to act smart:
-    $self->{"${key}_ORIG"} = $value;
-  }
-  return $self;
+  $instantiate->($class, \@key, sub {
+    my ($self, $data) = @_;
+    if ($data) {
+      $inflate->($self, $data);
+    }
+  });
 }
 
 =head2 all
@@ -147,7 +121,7 @@ Return all previously persisted instances of the class.
 sub all {
   my ($class) = @_;
   return map { $class->load($_) }
-    (keys %{_store->get_all($class->class_moniker)});
+    ($read_access->load_all_keys($class->class_moniker));
 }
 
 =head2 all_json (@args_for_all)
@@ -160,62 +134,6 @@ $class->all(@args_for_all) >>, as a single string in JSON form.
 sub all_json {
   my $class = shift;
   return to_json([$class->all(@_)], { pretty => 1, convert_blessed => 1 });
-}
-
-=head2 begin_transaction
-
-Declare intent to perform writes. B<This must be called before
-creating any instance of any subclass,> lest L</commit> refuse to work
-(for locking reasons).
-
-=cut
-
-sub begin_transaction {
-  my ($class) = @_;
-  die "Already in a transaction" if _store->locked;
-  _store->lock;
-  # Only objects created *during* the transaction will commit.
-  _cache->flush;
-  # Ditto for deletions.
-  $transaction->{will_be_deleted} = [];
-}
-
-=head2 commit_transaction
-
-Commit all changes. All objects L</load>ed or created with L</new>
-since L</begin_transaction> get their L</on_commit> method called, and
-then their new state is written to the flat JSON file.
-
-=cut
-
-sub commit_transaction {
-  my ($class) = @_;
-  die "begin_transaction was not called" unless _store->locked;
-
-  foreach my $object (_cache->all) {
-      $object->on_commit();
-  }
-  foreach my $object (_cache->all) {
-    _store->put($object->class_moniker, join("::", $object->key), $object);
-  }
-  foreach my $object (@{$transaction->{will_be_deleted}}) {
-      _store->delete($object->class_moniker, join("::", $object->key));
-  }
-  _store->save;
-
-  $class->rollback_transaction();
-}
-
-=head2 rollback_transaction
-
-Discard all changes. Can be called regardless of whether L</begin> was
-called first.
-
-=cut
-
-sub rollback_transaction {
-  my ($class) = @_;
-  $transaction = {};  # WOOSH! File lock, object cache... All gone.
 }
 
 =head2 readonly_persistent_attribute ($attr)
@@ -363,10 +281,12 @@ using the protocol defined by perl.js in the Node.js code.
 
 sub json_post {
   my ($class, $details) = @_;
-  $class->begin_transaction();
   my $self;
   try {
-    $self = $class->create($class->_key_from_json($details));
+    transaction {
+      $self = $class->create($class->_key_from_json($details));
+      $self->update($details);
+    };
   } catch {
     if (UNIVERSAL::isa($_, "EPFLSTI::Model::ReferenceError")) {
       die({ message => "already exists" });
@@ -374,16 +294,14 @@ sub json_post {
       die $_;
     }
   };
-  $self->update($details);
-  $class->commit_transaction();
   return $self->TO_JSON();
 }
 
 sub json_delete {
   my ($class, $details) = @_;
-  begin_transaction();
-  $class->load($class->_key_from_json($details))->delete;
-  commit_transaction();
+  transaction {
+    $class->load($class->_key_from_json($details))->delete;
+  };
   return {
     status => "success"
   };
@@ -411,7 +329,7 @@ sub class_moniker {
 }
 
 sub key {
-  my @key = @{shift->{_PersistentBase__key}};
+  my @key = $lifecycle->get_key(shift);
   return wantarray ? @key : $key[0];
 }
 
@@ -422,16 +340,7 @@ Delete the object from the JSON file at transaction commit.
 =cut
 
 sub delete {
-  my $self = shift;
-
-  if (! _cache->has($self)) {
-    # Silently ignore attempts to delete objects created outside of the
-    # transaction
-    return;
-  }
-
-  push @{$transaction->{will_be_deleted}}, $self;
-  _cache->delete($self);
+  $lifecycle->delete(shift);
 }
 
 =head2 TO_JSON ()
@@ -539,11 +448,12 @@ use JSON;
 
 use IO::All;
 
+use EPFLSTI::Model::JSONStore;
 use EPFLSTI::Model::Transaction qw(transaction);
 
 our $testjsonfile = io->dir(My::Tests::Below->tempdir)->
   catfile("state.json");
-EPFLSTI::Model::PersistentBase->FILE("$testjsonfile");
+EPFLSTI::Model::JSONStore->FILE("$testjsonfile");
 
 sub reset_tests {
   EPFLSTI::Model::Transaction->rollback;
@@ -726,7 +636,6 @@ test "Delete then immediately recreate" => sub {
   transaction {
     my $obj = My::Class->load();
     $obj->delete;
-    $DB::single = 1;
     my $anotherobj = My::Class->new();
     isnt(refaddr($obj), refaddr($anotherobj));
   };

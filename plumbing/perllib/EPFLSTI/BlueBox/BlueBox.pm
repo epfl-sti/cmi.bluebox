@@ -43,7 +43,8 @@ use Carp;
 our $NAME_RE = qr/^[a-z0-9.-]+$/;
 
 sub _new {
-  my ($class, $name) = @_;
+  my ($class, $keyref) = @_;
+  die "Need name as primary key" unless defined(my $name = $keyref->[0]);
   $name = lc($name);
   croak "Bad Blue Box name: $name" unless $name =~ $NAME_RE;
   bless {
@@ -94,14 +95,16 @@ use IO::All;
 
 use EPFLSTI::Docker::Paths;
 
+use EPFLSTI::Model::JSONStore;
 use EPFLSTI::Model::Transaction qw(transaction);
+
 use EPFLSTI::BlueBox::VPN;
 
 EPFLSTI::Docker::Paths->srv_dir(My::Tests::Below->tempdir);
 
 sub reset_tests {
   transaction (sub {});
-  io(EPFLSTI::Model::PersistentBase->FILE)->unlink;
+  io(EPFLSTI::Model::JSONStore->FILE)->unlink;
 }
 
 test "synopsis" => sub {
