@@ -65,30 +65,38 @@ Assert that this object doesn't already exist.
 
 Otherwise, raise L<EPFLSTI::Model::ReferenceError>.
 
-=head2 new (@key)
-
-L</load> or L</create> this object.
-
-
 =cut
 
 sub load {
   my $self = _get_unique_instance(@_);
-  $self->_inflate_if_exists(_store) or
-    throw EPFLSTI::Model::ReferenceError(message => "Object does not exist");
-  return $self;
+  defined(my $deflated = _get_from_store(_store, $self)) or
+      throw EPFLSTI::Model::ReferenceError(
+        message => "Object does not exist",
+        key => [@_]);
+  return $self->_inflate($deflated);
 }
 
 sub create {
   my $self = _get_unique_instance(@_);
-  $self->_exists_in_store() &&
-    throw EPFLSTI::Model::ReferenceError(message => "Object already exists");
+  defined(_get_from_store(_store, $self)) &&
+    throw EPFLSTI::Model::ReferenceError(
+      message => "Object already exists",
+      key => [@_]);
   return $self;
 }
 
+=head2 new (@key)
+
+L</load> or L</create> this object.
+
+=cut
+
 sub new {
   my $self = _get_unique_instance(@_);
-  $self->_inflate_if_exists(_store);
+  my $deflated = _get_from_store(_store, $self);
+  if ($deflated) {
+    $self->_inflate($deflated);
+  }
   return $self;
 }
 
@@ -99,21 +107,19 @@ sub _get_unique_instance {
   return ($transaction->{objects}->{$self->_uniqueness_token} ||= $self);
 }
 
-sub _exists_in_store {
-  my ($self) = @_;
-  return !(! _store->get($self->_class_moniker, $self->_key_as_string));
+sub _get_from_store {
+  my ($store, $self) = @_;
+  return $store->get($self->_class_moniker, $self->_key_as_string);
 }
 
-sub _inflate_if_exists {
-  my ($self) = @_;
-  my $deflated = _store->get($self->_class_moniker, $self->_key_as_string);
-  return if ! defined $deflated;
+sub _inflate {
+  my ($self, $deflated) = @_;
   while(my ($key, $value) = each %$deflated) {
     $self->{$key} = $value;
     # Allow overloaded L</on_commit> methods to act smart:
     $self->{"${key}_ORIG"} = $value;
   }
-  return 1;
+  return $self;
 }
 
 =head2 all
