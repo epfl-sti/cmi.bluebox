@@ -14,6 +14,8 @@ EPFLSTI::Model::ReferenceError - Raised upon referential integrity problems.
 
 =cut
 
+use overload '""' => \&stringify;
+
 sub new {
   my $class = shift;
   return bless {@_}, $class;
@@ -22,6 +24,11 @@ sub new {
 sub throw {
   my $class = shift;
   die $class->new(@_);
+}
+
+sub stringify {
+  my $self = shift;
+  return sprintf("%s: %s\n", ref($self), $self->{message});
 }
 
 1;
