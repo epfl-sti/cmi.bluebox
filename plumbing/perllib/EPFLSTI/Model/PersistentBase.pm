@@ -53,6 +53,25 @@ sub _mark_for_deletion {
   }
 }
 
+sub _get_unique_instance {
+  my ($class, @key) = @_;
+  my $self = $class->_new(@key);
+  $self->{_PersistentBase__key} = [@key];
+  return ($transaction->{objects}->{$self->_uniqueness_token} ||= $self);
+}
+
+sub _peek_unique_instance {
+  my ($class, @key) = @_;
+  my $tempself = $class->_new(@key);
+  $tempself->{_PersistentBase__key} = [@key];
+  return $transaction->{objects}->{$tempself->_uniqueness_token};
+}
+
+sub _delete_unique_instance {
+  my ($self) = @_;
+  delete $transaction->{objects}->{$self->_uniqueness_token}
+}
+
 =head2 load (@key)                # Class method
 
 Load the object from the flat JSON file.
@@ -68,20 +87,28 @@ Otherwise, raise L<EPFLSTI::Model::ReferenceError>.
 =cut
 
 sub load {
+  if (defined(my $self = _peek_unique_instance(@_))) {
+    return $self;
+  }
   my $self = _get_unique_instance(@_);
-  defined(my $deflated = _get_from_store(_store, $self)) or
-      throw EPFLSTI::Model::ReferenceError(
-        message => "Object does not exist",
-        key => [@_]);
+  my $deflated = _get_from_store(_store, $self);
+  if (! defined($deflated)) {
+    _delete_unique_instance($self);
+    throw EPFLSTI::Model::ReferenceError(
+      message => "Object does not exist",
+      key => [@_]);
+  }
   return $self->_inflate($deflated);
 }
 
 sub create {
   my $self = _get_unique_instance(@_);
-  defined(_get_from_store(_store, $self)) &&
+  if (defined(_get_from_store(_store, $self))) {
+    _delete_unique_instance($self);
     throw EPFLSTI::Model::ReferenceError(
       message => "Object already exists",
       key => [@_]);
+  }
   return $self;
 }
 
@@ -98,13 +125,6 @@ sub new {
     $self->_inflate($deflated);
   }
   return $self;
-}
-
-sub _get_unique_instance {
-  my ($class, @key) = @_;
-  my $self = $class->_new(@key);
-  $self->{_PersistentBase__key} = [@key];
-  return ($transaction->{objects}->{$self->_uniqueness_token} ||= $self);
 }
 
 sub _get_from_store {
@@ -405,7 +425,9 @@ Delete the object from the JSON file at transaction commit.
 =cut
 
 sub delete {
-  _mark_for_deletion(shift);
+  my $self = shift;
+  _mark_for_deletion($self);
+  _delete_unique_instance($self);
 }
 
 =head2 TO_JSON ()
@@ -625,6 +647,54 @@ test "Mutating objects loaded outside the transaction has no effect" => sub {
   }
 };
 
+test "Loading an object just created" => sub {
+  reset_tests;
+
+  transaction {
+    my $obj = new My::Class;
+    my $objtoo = load My::Class;
+    is(refaddr($obj), refaddr($objtoo));
+  }
+};
+
+test "Failed ->load does not commit object" => sub {
+  reset_tests;
+  try {
+    transaction {
+      load My::Class;
+    };
+    fail "Transaction should have thrown";
+  } catch {
+    is(ref($_), "EPFLSTI::Model::ReferenceError");
+  };
+
+  try {
+    load My::Class;
+    fail "Should have thrown";
+  } catch {
+    is(ref($_), "EPFLSTI::Model::ReferenceError");
+  };
+};
+
+test "Failed ->load does not even create object" => sub {
+  reset_tests;
+  transaction {
+    try {
+      load My::Class;
+      fail "load should have thrown";
+    } catch {
+      is(ref($_), "EPFLSTI::Model::ReferenceError");
+    };
+  };
+
+  try {
+    load My::Class;
+    fail "Whoops – Botched load still made it to transaction commit!";
+  } catch {
+    is(ref($_), "EPFLSTI::Model::ReferenceError");
+  };
+};
+
 test "Deleting objects loaded outside the transaction has no effect"
 => sub {
   reset_tests;
@@ -640,6 +710,21 @@ test "Deleting objects loaded outside the transaction has no effect"
   };
 
   ok(My::Class->load);
+};
+
+test "Delete then immediately recreate" => sub {
+  reset_tests;
+
+  transaction {
+    My::Class->new();
+  };
+
+  transaction {
+    my $obj = My::Class->load();
+    $obj->delete;
+    my $anotherobj = My::Class->new();
+    isnt(refaddr($obj), refaddr($anotherobj));
+  };
 };
 
 test "Accessors" => sub {

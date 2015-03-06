@@ -67,9 +67,7 @@ transaction {
   foreach my $params (@$fake_vpn_data) {
     EPFLSTI::BlueBox::VPN->new($params->{name})->set_desc($params->{desc});
   }
-};
 
-transaction {
   foreach my $params (@$fake_bbx_data) {
     my $vpn = EPFLSTI::BlueBox::VPN->load($params->{vpn});
     my $bbox = EPFLSTI::BlueBox::BlueBox->new($params->{name});
