@@ -187,6 +187,18 @@ sub commit_transaction {
   }
   _store->save;
 
+  $class->rollback_transaction();
+}
+
+=head2 rollback_transaction
+
+Discard all changes. Can be called regardless of whether L</begin> was
+called first.
+
+=cut
+
+sub rollback_transaction {
+  my ($class) = @_;
   $transaction = {};  # WOOSH! File lock, object cache... All gone.
 }
 
@@ -508,7 +520,7 @@ our $testjsonfile = io->dir(My::Tests::Below->tempdir)->
 EPFLSTI::Model::PersistentBase->FILE("$testjsonfile");
 
 sub reset_tests {
-  transaction (sub {});
+  EPFLSTI::Model::Transaction->rollback;
   $testjsonfile->unlink;
 }
 
