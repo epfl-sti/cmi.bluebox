@@ -25,6 +25,7 @@ use Try::Tiny;
 
 use EPFLSTI::Model::ReferenceError;
 use EPFLSTI::Model::JSONStore;
+use EPFLSTI::Model::ObjectCache;
 use EPFLSTI::Docker::Paths;
 
 =head2 FILE
@@ -44,32 +45,8 @@ sub _store {
   return ($transaction->{store} ||= EPFLSTI::Model::JSONStore->open(FILE));
 }
 
-sub _mark_for_deletion {
-  my ($self) = @_;
-  # Silently ignore attempts to delete objects created outside of the
-  # transaction
-  if (exists $transaction->{objects}->{$self->_uniqueness_token}) {
-    push @{$transaction->{will_be_deleted}}, shift;
-  }
-}
-
-sub _get_unique_instance {
-  my ($class, @key) = @_;
-  my $self = $class->_new(@key);
-  $self->{_PersistentBase__key} = [@key];
-  return ($transaction->{objects}->{$self->_uniqueness_token} ||= $self);
-}
-
-sub _peek_unique_instance {
-  my ($class, @key) = @_;
-  my $tempself = $class->_new(@key);
-  $tempself->{_PersistentBase__key} = [@key];
-  return $transaction->{objects}->{$tempself->_uniqueness_token};
-}
-
-sub _delete_unique_instance {
-  my ($self) = @_;
-  delete $transaction->{objects}->{$self->_uniqueness_token}
+sub _cache {
+  return ($transaction->{cache} ||= EPFLSTI::Model::ObjectCache->new);
 }
 
 =head2 load (@key)                # Class method
@@ -87,13 +64,17 @@ Otherwise, raise L<EPFLSTI::Model::ReferenceError>.
 =cut
 
 sub load {
-  if (defined(my $self = _peek_unique_instance(@_))) {
-    return $self;
+  my ($class, @key) = @_;
+  my $self = $class->_new(@key);
+  $self->{_PersistentBase__key} = [@key];
+  if (defined(my $selfalready = _cache->has($self))) {
+    return $selfalready;
   }
-  my $self = _get_unique_instance(@_);
+
+  $self = _cache->get($self);  # Should actually return $self unchanged
   my $deflated = _get_from_store(_store, $self);
   if (! defined($deflated)) {
-    _delete_unique_instance($self);
+    _cache->delete($self);
     throw EPFLSTI::Model::ReferenceError(
       message => "Object does not exist",
       key => [@_]);
@@ -102,9 +83,17 @@ sub load {
 }
 
 sub create {
-  my $self = _get_unique_instance(@_);
+  my ($class, @key) = @_;
+  my $self = $class->_new(@key);
+  $self->{_PersistentBase__key} = [@key];
+  if (my $selfalready  = _cache->has($self)) {
+    return $selfalready;
+  }
+
+  $self = _cache->get($self);
   if (defined(_get_from_store(_store, $self))) {
-    _delete_unique_instance($self);
+    _cache->delete($self);
+    _store->delete($object->class_moniker, join("::", $object->key));
     throw EPFLSTI::Model::ReferenceError(
       message => "Object already exists",
       key => [@_]);
@@ -119,7 +108,14 @@ L</load> or L</create> this object.
 =cut
 
 sub new {
-  my $self = _get_unique_instance(@_);
+  my ($class, @key) = @_;
+  my $self = $class->_new(@key);
+  $self->{_PersistentBase__key} = [@key];
+  if (my $selfalready = _cache->has($self)) {
+    return $selfalready;
+  }
+
+  $self = _cache->get($self);
   my $deflated = _get_from_store(_store, $self);
   if ($deflated) {
     $self->_inflate($deflated);
@@ -129,7 +125,7 @@ sub new {
 
 sub _get_from_store {
   my ($store, $self) = @_;
-  return $store->get($self->_class_moniker, $self->_key_as_string);
+  return $store->get($self->class_moniker, join("::", $self->key));
 }
 
 sub _inflate {
@@ -151,7 +147,7 @@ Return all previously persisted instances of the class.
 sub all {
   my ($class) = @_;
   return map { $class->load($_) }
-    (keys %{_store->get_all($class->_class_moniker)});
+    (keys %{_store->get_all($class->class_moniker)});
 }
 
 =head2 all_json (@args_for_all)
@@ -179,7 +175,7 @@ sub begin_transaction {
   die "Already in a transaction" if _store->locked;
   _store->lock;
   # Only objects created *during* the transaction will commit.
-  $transaction->{objects} = {};
+  _cache->flush;
   # Ditto for deletions.
   $transaction->{will_be_deleted} = [];
 }
@@ -196,14 +192,14 @@ sub commit_transaction {
   my ($class) = @_;
   die "begin_transaction was not called" unless _store->locked;
 
-  foreach my $object (values %{$transaction->{objects}}) {
+  foreach my $object (_cache->all) {
       $object->on_commit();
   }
-  foreach my $object (values %{$transaction->{objects}}) {
-    _store->put($object->_class_moniker, $object->_key_as_string, $object);
+  foreach my $object (_cache->all) {
+    _store->put($object->class_moniker, join("::", $object->key), $object);
   }
   foreach my $object (@{$transaction->{will_be_deleted}}) {
-      _store->delete($object->_class_moniker, $object->_key_as_string);
+      _store->delete($object->class_moniker, join("::", $object->key));
   }
   _store->save;
 
@@ -299,7 +295,7 @@ sub foreign_key {
   my $set = sub {
     my ($self, $newval) = @_;
     if (UNIVERSAL::isa($newval, $target_class)) {
-      $newval = $newval->_key;
+      $newval = $newval->key;
     };
     $self->{$attr} = $newval;
   };
@@ -367,7 +363,7 @@ using the protocol defined by perl.js in the Node.js code.
 
 sub json_post {
   my ($class, $details) = @_;
-  begin_transaction();
+  $class->begin_transaction();
   my $self;
   try {
     $self = $class->create($class->_key_from_json($details));
@@ -379,7 +375,7 @@ sub json_post {
     }
   };
   $self->update($details);
-  commit_transaction();
+  $class->commit_transaction();
   return $self->TO_JSON();
 }
 
@@ -395,27 +391,28 @@ sub json_delete {
 
 =head1 METHODS
 
+=head2 class_moniker
+
+Return the name of this class in the store. The base class behavior is to
+construct a mock plural from the Perl class name.
+
+=head2 key
+
+Return the name of this instance in the class. The base class behavior
+is to re-use the key parameters passed to L</new>, L</load> or
+L</create>.
+
 =cut
 
-sub _class_moniker {
+sub class_moniker {
   my ($class) = @_;
   my @pkg_parts = split("::", (ref($class) or $class));
   return lc(pop(@pkg_parts)) . "s";
 }
 
-sub _key {
+sub key {
   my @key = @{shift->{_PersistentBase__key}};
   return wantarray ? @key : $key[0];
-}
-
-sub _key_as_string {
-  my ($self) = @_;
-  return join("::", $self->_key);
-}
-
-sub _uniqueness_token {
-  my ($self) = @_;
-  return join("::", ref($self), $self->_key_as_string);
 }
 
 =head2 delete
@@ -426,8 +423,15 @@ Delete the object from the JSON file at transaction commit.
 
 sub delete {
   my $self = shift;
-  _mark_for_deletion($self);
-  _delete_unique_instance($self);
+
+  if (! _cache->has($self)) {
+    # Silently ignore attempts to delete objects created outside of the
+    # transaction
+    return;
+  }
+
+  push @{$transaction->{will_be_deleted}}, $self;
+  _cache->delete($self);
 }
 
 =head2 TO_JSON ()
@@ -722,6 +726,7 @@ test "Delete then immediately recreate" => sub {
   transaction {
     my $obj = My::Class->load();
     $obj->delete;
+    $DB::single = 1;
     my $anotherobj = My::Class->new();
     isnt(refaddr($obj), refaddr($anotherobj));
   };
@@ -756,7 +761,6 @@ test "Foreign key getter sets object's key" => sub {
   transaction {
     my $obj1 = new My::Class("A");
     $obj1->set_pointsto(new My::Other::Class("target"));
-    $DB::single = 1;
     1;
   };
   is(My::Class->load("A")->{pointsto}, "target");

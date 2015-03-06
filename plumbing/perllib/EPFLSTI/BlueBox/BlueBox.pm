@@ -35,7 +35,7 @@ one-liner.
 
 use base "EPFLSTI::Model::PersistentBase";
 
-sub _class_moniker { "bboxes" }
+sub class_moniker { "bboxes" }
 
 use Carp;
 

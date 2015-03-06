@@ -35,7 +35,7 @@ one-liner.
 
 use base "EPFLSTI::Model::PersistentBase";
 
-sub _class_moniker { "vncs" }
+sub class_moniker { "vncs" }
 
 use Carp;
 
@@ -58,7 +58,7 @@ sub _new {
   }, $class;
 }
 
-sub _key { shift->{id} }
+sub key { shift->{id} }
 
 sub _key_from_json {
   my ($class, $json) = @_;
