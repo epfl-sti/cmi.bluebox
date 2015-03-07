@@ -33,8 +33,9 @@ install:
   # as that wouldn't work (hence why we need UML in the first place):
   - sudo cp /bin/true /sbin/start
   - sudo apt-get install -y slirp lxc lxc-docker aufs-tools cgroup-lite
-  - curl -sLo /usr/local/bin/linux https://github.com/jpetazzo/sekexe/raw/master/uml
-  - chmod +x /usr/local/bin/linux
+  - curl -sLo linux https://github.com/jpetazzo/sekexe/raw/master/uml
+  - sudo mv linux /usr/local/bin
+  - sudo chmod +x /usr/local/bin/linux
   
 script:
   - ./travis/run-uml.sh
