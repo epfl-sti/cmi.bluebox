@@ -22,28 +22,18 @@ case "$DISTRIB_ID" in
 esac
 
 missing_packages=
-for package_to_check in lxc-docker slirp cgroup-lite uml-utilities; do
+for package_to_check in $(grep "apt-get install" .travis.yml | sed 's/^.*-y//g'); do
     if ! dpkg -L $package_to_check >/dev/null; then missing_packages=1; fi
 done
 [ -n "$missing_packages" ] && fail \
   "Please install the missing packages (see instructions in .travis.yml)"
 
+PATH=$PATH:/usr/local/bin
 which linux >/dev/null || \
   fail "Please install User Mode Linux in your PATH" \
        "(see the instructions in .travis.yml)"
 
-which humfsify >/dev/null || \
-  fail "Please install humfsify."
-
-# Prepare humfs mount points. This is pointless on Travis, but on the
-# developer's workstation it speeds up subsequent "docker pull" commands
-# when running UML several times.
-for subdir in etc varlib; do
-    humfsdir=var/uml-docker/$subdir
-    [ -d "$humfsdir/data" ] && continue
-    mkdir -p "$humfsdir/data"
-    (cd "$humfsdir"; sudo humfsify $(whoami) $(whoami) 4G)
-done
+mkdir -p var/uml-docker
 
 linux quiet mem=4G rootfstype=hostfs rw \
   eth0=slirp,,/usr/bin/slirp-fullbolt \

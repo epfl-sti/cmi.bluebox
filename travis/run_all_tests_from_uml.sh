@@ -52,12 +52,11 @@ mount -t tmpfs none /var/run
 # takes the pain out of cgroups
 cgroups-mount
 
-# Overlay-mount Docker directories somewhere in the host
-# This makes no difference on Travis, but speeds up rebuilds
-# in dev mode
-mkdir -p var/uml-docker/etc var/uml-docker/varlib
-mount -o bind $PWD/var/uml-docker/etc /etc/docker
-mount -o bind $PWD/var/uml-docker/varlib /var/lib/docker
+# Mount the Docker state from the host. This makes no difference on
+# Travis, but speeds up rebuilds in dev mode
+bash  # XXX
+mount -t humfs none /var/lib/docker -o $PWD/var/uml-docker/varlib
+mount -t humfs none /etc/docker -o $PWD/var/uml-docker/etc
 
 # enable ipv4 forwarding for docker
 echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -75,12 +74,10 @@ echo 'nameserver 8.8.8.8' > /run/resolvconf/resolv.conf
 mount --bind /run/resolvconf/resolv.conf /etc/resolv.conf
 
 # Start docker daemon
-bash -i  # XXX
-
 docker -d &
 sleep 5
 
-# Use docker
+# Run the tests as we would on the developer's workstation
 : ${BLUEBOXNOC_CODE_DIR:="$(cd "$(dirname "$0")/.."; pwd)"}
 : ${BLUEBOXNOC_DOCKER_TESTS_NAME:="epflsti/blueboxnoc-tests"}
 
