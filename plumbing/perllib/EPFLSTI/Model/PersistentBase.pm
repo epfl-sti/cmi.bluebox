@@ -307,6 +307,16 @@ sub json_delete {
   };
 }
 
+sub json_put {
+  my ($class, $details) = @_;
+  transaction {
+    $class->load($class->_key_from_json($details))->update($details);
+  };
+  return {
+    status => "success"
+  };
+}
+
 =head1 METHODS
 
 =head2 class_moniker
@@ -684,4 +694,3 @@ test "Foreign key getter returns a ->load()ed object" => sub {
   };
   ok(My::Class->load("A")->get_pointsto->isa("My::Other::Class"));
 };
-
