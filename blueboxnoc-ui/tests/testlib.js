@@ -51,7 +51,7 @@ WebdriverTest.describe = function (description, suiteBody) {
     var mochaBefore = before;
     return wdtesting.describe(description, function () {
         var self = this;
-        this.timeout(10000);  // Pump up default value
+        this.timeout(10000);  // Pump up default value (use 0 for unlimited)
         this.setUpFakeData = module.exports.WebdriverTest.setUpFakeData;
 
         // For some reason wdtesting.before won't wait for the callback:
@@ -77,7 +77,7 @@ WebdriverTest.describe = function (description, suiteBody) {
             // Keep browser open; closing the container takes care of it
         } else if (process.env.DEBUG &&
             process.env.DEBUG.search("browser") >= 0) {
-            // User requests brower be kept open
+            // User requests browser be kept open
         } else {
             wdtesting.after(function() {
                 self.driver.quit();
@@ -166,7 +166,7 @@ WebdriverTest.getXPath = function(elem) {
 var findBy = WebdriverTest.findBy =
     function(driverOrElement, webdriverLocator) {
         var driver = driverOrElement.driver_ || driverOrElement;
-        driver.manage().timeouts().setScriptTimeout(30000);
+        driver.manage().timeouts().setScriptTimeout(10000);
         driver.executeAsyncScript(function () {
             // Mobile code! Executes in the browser!
             var callback = arguments[arguments.length - 1];
