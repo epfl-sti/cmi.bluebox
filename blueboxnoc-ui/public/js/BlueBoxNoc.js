@@ -179,7 +179,7 @@
                     .label('VNC')
                     .targetEntity(vnc)
                     .targetField(nameField()) // the field to be displayed in this list
-                    .cssClasses('vncs_tag'),
+                    .cssClasses('vncs_tag')
             ]);
         vpn.creationView().fields([
             nameInputField(VPNNameValidator),
@@ -211,12 +211,10 @@
                 descField(),
                 new Field("ip"),
                 new Field("port"),
-                // @todo preselect current vpn in the list
                 new Reference('vpn')
                     .label('VPN')
-                    .targetEntity(vpn) // Select a target Entity
-                    .targetField(nameField()), // Select a label Field
-                // @todo see how to add a frame with VNC
+                    .targetEntity(vpn)
+                    .targetField(nameField()),
                 new Field('Open VNC', 'template')
                     .type('template')
                     .editable(false)
@@ -233,8 +231,8 @@
             new Field("port"),
             new Reference('vpn')
                 .label('VPN')
-                .targetEntity(vpn) // Select a target Entity
-                .targetField(nameField()), // Select a label Field
+                .targetEntity(vpn)
+                .targetField(nameField())
             ]);
         vnc.showView().fields([
             readOnlyNameField(),
