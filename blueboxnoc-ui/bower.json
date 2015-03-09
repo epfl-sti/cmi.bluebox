@@ -23,6 +23,6 @@
     "tests"
   ],
   "dependencies": {
-    "ng-admin": "marmelab/ng-admin"
+    "ng-admin": "vasiakorobkin/ng-admin#uneditable_reference"
   }
 }
