@@ -52,11 +52,9 @@ mount -t tmpfs none /var/run
 # takes the pain out of cgroups
 cgroups-mount
 
-# Mount the Docker state from the host. This makes no difference on
-# Travis, but speeds up rebuilds in dev mode
-bash  # XXX
-mount -t humfs none /var/lib/docker -o $PWD/var/uml-docker/varlib
-mount -t humfs none /etc/docker -o $PWD/var/uml-docker/etc
+# Prepare the Docker work space
+mount -t tmpfs none /var/lib/docker
+mount -t tmpfs none /etc/docker
 
 # enable ipv4 forwarding for docker
 echo 1 > /proc/sys/net/ipv4/ip_forward
