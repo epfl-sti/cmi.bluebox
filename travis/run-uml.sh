@@ -36,7 +36,7 @@ which linux >/dev/null || \
   fail "Please install User Mode Linux in your PATH" \
        "(see the instructions in .travis.yml)"
 
-mkdir -p var/uml-docker
+mkdir -p /var/lib/docker /etc/docker
 
 linux quiet mem=4G rootfstype=hostfs rw \
   eth0=slirp,,/usr/bin/slirp-fullbolt \
