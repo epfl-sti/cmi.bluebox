@@ -3,7 +3,7 @@ This is the UI part of the [epfl-sti/cmi.bluebox](epfl-sti/cmi.bluebox) projet. 
 
 The web UI is based on [node.js](https://nodejs.org/), [angular.js](https://angularjs.org/) and [ng-admin](marmelab/ng-admin).
 
-The VNC part is usine [noVNC](http://novnc.com)'s project.
+The VNC part is using [noVNC](http://novnc.com)'s project.
 
 # Workflow
 A detailed workflow is described in the [project's wiki](https://github.com/epfl-sti/cmi.bluebox/wiki#2015-02-09---blue-box-personalization-use-case).
