@@ -23,6 +23,6 @@
     "tests"
   ],
   "dependencies": {
-    "ng-admin": "~0.5.0"
+    "ng-admin": "vasiakorobkin/ng-admin#uneditable_reference"
   }
 }

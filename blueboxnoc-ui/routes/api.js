@@ -79,6 +79,10 @@ function configure_API_subdir(router, api_path, model) {
 
     if (model.perlControllerPackage) {
         router.post(api_path, apiWriteHandler("post"));
+        router.put(api_path + "/:id", function (req, res, next) {
+            req.body[model.primaryKey] = req.id;
+            apiWriteHandler("put")(req, res, next);
+        });
         router.delete(api_path + "/:id", function (req, res, next) {
             req.body[model.primaryKey] = req.id;
             apiWriteHandler("delete")(req, res, next);

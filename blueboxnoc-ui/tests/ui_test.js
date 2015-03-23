@@ -296,5 +296,38 @@ testlib.WebdriverTest.describe('UI tests', function() {
                     findText(rowElem, "INIT");
                 });
         });
+        it('creates then updates a Blue Boxes', function () {
+            driver.get("/");
+            findLinkByText(driver, "Blue Boxes").thenClickIt();
+            findText(driver, "Create").thenClickIt();
+            findByLabel(driver, "Name").thenSendKeys("aNewBox4Up");
+            findByLabel(driver, "Description")
+                .thenSendKeys("This is a temporary description");
+            findByLabel(driver, "VPN").thenSelect("Bar");
+            findButton(driver, "Submit").thenClickIt();
+            findLinkByText(driver, "Blue Boxes").thenClickIt();
+            // Note that we expect the named to be forced to lower case:
+            findLinkByText(driver, "aNewBox4Up")
+                .then(function (elem) {
+                    return findAncestorNode(elem, "tr");
+                })
+                .then(function (rowElem) {
+                    findText(rowElem, "INIT");
+                });
+            findLinkByText(driver, "anewbox4up").thenClickIt();
+            findByLabel(driver, "Description")
+                .thenSendKeys("This is an updated description");
+            findButton(driver, "Submit").thenClickIt();
+            findLinkByText(driver, "Blue Boxes").thenClickIt();
+            // Note that we expect the named to be forced to lower case:
+            findLinkByText(driver, "anewbox4up")
+                .then(function (elem) {
+                    return findAncestorNode(elem, "tr");
+                })
+                .then(function (rowElem) {
+                    findText(rowElem, "This is an updated description");
+                });
+        });
+
     });
 });

@@ -1,8 +1,20 @@
 #!/bin/bash
+#
+# This script is invoked by ../.travis.yml inside an UML (User-Mode Linux) box
+# 
+# To develop it, you need a Linux host whose config matches that of a
+# Travis VM (i.e. Ubuntu, and with Docker and UML installed as per the
+# script in .travis.yml). Then cd to the top of the source tree and
+# run (again like Travis would)
+#
+#   mkdir -p var/uml-docker/data
+#   (cd var/uml-docker/data; sudo humfsify root root 4G)
+#   linux quiet mem=4G rootfstype=hostfs rw \
+#     eth0=slirp,,/usr/bin/slirp-fullbolt \
+#     init=$(pwd)/travis/uml.sh WORKDIR=$(pwd) HOME=$HOME
 
 # Exit on first error
 set -e -x
-
 
 save_and_shutdown() {
   # save built for host result
@@ -40,10 +52,8 @@ mount -t tmpfs none /var/run
 # takes the pain out of cgroups
 cgroups-mount
 
-# mount /var/lib/docker with a tmpfs
+# Prepare the Docker work space
 mount -t tmpfs none /var/lib/docker
-
-# mount /var/lib/docker with a tmpfs
 mount -t tmpfs none /etc/docker
 
 # enable ipv4 forwarding for docker
@@ -65,7 +75,7 @@ mount --bind /run/resolvconf/resolv.conf /etc/resolv.conf
 docker -d &
 sleep 5
 
-# Use docker
+# Run the tests as we would on the developer's workstation
 : ${BLUEBOXNOC_CODE_DIR:="$(cd "$(dirname "$0")/.."; pwd)"}
 : ${BLUEBOXNOC_DOCKER_TESTS_NAME:="epflsti/blueboxnoc-tests"}
 
@@ -74,4 +84,4 @@ docker pull "${BLUEBOXNOC_DOCKER_TESTS_NAME}"
 docker run -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
          "${BLUEBOXNOC_DOCKER_TESTS_NAME}" "/opt/blueboxnoc/devsupport/docker-tests/run_all_tests_from_docker.sh"
 
-touch /success
+touch "$WORKDIR"/success

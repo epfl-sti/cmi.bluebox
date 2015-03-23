@@ -1,14 +1,41 @@
+# This is the YAML control file that Travis (http://travis-ci.com/) reads
+#
+# It must be in the Github depot at the top of the source tree.
+#
+# The idea is to run the exact same tests as devsupport/docker-tests
+# does, but Docker is difficult to run on Travis so an additional
+# layer of User Mode Linux (UML) is required
+# (https://github.com/lukecyca/travis-docker-example)
+#
+# You can develop / debug the UML + Docker stack from your workstation
+# too. However, unlike the other Dockerized, DevOps-ified stuff in
+# this project this requires a platform that closely matches a Travis
+# VM - namely, Ubuntu with the same software as described in the
+# "install:" section below. So:
+#
+#  1. Manually install lxc-docker from get.docker.io and UML from
+#     github.com/jpetazzo/sekexe as per the instructions in YAML
+#     (just skip the step that maims /sbin/start)
+#  2. cd to the top of the source tree
+#  3. Run travis/run-uml.sh (root not required, although sudo will be invoked
+#     as needed)
+#  5. Hack and loop back to 3 until satisfaction is achieved
+#  6. git push
+#  7. Wait for Travis to pick up and try out your changes
+#  8. If Travis still bombs, go back to 3, add moar logs, and meditate
+
 install:
   - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
   - sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+  # Don't fail the Travis run in case some depots are off-line:
   - sudo apt-get update || true
-  - sudo mkdir -p /var/lib/docker
-  - sudo mkdir -p /etc/docker
+  # Don't let the lxc-docker post-install script try to start up dockerd,
+  # as that wouldn't work (hence why we need UML in the first place):
   - sudo cp /bin/true /sbin/start
   - sudo apt-get install -y slirp lxc lxc-docker aufs-tools cgroup-lite
   - curl -sLo linux https://github.com/jpetazzo/sekexe/raw/master/uml
-  - chmod +x linux
+  - sudo mv linux /usr/local/bin
+  - sudo chmod +x /usr/local/bin/linux
   
 script:
-  - ./linux quiet mem=2G rootfstype=hostfs rw eth0=slirp,,/usr/bin/slirp-fullbolt init=$(pwd)/travis/uml.sh WORKDIR=$(pwd) HOME=$HOME
-  - test -f /success
+  - ./travis/run-uml.sh
