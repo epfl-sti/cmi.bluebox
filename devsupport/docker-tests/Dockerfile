@@ -10,7 +10,7 @@
 #   3. ./develop_noc.sh
 #   4. test.sh shell
 
-FROM epflsti/blueboxnoc:latest
+FROM epflsti/blueboxnoc
 MAINTAINER Dominique Quatravaux <dominique.quatravaux@epfl.ch>
 
 ########################################################################
