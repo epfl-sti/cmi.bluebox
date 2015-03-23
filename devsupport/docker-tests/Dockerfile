@@ -10,20 +10,17 @@
 #   3. ./develop_noc.sh
 #   4. test.sh shell
 
-FROM epflsti/blueboxnoc
+FROM epflsti/blueboxnoc:latest
 MAINTAINER Dominique Quatravaux <dominique.quatravaux@epfl.ch>
 
 ########################################################################
 # General-purpose stuff
-RUN apt-get -y install \
-  # Handy for debugging failing tests:
-  strace \
-  # Needed below
-  unzip
+# Handy for debugging failing tests:
+RUN apt-get -y install strace
 
 ########################################################################
 # Dependencies of the Perl tests
-RUN cpanm Test::Group
+RUN cpanm https://github.com/domq/Test-Group/archive/3ede48f868164e37c573b0e4b262b09d5398300b.zip
 
 ########################################################################
 # Dependencies of the node.js tests
@@ -34,7 +31,7 @@ RUN npm install -g mocha
 RUN curl -sL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
 RUN apt-get -y update
-RUN apt-get -y install google-chrome-stable
+RUN apt-get -y --force-yes install google-chrome-stable
 # Disable the SUID sandbox so that Chrome can launch without being in a privileged container.
 RUN echo "#!/bin/bash\nexec /opt/google/chrome/google-chrome --disable-setuid-sandbox \"\$@\"" > /usr/local/bin/google-chrome
 RUN chmod 755 /usr/local/bin/google-chrome
@@ -43,6 +40,7 @@ RUN chmod 755 /usr/local/bin/google-chrome
 RUN apt-get -y install xvfb x11vnc
 
 # Chromedriver
+RUN apt-get install -y unzip
 RUN curl -sL https://chromedriver.storage.googleapis.com/`curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip > /tmp/chromedriver_linux64.zip
 RUN cd /usr/local/bin; unzip /tmp/chromedriver_linux64.zip
 RUN chmod 755 /usr/local/bin/chromedriver
