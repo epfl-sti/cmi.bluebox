@@ -44,6 +44,9 @@ RUN apt-get install -y unzip
 RUN curl -sL https://chromedriver.storage.googleapis.com/`curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip > /tmp/chromedriver_linux64.zip
 RUN cd /usr/local/bin; unzip /tmp/chromedriver_linux64.zip
 RUN chmod 755 /usr/local/bin/chromedriver
+# Don't let /opt/google/chrome/google-chrome second-guess whether SSE2
+# is enabled (/proc/cpuinfo is all wrong in Travis because uml)
+RUN perl -i -pe 'm|/proc/cpuinfo| or next; $_ = "true\n"' /opt/google/chrome/google-chrome
 
 ########################################################################
 EXPOSE 5900
