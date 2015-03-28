@@ -42,4 +42,4 @@ linux quiet mem=4G rootfstype=hostfs rw \
   eth0=slirp,,/usr/bin/slirp-fullbolt \
   init=$(pwd)/travis/run_all_tests_from_uml.sh WORKDIR=$(pwd) HOME=$HOME
 # You can't really trust the exit code of a *kernel*:
-test -f ./var/uml-docker/success
+test -f ./success
