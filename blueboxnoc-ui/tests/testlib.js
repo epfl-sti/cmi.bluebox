@@ -166,7 +166,9 @@ WebdriverTest.getXPath = function(elem) {
 var findBy = WebdriverTest.findBy =
     function(driverOrElement, webdriverLocator) {
         var driver = driverOrElement.driver_ || driverOrElement;
-        driver.manage().timeouts().setScriptTimeout(10000);
+        driver.manage().timeouts().setScriptTimeout(
+            1000 *
+            (process.env["BLUEBOXNOC_WEBDRIVER_TIMEOUT_SECONDS"] || 10));
         driver.executeAsyncScript(function () {
             // Mobile code! Executes in the browser!
             var callback = arguments[arguments.length - 1];

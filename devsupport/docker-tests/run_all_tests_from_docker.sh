@@ -13,10 +13,15 @@ debug_mode=
 noperl=
 nonode=
 exitcode=0
+: ${BLUEBOXNOC_WEBDRIVER_TIMEOUT_SECONDS:=10}
+export BLUEBOXNOC_WEBDRIVER_TIMEOUT_SECONDS
 
 while [ -n "$1" ]; do case "$1" in
     --help) usage; exit 0 ;;
     --debug) debug_mode=1; shift ;;
+    --travis)
+        BLUEBOXNOC_WEBDRIVER_TIMEOUT_SECONDS=60
+        shift ;;
     --noperl) noperl=1; shift ;;
     --nonode) nonode=1; shift ;;
     *)

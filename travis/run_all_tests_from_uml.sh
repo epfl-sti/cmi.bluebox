@@ -82,6 +82,6 @@ sleep 5
 docker pull "${BLUEBOXNOC_DOCKER_TESTS_NAME}"
 
 docker run -v "$BLUEBOXNOC_CODE_DIR":/opt/blueboxnoc \
-         "${BLUEBOXNOC_DOCKER_TESTS_NAME}" "/opt/blueboxnoc/devsupport/docker-tests/run_all_tests_from_docker.sh"
+        "${BLUEBOXNOC_DOCKER_TESTS_NAME}" /opt/blueboxnoc/devsupport/docker-tests/run_all_tests_from_docker.sh --travis
 
 touch "$WORKDIR"/success
