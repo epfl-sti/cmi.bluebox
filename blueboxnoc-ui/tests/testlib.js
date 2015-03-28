@@ -8,7 +8,7 @@ var debug = require('debug')('testlib'),
 
 function getWebdriverTimeout() {
     return 1000 *
-        (process.env["BLUEBOXNOC_WEBDRIVER_TIMEOUT_SECONDS"] || 10));
+        (process.env["BLUEBOXNOC_WEBDRIVER_TIMEOUT_SECONDS"] || 10);
 }
 
 /**
