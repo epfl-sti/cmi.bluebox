@@ -44,11 +44,11 @@ our $NAME_RE = qr/^[a-z0-9.-]+$/;
 
 sub _new {
   my ($class, $keyref) = @_;
-  die "Need name as primary key" unless defined(my $name = $keyref->[0]);
-  $name = lc($name);
-  croak "Bad Blue Box name: $name" unless $name =~ $NAME_RE;
+  die "Need name as primary key" unless defined($keyref->[0]);
+  $keyref->[0] = lc($keyref->[0]);
+  croak "Bad Blue Box name: $keyref->[0]" unless $keyref->[0] =~ $NAME_RE;
   bless {
-    name => $name,
+    name => $keyref->[0],
     status => "INIT",
   }, $class;
 }
