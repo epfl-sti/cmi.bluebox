@@ -6,6 +6,11 @@ var debug = require('debug')('testlib'),
     webdriver = require('selenium-webdriver'),
     runtime = require('../lib/runtime');
 
+function getWebdriverTimeout() {
+    return 1000 *
+        (process.env["BLUEBOXNOC_WEBDRIVER_TIMEOUT_SECONDS"] || 10));
+}
+
 /**
  * Start a Web server on a random port then call done().
  * @param app An instance of express
@@ -51,7 +56,7 @@ WebdriverTest.describe = function (description, suiteBody) {
     var mochaBefore = before;
     return wdtesting.describe(description, function () {
         var self = this;
-        this.timeout(10000);  // Pump up default value (use 0 for unlimited)
+        this.timeout(getWebdriverTimeout());
         this.setUpFakeData = module.exports.WebdriverTest.setUpFakeData;
 
         // For some reason wdtesting.before won't wait for the callback:
@@ -166,9 +171,7 @@ WebdriverTest.getXPath = function(elem) {
 var findBy = WebdriverTest.findBy =
     function(driverOrElement, webdriverLocator) {
         var driver = driverOrElement.driver_ || driverOrElement;
-        driver.manage().timeouts().setScriptTimeout(
-            1000 *
-            (process.env["BLUEBOXNOC_WEBDRIVER_TIMEOUT_SECONDS"] || 10));
+        driver.manage().timeouts().setScriptTimeout(getWebdriverTimeout());
         driver.executeAsyncScript(function () {
             // Mobile code! Executes in the browser!
             var callback = arguments[arguments.length - 1];
